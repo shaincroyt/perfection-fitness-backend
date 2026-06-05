@@ -970,7 +970,7 @@ body.admin-page-dashboard *, body.admin-page-dashboard *::before, body.admin-pag
 13. Clientes
 ============================== */
 
-body.admin-page-dashboard body.admin-page-clientes *, body.admin-page-clientes *::before, body.admin-page-clientes *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-clientes *, body.admin-page-clientes *::before, body.admin-page-clientes *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body.admin-page-clientes {
       --red:       #DD0F0D;
@@ -1775,7 +1775,7 @@ body.admin-page-dashboard body.admin-page-clientes *, body.admin-page-clientes *
 14. Membresias
 ============================== */
 
-body.admin-page-clientes body.admin-page-membresias *, body.admin-page-membresias *::before, body.admin-page-membresias *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-membresias *, body.admin-page-membresias *::before, body.admin-page-membresias *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body.admin-page-membresias {
       --red:       #DD0F0D;
@@ -2665,7 +2665,7 @@ body.admin-page-membresias .btn-danger{
 14.1 Nueva membresia
 ============================== */
 
-body.admin-page-membresias body.admin-page-nueva-membresia *, body.admin-page-nueva-membresia *::before, body.admin-page-nueva-membresia *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-nueva-membresia *, body.admin-page-nueva-membresia *::before, body.admin-page-nueva-membresia *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body.admin-page-nueva-membresia {
       --red:        #DD0F0D;
@@ -3503,7 +3503,7 @@ body.admin-page-membresias body.admin-page-nueva-membresia *, body.admin-page-nu
     body.admin-page-nueva-membresia .pop-in { animation: popIn-nueva-membresia .4s cubic-bezier(.34,1.56,.64,1) both; }
 
     /* Línea copy button */
-    body.admin-page-nueva-membresia body.admin-page-nueva-membresia .copy-row {
+    body.admin-page-nueva-membresia .copy-row {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -3789,7 +3789,7 @@ body.admin-page-nueva-membresia #btnAgregarPersona{
 15. Validacion
 ============================== */
 
-body.admin-page-nueva-membresia body.admin-page-validar *, body.admin-page-validar *::before, body.admin-page-validar *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-validar *, body.admin-page-validar *::before, body.admin-page-validar *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body.admin-page-validar {
       --red:        #DD0F0D;
@@ -5091,7 +5091,7 @@ body.admin-page-validar .estado-activo {
 16. Asistencias
 ============================== */
 
-body.admin-page-validar body.admin-page-validar body.admin-page-asistencias *, body.admin-page-asistencias *::before, body.admin-page-asistencias *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-asistencias *, body.admin-page-asistencias *::before, body.admin-page-asistencias *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body.admin-page-asistencias {
       --red:       #DD0F0D;
@@ -5664,7 +5664,7 @@ body.admin-page-validar body.admin-page-validar body.admin-page-asistencias *, b
 17. Planes
 ============================== */
 
-body.admin-page-asistencias body.admin-page-planes *, body.admin-page-planes *::before, body.admin-page-planes *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-planes *, body.admin-page-planes *::before, body.admin-page-planes *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body.admin-page-planes {
       --red:       #DD0F0D;
@@ -6221,7 +6221,7 @@ body.admin-page-planes .form-select {
 18. Configuracion
 ============================== */
 
-body.admin-page-planes body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.admin-page-configuracion *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.admin-page-configuracion *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body.admin-page-configuracion {
       --red:#DD0F0D;
@@ -6913,6 +6913,67 @@ body.admin-page-planes body.admin-page-configuracion *, body.admin-page-configur
 /* ==============================
 Modal Fixes
 ============================== */
+
+body.admin-page .sidebar-user.admin-session-box {
+  flex-wrap: wrap;
+}
+
+body.admin-page .admin-logout-btn {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.92);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background .2s cubic-bezier(.4,0,.2,1), border-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1);
+}
+
+body.admin-page .admin-logout-btn:hover {
+  background: rgba(255,255,255,.20);
+  border-color: rgba(255,255,255,.34);
+  color: #fff;
+}
+
+body.admin-page .admin-logout-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+body.admin-page .admin-logout-header-btn {
+  height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid #E8E9EC;
+  background: #fff;
+  color: #555560;
+  padding: 0 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: border-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1), background .2s cubic-bezier(.4,0,.2,1);
+}
+
+body.admin-page .admin-logout-header-btn:hover {
+  border-color: #DD0F0D;
+  color: #DD0F0D;
+}
+
+body.admin-page .admin-logout-header-btn svg {
+  width: 16px;
+  height: 16px;
+}
 
 body.admin-page .logout-modal-overlay {
   align-items: center !important;
