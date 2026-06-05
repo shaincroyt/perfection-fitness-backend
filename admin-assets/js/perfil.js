@@ -96,7 +96,9 @@
         color: var(--red, #DD0F0D);
       }
 
-      .profile-modal-body { padding: 18px 20px 6px; }
+      .profile-modal-body { padding: 18px 20px 6px; display: flex;
+    flex-direction: column;
+    gap: 10px; }
 
       .profile-field {
         display: grid;
@@ -105,7 +107,6 @@
         padding: 10px 0;
         border-bottom: 1px solid rgba(232,233,236,.75);
         align-items: center;
-        margin-bottom: 14px;
       }
 
       .profile-field:last-child { border-bottom: 0; }
