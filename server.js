@@ -39,6 +39,25 @@ function protegerAdmin(req, res, next) {
     return res.redirect('/admin/login.html');
 }
 
+function requireAdminSession(req, res, next) {
+    if (req.session && req.session.admin && req.session.adminId) {
+        return next();
+    }
+
+    return res.status(401).json({
+        ok: false,
+        error: 'Sesion no activa'
+    });
+}
+
+function getSessionAdmin(req) {
+    return {
+        id: req.session.adminId,
+        nombre: req.session.adminNombre,
+        usuario: req.session.adminUsuario
+    };
+}
+
 function generarHashPassword(password) {
     return bcrypt.hash(String(password), 10);
 }
@@ -188,6 +207,22 @@ app.get('/api/verificar-sesion', (req, res) => {
         }
     });
 });
+
+app.get('/api/auth/session', (req, res) => {
+    if (!req.session || !req.session.admin || !req.session.adminId) {
+        return res.status(401).json({
+            ok: false,
+            error: 'Sesion no activa'
+        });
+    }
+
+    return res.json({
+        ok: true,
+        admin: getSessionAdmin(req)
+    });
+});
+
+app.use('/api', requireAdminSession);
 
 app.get('/api/admin/perfil', async (req, res) => {
     try {
