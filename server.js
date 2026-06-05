@@ -6,13 +6,15 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(cors({
     origin: [
         'http://127.0.0.1:3000',
         'http://localhost:3000',
         'http://127.0.0.1:5500',
-        'http://localhost:5500'
+        'http://localhost:5500',
+        'https://splendid-dolphin-88f54a.netlify.app'
     ],
     credentials: true
 }));
@@ -23,8 +25,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 1000 * 60 * 60 * 4
     }
 }));
