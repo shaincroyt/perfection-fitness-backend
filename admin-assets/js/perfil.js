@@ -105,7 +105,7 @@
         padding: 10px 0;
         border-bottom: 1px solid rgba(232,233,236,.75);
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 14px;
       }
 
       .profile-field:last-child { border-bottom: 0; }
