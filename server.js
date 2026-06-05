@@ -1780,6 +1780,7 @@ app.get('/api/dashboard', async (req, res) => {
             LIMIT 5
         `);
         console.timeEnd('ultimosClientes');
+        console.timeEnd('dashboard');
 
         res.json({
     clientes_activos: clientesActivos.total,
