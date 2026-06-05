@@ -7,7 +7,15 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://127.0.0.1:3000',
+        'http://localhost:3000',
+        'http://127.0.0.1:5500',
+        'http://localhost:5500'
+    ],
+    credentials: true
+}));
 app.use(express.json());
 app.use(session({
     secret: 'perfection-fitness-clave-secreta-cambiala',
@@ -15,6 +23,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
+        secure: true,
+        sameSite: 'none',
         maxAge: 1000 * 60 * 60 * 4
     }
 }));
