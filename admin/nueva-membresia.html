@@ -1,0 +1,2694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nueva Membresía — Panel Administrativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:        #DD0F0D;
+      --red-dark:   #B50C0A;
+      --red-deeper: #8C0908;
+      --yellow:     #F6D42E;
+      --white:      #FFFFFF;
+      --bg:         #F4F5F7;
+      --surface:    #FFFFFF;
+      --border:     #E8E9EC;
+      --text-1:     #1A1A1A;
+      --text-2:     #555560;
+      --text-3:     #9999A8;
+      --green:      #16a34a;
+      --green-bg:   #dcfce7;
+      --orange:     #d97706;
+      --orange-bg:  #fef3c7;
+      --blue:       #2563eb;
+      --blue-bg:    #dbeafe;
+      --sidebar-w:  240px;
+      --header-h:   64px;
+      --radius:     12px;
+      --shadow-sm:  0 1px 4px rgba(0,0,0,.06);
+      --shadow-md:  0 4px 20px rgba(0,0,0,.08);
+      --t: .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── LAYOUT ── */
+    .shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: var(--header-h) 1fr;
+  min-height: 100vh;
+  padding-left: var(--sidebar-w);
+}
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+  background: var(--red);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  z-index: 100;
+}
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: rgba(0,0,0,.10);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: 120px; left: -80px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .sidebar-logo {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .sidebar-logo-placeholder {
+      height: 36px; width: 36px;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: .06em;
+      color: var(--white);
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    nav {
+      flex: 1;
+      padding: 16px 0;
+      position: relative;
+      z-index: 1;
+      overflow-y: auto;
+    }
+    nav::-webkit-scrollbar { width: 0; }
+
+    .nav-section { padding: 0 12px; margin-bottom: 4px; }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.40);
+      padding: 12px 8px 6px;
+      display: block;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.75);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--t), color var(--t);
+      user-select: none;
+      position: relative;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: .8; }
+    .nav-item:hover { background: rgba(255,255,255,.12); color: var(--white); }
+    .nav-item.active { background: rgba(255,255,255,.18); color: var(--white); font-weight: 600; }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 50%; transform: translateY(-50%);
+      width: 3px; height: 22px;
+      background: var(--yellow);
+      border-radius: 0 3px 3px 0;
+    }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--yellow);
+      color: var(--red-deeper);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+      line-height: 16px;
+    }
+
+    .sidebar-user {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,.20);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--white);
+      flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--white); }
+    .user-role { font-size: 11px; color: rgba(255,255,255,.50); }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .header-breadcrumb { font-size: 12px; color: var(--text-3); font-weight: 400; }
+    .header-breadcrumb span { color: var(--red); font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
+    .header-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2);
+      transition: border-color var(--t), color var(--t);
+      position: relative;
+    }
+    .header-btn:hover { border-color: var(--red); color: var(--red); }
+    .notif-dot {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 7px; height: 7px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 1.5px solid var(--white);
+    }
+
+    /* ── MAIN ── */
+    .main {
+      padding: 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp .45s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all var(--t);
+      white-space: nowrap;
+    }
+    .btn svg { width: 16px; height: 16px; }
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      box-shadow: 0 2px 8px rgba(221,15,13,.25);
+    }
+    .btn-primary:hover { background: var(--red-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(221,15,13,.35); }
+    .btn-outline {
+      background: white;
+      color: var(--text-2);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--bg); border-color: #ccc; }
+    .btn-lg {
+      padding: 13px 28px;
+      font-size: 15px;
+      border-radius: 10px;
+    }
+
+    /* ── CONTENT GRID ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-icon {
+      width: 36px; height: 36px;
+      background: rgba(221,15,13,.10);
+      color: var(--red);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+    .card-body { padding: 24px; }
+
+    /* ── FORM ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+    }
+    .form-input, .form-select {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-1);
+      background: var(--bg);
+      outline: none;
+      transition: all var(--t);
+    }
+    .form-input::placeholder { color: var(--text-3); }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--red);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(221,15,13,.08);
+    }
+    .form-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239999A8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-color: var(--bg);
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    .form-select:focus { background-color: white; }
+
+    /* CLIENTE EXISTENTE / NUEVO */
+    .client-mode {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 5px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .client-tab {
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background var(--t), color var(--t), box-shadow var(--t);
+    }
+    .client-tab svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .client-tab:hover {
+      color: var(--red);
+      background: rgba(221,15,13,.05);
+    }
+    .client-tab.active {
+      background: var(--red);
+      color: var(--white);
+      box-shadow: var(--shadow-sm);
+    }
+    .client-panel {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    .client-panel.is-hidden { display: none; }
+    .client-selected-card,
+    .client-new-note {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px dashed #d9d9df;
+      border-radius: 9px;
+      background: var(--white);
+    }
+
+    .client-selected-card.loaded {
+  background: var(--red);
+  color: white;
+  border: none;
+    }
+
+    .client-selected-card.loaded .client-selected-title {
+      color: white;
+    }
+
+    .client-selected-card.loaded .client-selected-sub {
+      color: rgba(255,255,255,.8);
+    }
+
+    .client-selected-card.loaded .client-selected-icon {
+      background: white;
+      color: var(--red);
+    }
+
+    .client-selected-icon,
+    .client-new-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .client-selected-icon {
+      color: var(--blue);
+      background: var(--blue-bg);
+    }
+    .client-new-icon {
+      color: var(--green);
+      background: var(--green-bg);
+    }
+    .client-selected-title,
+    .client-new-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .client-selected-sub,
+    .client-new-sub {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    .group-controls {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    .extra-people {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .person-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      overflow: hidden;
+    }
+    .person-card-head {
+      width: 100%;
+      border: 0;
+      background: var(--bg);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .person-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .person-card-action {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--red);
+    }
+    .person-card-body {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .person-card.collapsed .person-card-body { display: none; }
+    .person-type {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .person-type .client-tab {
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .person-type .client-tab.active {
+      background: var(--red);
+      color: var(--white);
+      border-color: var(--red);
+    }
+
+    /* MÉTODOS DE PAGO */
+    .payment-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .payment-opt {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all var(--t);
+      background: var(--bg);
+      position: relative;
+    }
+    .payment-opt:hover {
+      border-color: var(--red);
+      background: rgba(221,15,13,.04);
+    }
+    .payment-opt.selected {
+      border-color: var(--red);
+      background: rgba(221,15,13,.07);
+    }
+    .payment-opt.selected::after {
+      content: '';
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 8px; height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+    .payment-opt input[type="radio"] { display: none; }
+    .payment-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .payment-icon.cash         { background: var(--green-bg); }
+    .payment-icon.card         { background: var(--blue-bg); }
+    .payment-icon.transfer     { background: var(--orange-bg); }
+    .payment-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      text-align: center;
+    }
+    .payment-opt.selected .payment-label { color: var(--red); }
+
+    /* FORM FOOTER */
+    .form-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding-top: 8px;
+    }
+
+    /* ── PANEL DERECHO ── */
+    /* Preview antes de generar */
+    .preview-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .preview-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .preview-icon {
+      width: 36px; height: 36px;
+      background: rgba(221,15,13,.10);
+      color: var(--red);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+    .preview-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .preview-body { padding: 24px; }
+
+    /* Estado vacío del panel */
+    .empty-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 0 10px;
+      text-align: center;
+    }
+    .empty-preview-icon {
+      width: 64px; height: 64px;
+      background: var(--bg);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--border);
+    }
+    .empty-preview p { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+
+    /* Tarjeta de membresía generada */
+    .membership-card {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .membership-card.visible { display: flex; }
+
+    /* Tarjeta visual tipo credencial */
+    .mem-credential {
+      background: linear-gradient(135deg, var(--red-deeper) 0%, var(--red) 55%, #ff3b39 100%);
+      border-radius: 14px;
+      padding: 22px 22px 20px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(221,15,13,.35);
+    }
+    .mem-credential::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: rgba(255,255,255,.08);
+      border-radius: 50%;
+    }
+    .mem-credential::after {
+      content: '';
+      position: absolute;
+      bottom: -50px; left: -30px;
+      width: 120px; height: 120px;
+      background: rgba(0,0,0,.10);
+      border-radius: 50%;
+    }
+    .cred-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      position: relative;
+      z-index: 1;
+    }
+    .cred-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: .08em;
+      opacity: .9;
+    }
+    .cred-tag {
+      background: rgba(255,255,255,.20);
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+    }
+    .cred-code-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: .65;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .cred-code {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 34px;
+      letter-spacing: .12em;
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .cred-divider {
+      height: 1px;
+      background: rgba(255,255,255,.18);
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .cred-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+  
+    .cred-info-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .60;
+      margin-bottom: 2px;
+    }
+    .cred-info-value {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: .95;
+    }
+
+    /* Datos resumen debajo de la tarjeta */
+    .mem-details {
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .mem-detail-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .mem-detail-row:last-child { border-bottom: none; }
+    .mem-detail-label { color: var(--text-3); font-weight: 500; }
+    .mem-detail-value { font-weight: 600; color: var(--text-1); }
+    .mem-detail-value.code {
+      font-family: monospace;
+      color: var(--red);
+      font-size: 13.5px;
+      letter-spacing: .05em;
+    }
+
+    /* Badge estado */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .badge.active { background: var(--green-bg); color: var(--green); }
+    .badge.active .badge-dot { background: var(--green); }
+
+    /* Plan badge */
+    .plan-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+    .plan-pill.mensual    { background: var(--blue-bg); color: var(--blue); }
+    .plan-pill.trimestral { background: #ede9fe; color: #7c3aed; }
+    .plan-pill.semestral  { background: var(--orange-bg); color: var(--orange); }
+    .plan-pill.anual      { background: var(--green-bg); color: var(--green); }
+
+    /* Animación al generar */
+    @keyframes popIn {
+      0%   { opacity: 0; transform: scale(.90) translateY(10px); }
+      70%  { transform: scale(1.02) translateY(-2px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .pop-in { animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both; }
+
+    /* Línea copy button */
+    .copy-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 14px;
+    }
+    .copy-code {
+      flex: 1;
+      font-family: monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--red);
+      letter-spacing: .1em;
+    }
+    .copy-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all var(--t);
+      font-family: 'DM Sans', sans-serif;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+    .copy-btn.copied { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 820px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { display: none; }
+      .shell { grid-template-columns: 1fr; }
+      .main { padding: 18px; }
+    }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .client-mode { grid-template-columns: 1fr; }
+      .group-controls { grid-template-columns: 1fr; }
+      .person-card-body { grid-template-columns: 1fr; }
+      .person-type { grid-template-columns: 1fr; }
+      .client-selected-card,
+      .client-new-note { align-items: flex-start; }
+      .page-header { flex-direction: column; }
+    }
+
+    .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal {
+  background: white;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-md);
+}
+
+.modal-header {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: .04em;
+}
+
+.modal-body {
+  padding: 22px 24px;
+}
+
+.success-modal{
+  max-width:420px;
+  padding:32px 28px;
+  text-align:center;
+}
+
+.success-icon{
+  width:82px;
+  height:82px;
+  margin:0 auto 20px;
+  border-radius:50%;
+  background:#DD0F0D15;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.success-icon svg{
+  width:42px;
+  height:42px;
+  color:#DD0F0D;
+}
+
+.success-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:34px;
+  letter-spacing:.03em;
+  margin-bottom:10px;
+}
+
+.success-text{
+  color:var(--text-3);
+  line-height:1.6;
+  margin-bottom:20px;
+}
+
+.success-code-box{
+  background:#f8f8f8;
+  border:1px solid #ececec;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:24px;
+}
+
+.success-code-label{
+  display:block;
+  font-size:12px;
+  color:var(--text-3);
+  margin-bottom:8px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.success-code{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:38px;
+  color:#DD0F0D;
+  letter-spacing:.08em;
+}
+
+#btnAgregarPersona{
+  background: white;
+      color: var(--red);
+      border: 1.5px solid var(--red);
+
+}
+  
+    .notification-wrap { position: relative; }
+    .notif-count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 20px;
+      background: var(--red);
+      color: white;
+      border: 2px solid var(--white);
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .notif-dot { display: none; }
+    .notification-popover {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 340px;
+      max-width: calc(100vw - 36px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      z-index: 150;
+      display: none;
+      overflow: hidden;
+    }
+    .notification-popover.open { display: block; }
+    .notification-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .notification-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+    .notification-total { font-size: 11px; font-weight: 700; color: var(--text-3); }
+    .notification-list { max-height: 360px; overflow-y: auto; }
+    .notification-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-3);
+      font-size: 13px;
+    }
+    .notification-item {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 9px 1fr;
+      gap: 10px;
+    }
+    .notification-item:last-child { border-bottom: none; }
+    .notification-mark {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-top: 6px;
+      background: var(--orange);
+    }
+    .notification-item.vencida_hoy .notification-mark { background: var(--red); }
+    .notification-item.vence_manana .notification-mark { background: var(--orange); }
+    .notification-item.vence_3_dias .notification-mark { background: var(--yellow); }
+    .notification-item-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+      margin-bottom: 3px;
+    }
+    .notification-item-msg { font-size: 12px; color: var(--text-2); line-height: 1.35; }
+    .notification-item-meta { margin-top: 5px; font-size: 11px; color: var(--text-3); }
+
+    .notification-toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 300;
+      min-width: 260px;
+      max-width: calc(100vw - 44px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      border-radius: 10px;
+      box-shadow: var(--shadow-md);
+      padding: 13px 15px;
+      color: var(--text-1);
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity var(--t), transform var(--t);
+    }
+    .notification-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .notification-toast span {
+      display: block;
+      color: var(--text-3);
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    @media (max-width:600px) {
+      .notification-popover {
+        position: fixed;
+        top: 66px;
+        right: 18px;
+        left: 18px;
+        width: auto;
+        max-width: none;
+      }
+    }
+
+  </style>
+  <link rel="stylesheet" href="../assets/css/logout.css">
+  <script src="../assets/js/admin-auth.js"></script>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ════════════ SIDEBAR ════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <!-- Logo: reemplaza src con tu imagen -->
+      <div class="sidebar-logo-placeholder">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,.8)">
+          <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-label"><!-- Nombre --></div>
+        <div class="logo-sub">Administración</div>
+      </div>
+    </div>
+ 
+        <nav>
+      <div class="nav-section">
+        <span class="nav-label">Principal</span>
+
+        <div class="nav-item" onclick="window.location.href='dashboard.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='clientes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Clientes
+          <span class="nav-badge" id="clientesBadge">0</span>
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='membresias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+          Membresías
+        </div>
+
+        <div class="nav-item active" onclick="window.location.href='nueva-membresia.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          Nueva Membresía
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Control</span>
+
+        <div class="nav-item" onclick="window.location.href='validar.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Validar Ingreso
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='asistencias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          Asistencias
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='planes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          Planes
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Sistema</span>
+        <div class="nav-item" onclick="window.location.href='configuracion.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          Configuración
+        </div>
+      </div>
+    </nav>
+ 
+    <div class="sidebar-user">
+      <div class="user-avatar">AD</div>
+      <div>
+        <div class="user-name">Administrador</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+      <button type="button" class="admin-logout-btn admin-logout-trigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ════════════ HEADER ════════════ -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-title">Nueva Membresía</div>
+      <div class="header-breadcrumb">Inicio / Membresías / <span>Crear Nueva</span></div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="headerDate"></div>
+      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+      <div class="notification-wrap" id="notificationWrap">
+        <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="notif-dot"></span>
+      <span class="notif-count" id="notifCount">0</span>
+        </button>
+        <div class="notification-popover" id="notificationPopover">
+          <div class="notification-head">
+            <div class="notification-title">Notificaciones</div>
+            <div class="notification-total" id="notificationTotal">0 pendientes</div>
+          </div>
+          <div class="notification-list" id="notificationList">
+            <div class="notification-empty">Cargando notificaciones...</div>
+          </div>
+        </div>
+      </div>
+      <button class="header-btn" title="Volver a Membresías" onclick="history.back()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ════════════ MAIN ════════════ -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Crear Membresía</div>
+        <div class="page-subtitle">Completa los datos del cliente para generar su membresía.</div>
+      </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+
+      <!-- ── FORMULARIO ── -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Datos del Cliente</div>
+            <div class="card-subtitle">Información personal y configuración del plan</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <form id="memForm" novalidate>
+            <div class="form-grid">
+
+              <div class="client-mode" aria-label="Tipo de cliente">
+                <button type="button" class="client-tab active" id="tabClienteExistente" onclick="cambiarTipoCliente('existente')">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                  Cliente existente
+                </button>
+                <button type="button" class="client-tab" id="tabClienteNuevo" onclick="cambiarTipoCliente('nuevo')">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-8 2v-3H4v3H1v3h3v3h3v-3h3v-3H7zm8 0c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  Registrar nuevo
+                </button>
+              </div>
+
+              <div class="client-panel" id="clienteExistentePanel">
+                <div class="form-group full">
+                  <label class="form-label" for="clienteExistente">Buscar cliente existente</label>
+                  <select class="form-select" id="clienteExistente">
+                    <option value="">Seleccionar cliente de la base de datos...</option>
+                    <option value="" disabled>Los clientes se cargarán aquí cuando conectes el backend</option>
+                  </select>
+                </div>
+                <div class="client-selected-card">
+                  <div class="client-selected-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                  </div>
+                  <div>
+                    <div class="client-selected-title">Sin cliente seleccionado</div>
+                    <div class="client-selected-sub">Cuando elijas un cliente existente, sus datos pueden mostrarse en los campos de abajo.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="client-panel is-hidden" id="clienteNuevoPanel">
+                <div class="client-new-note">
+                  <div class="client-new-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H7v-2h4v2zm6-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                  </div>
+                  <div>
+                    <div class="client-new-title">Registrar cliente nuevo</div>
+                    <div class="client-new-sub">Completa la información personal y luego genera la membresía con el mismo formulario.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label" for="nombre">Nombre Completo</label>
+                <input type="text" class="form-input" id="nombre" placeholder="Ej. Carlos Ramírez Torres"/>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="dni">DNI</label>
+                <input type="text" class="form-input" id="dni" placeholder="Ej. 45821396" maxlength="8"/>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="telefono">Teléfono</label>
+                <input type="tel" class="form-input" id="telefono" placeholder="Ej. 987 654 321"/>
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label" for="correo">Correo Electrónico</label>
+                <input type="email" class="form-input" id="correo" placeholder="Ej. cliente@correo.com"/>
+              </div>
+
+              <div class="group-controls">
+                <div class="form-group">
+                  <label class="form-label" for="promocionTipo">Promoción grupal</label>
+                  <select class="form-select" id="promocionTipo" onchange="actualizarPromocionGrupal()">
+                    <option value="">Sin promoción</option>
+                    <option value="Promoción 2x1">Promoción 2x1</option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn-outline" id="btnAgregarPersona" onclick="agregarPersonaExtra()">
+                  Agregar persona
+                </button>
+              </div>
+
+              <div class="extra-people" id="extraPeople"></div>
+
+              <div class="form-group full">
+                <label class="form-label" for="plan">Tipo de Plan</label>
+                <select class="form-select" id="plan">
+                  <option value="">Seleccionar plan...</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label" for="meses" id="cantidadLabel">Cantidad de meses</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="meses"
+                    min="1"
+                    value="1"
+                    placeholder="Ej. 3"
+                  />
+                  <div class="form-hint" id="duracionHint"></div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="promocion">Descuento (%)</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="promocion"
+                    min="0"
+                    max="100"
+                    value="0"
+                    placeholder="Ej. 20"
+                  />
+                </div>
+
+              <!-- MÉTODO DE PAGO -->
+              <div class="form-group full">
+                <label class="form-label">Método de Pago</label>
+                <div class="payment-options" id="paymentOptions">
+
+                  <label class="payment-opt" id="opt-efectivo" onclick="selectPayment(this,'Efectivo')">
+                    <input type="radio" name="pago" value="Efectivo"/>
+                    <div class="payment-icon cash">💵</div>
+                    <div class="payment-label">Efectivo</div>
+                  </label>
+
+                  <label class="payment-opt" id="opt-tarjeta" onclick="selectPayment(this,'Tarjeta')">
+                    <input type="radio" name="pago" value="Tarjeta"/>
+                    <div class="payment-icon card">💳</div>
+                    <div class="payment-label">Tarjeta</div>
+                  </label>
+
+                  <label class="payment-opt" id="opt-transferencia" onclick="selectPayment(this,'Transferencia')">
+                    <input type="radio" name="pago" value="Transferencia"/>
+                    <div class="payment-icon transfer">🏦</div>
+                    <div class="payment-label">Transferencia</div>
+                  </label>
+
+                </div>
+              </div>
+
+            </div><!-- /form-grid -->
+
+            <!-- ERROR -->
+            <div id="formError" style="display:none; margin-top:14px; padding:10px 14px; background:#fee2e2; color:#dc2626; border-radius:8px; font-size:13px; font-weight:500;">
+              ⚠️ Por favor completa todos los campos antes de continuar.
+            </div>
+
+            <div class="form-footer" style="margin-top:22px;">
+              <button type="button" class="btn btn-outline" onclick="resetForm()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.87"/></svg>
+                Limpiar
+              </button>
+              <button type="button" class="btn btn-primary btn-lg" id="btnGenerar" onclick="generarMembresia()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                Generar Vista Previa
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── PANEL DERECHO: VISTA PREVIA / RESULTADO ── -->
+      <div class="preview-card">
+        <div class="preview-header">
+          <div class="preview-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+          </div>
+          <div>
+            <div class="preview-title">Vista Previa</div>
+            <div class="preview-sub">Membresía generada</div>
+          </div>
+        </div>
+        <div class="preview-body">
+
+          <!-- Estado vacío -->
+          <div class="empty-preview" id="emptyPreview">
+            <div class="empty-preview-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
+            <p>Completa el formulario y presiona<br/><strong style="color:var(--text-2)">Generar Membresía</strong><br/>para ver la tarjeta aquí.</p>
+          </div>
+
+          <!-- Resultado generado -->
+          <div class="membership-card" id="membershipResult">
+
+            <!-- Tarjeta tipo credencial -->
+            <div class="mem-credential pop-in" id="credentialCard">
+              <div class="cred-top">
+                <div class="cred-brand">💪 Mi Gimnasio</div>
+                <div class="cred-tag" id="credPlanTag">—</div>
+              </div>
+              <div class="cred-code-label">Código de Membresía</div>
+              <div class="cred-code" id="credCode">GYM-A8K2PZ</div>
+              <div class="cred-divider"></div>
+              <div class="cred-info-grid">
+                <div class="cred-info-item">
+                  <div class="cred-info-label">Titular</div>
+                  <div class="cred-info-value" id="credNombre">—</div>
+                </div>
+                <div class="cred-info-item">
+                  <div class="cred-info-label">Válido hasta</div>
+                  <div class="cred-info-value" id="credFin">—</div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="btn btn-primary btn-lg"
+              id="btnConfirmarMembresia"
+              onclick="confirmarMembresia()"
+              style="justify-content:center;"
+            >
+              Confirmar Membresía
+            </button>
+
+            <!-- Código copy -->
+            <div class="copy-row">
+              <span class="copy-code" id="copyCodeText">GYM-A8K2PZ</span>
+              
+            </div>
+
+            <!-- Tabla de datos -->
+            <div class="mem-details" id="memDetails">
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Código</span>
+                <span class="mem-detail-value code" id="detCodigo">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Cliente</span>
+                <span class="mem-detail-value" id="detNombre">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">DNI</span>
+                <span class="mem-detail-value" id="detDni">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Teléfono</span>
+                <span class="mem-detail-value" id="detTelefono">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Correo</span>
+                <span class="mem-detail-value" id="detCorreo" style="font-size:12px">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Plan</span>
+                <span class="mem-detail-value" id="detPlan">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Pago</span>
+                <span class="mem-detail-value" id="detPago">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Inicio</span>
+                <span class="mem-detail-value" id="detInicio">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Vence</span>
+                <span class="mem-detail-value" id="detFin">—</span>
+              </div>
+              <div class="mem-detail-row">
+                <span class="mem-detail-label">Estado</span>
+                <span class="mem-detail-value"><span class="badge active"><span class="badge-dot"></span>Activo</span></span>
+              </div>
+            </div>
+
+          </div><!-- /membership-card -->
+        </div>
+      </div>
+
+    </div><!-- /content-grid -->
+  </main>
+</div>
+
+<div class="modal-overlay" id="dniExistsModal">
+  <div class="modal success-modal">
+
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+
+    <h2 class="success-title">DNI ya registrado</h2>
+
+    <p class="success-text" id="dniExistsText">
+      Ya existe un cliente con este DNI.
+    </p>
+
+    <button
+      class="btn btn-primary"
+      onclick="cerrarDniExistsModal()"
+      style="width:100%;justify-content:center;"
+    >
+      Entendido
+    </button>
+
+  </div>
+</div>
+
+<script>
+
+  /* ── Fecha en header ── */
+  const d = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('headerDate').textContent =
+    d.toLocaleDateString('es-PE', opts).replace(/^\w/, c => c.toUpperCase());
+
+  /* ── Método de pago seleccionado ── */
+  let selectedPayment = '';
+  let membresiaPendiente = null;
+
+  const API_URL = 'https://perfection-fitness-backend-production.up.railway.app/api';
+
+let clientesDB = [];
+let planesDB = [];
+let personaExtraActiva = false;
+  function selectPayment(el, value) {
+    document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPayment = value;
+  }
+
+  /* ── Tipo de cliente: solo alterna la vista ── */
+  function cambiarTipoCliente(tipo) {
+  const existente = tipo === 'existente';
+
+  document.getElementById('tabClienteExistente')
+    .classList.toggle('active', existente);
+
+  document.getElementById('tabClienteNuevo')
+    .classList.toggle('active', !existente);
+
+  document.getElementById('clienteExistentePanel')
+    .classList.toggle('is-hidden', !existente);
+
+  document.getElementById('clienteNuevoPanel')
+    .classList.toggle('is-hidden', existente);
+
+  limpiarDatosCliente();
+}
+
+function limpiarDatosCliente() {
+  document.getElementById('nombre').value = '';
+  document.getElementById('dni').value = '';
+  document.getElementById('telefono').value = '';
+  document.getElementById('correo').value = '';
+
+  const select = document.getElementById('clienteExistente');
+
+  if (select) {
+    select.value = '';
+  }
+
+  document.querySelector('.client-selected-card').innerHTML = `
+  <div class="client-selected-icon">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 
+      1.79-4 4 1.79 4 4 4zm0 2c-2.67 
+      0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
+  </div>
+  <div>
+    <div class="client-selected-title">Sin cliente seleccionado</div>
+    <div class="client-selected-sub">
+      Cuando elijas un cliente existente, sus datos pueden mostrarse en los campos de abajo.
+    </div>
+  </div>
+`;
+
+document
+  .querySelector('.client-selected-card')
+  .classList.remove('loaded');
+}
+
+function rellenarClienteExistente() {
+
+  const clienteId =
+    document.getElementById('clienteExistente').value;
+
+  const cliente =
+    clientesDB.find(
+      c => String(c.id) === String(clienteId)
+    );
+
+    const card =
+  document.querySelector('.client-selected-card');
+
+card.classList.add('loaded');
+
+  if (!cliente) {
+    limpiarDatosCliente();
+    return;
+  }
+
+  document.getElementById('nombre').value =
+    cliente.nombre || '';
+
+  document.getElementById('dni').value =
+    cliente.dni || '';
+
+  document.getElementById('telefono').value =
+    cliente.telefono || '';
+
+  document.getElementById('correo').value =
+    cliente.correo || '';
+
+    document.querySelector('.client-selected-card').innerHTML = `
+  <div class="client-selected-icon">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 
+      1.79-4 4 1.79 4 4 4zm0 2c-2.67 
+      0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
+  </div>
+  <div>
+    <div class="client-selected-title">${cliente.nombre}</div>
+    <div class="client-selected-sub">
+      DNI: ${cliente.dni || '-'} · Tel: ${cliente.telefono || '-'}
+    </div>
+  </div>
+`;
+}
+  async function cargarClientes() {
+  try {
+    const res = await fetch(`${API_URL}/clientes`);
+    clientesDB = await res.json();
+
+    const select = document.getElementById('clienteExistente');
+
+    select.innerHTML =
+      '<option value="">Seleccionar cliente...</option>';
+
+    clientesDB.forEach(cliente => {
+      select.innerHTML += `
+        <option value="${cliente.id}">
+          ${cliente.nombre} - DNI ${cliente.dni}
+        </option>
+      `;
+    });
+
+    select.addEventListener('change', rellenarClienteExistente);
+
+  } catch (error) {
+    console.error('Error cargando clientes:', error);
+  }
+}
+
+function actualizarPromocionGrupal() {
+  const tipo = document.getElementById('promocionTipo').value;
+  const btn = document.getElementById('btnAgregarPersona');
+
+  if (tipo === 'Promoción 2x1' && !personaExtraActiva) {
+    btn.disabled = false;
+  }
+
+  if (tipo === 'Promoción 2x1' && personaExtraActiva) {
+    btn.disabled = true;
+  }
+}
+
+function agregarPersonaExtra() {
+  if (personaExtraActiva) return;
+
+  const tipoPromo = document.getElementById('promocionTipo').value;
+  if (tipoPromo === 'Promoción 2x1' && personaExtraActiva) return;
+
+  personaExtraActiva = true;
+  document.getElementById('btnAgregarPersona').disabled = true;
+
+  document.getElementById('extraPeople').innerHTML = `
+    <div class="person-card" id="personaExtraCard">
+      <button type="button" class="person-card-head" onclick="togglePersonaExtra()">
+        <span class="person-card-title" id="personaExtraTitulo">Persona 2: Sin nombre</span>
+        <span class="person-card-action">Expandir / ocultar</span>
+      </button>
+      <div class="person-card-body">
+        <div class="person-type">
+          <button type="button" class="client-tab active" id="personaExtraExistenteTab" onclick="cambiarTipoPersonaExtra('existente')">Cliente existente</button>
+          <button type="button" class="client-tab" id="personaExtraNuevoTab" onclick="cambiarTipoPersonaExtra('nuevo')">Cliente nuevo</button>
+        </div>
+
+        <div class="form-group full" id="personaExtraExistenteWrap">
+          <label class="form-label" for="personaExtraCliente">Buscar cliente existente</label>
+          <select class="form-select" id="personaExtraCliente" onchange="rellenarPersonaExtraExistente()">
+            <option value="">Seleccionar cliente...</option>
+            ${clientesDB.map(cliente => `
+              <option value="${cliente.id}">${cliente.nombre} - DNI ${cliente.dni}</option>
+            `).join('')}
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label" for="personaExtraNombre">Nombre Completo</label>
+          <input type="text" class="form-input" id="personaExtraNombre" placeholder="Ej. Lucía Gómez" oninput="actualizarTituloPersonaExtra()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="personaExtraDni">DNI</label>
+          <input type="text" class="form-input" id="personaExtraDni" maxlength="8" placeholder="Ej. 45821396"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="personaExtraTelefono">Teléfono</label>
+          <input type="tel" class="form-input" id="personaExtraTelefono" placeholder="Ej. 987 654 321"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label" for="personaExtraCorreo">Correo Electrónico</label>
+          <input type="email" class="form-input" id="personaExtraCorreo" placeholder="Ej. cliente@correo.com"/>
+        </div>
+
+        <div class="form-group full">
+          <button type="button" class="btn btn-outline" onclick="quitarPersonaExtra()">Quitar persona</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  cambiarTipoPersonaExtra('existente');
+}
+
+function quitarPersonaExtra() {
+  personaExtraActiva = false;
+  document.getElementById('extraPeople').innerHTML = '';
+  document.getElementById('btnAgregarPersona').disabled = false;
+}
+
+function togglePersonaExtra() {
+  document.getElementById('personaExtraCard')?.classList.toggle('collapsed');
+}
+
+function cambiarTipoPersonaExtra(tipo) {
+  const existente = tipo === 'existente';
+  document.getElementById('personaExtraExistenteTab')?.classList.toggle('active', existente);
+  document.getElementById('personaExtraNuevoTab')?.classList.toggle('active', !existente);
+  document.getElementById('personaExtraExistenteWrap').style.display = existente ? '' : 'none';
+  document.getElementById('personaExtraCliente').value = '';
+  document.getElementById('personaExtraNombre').value = '';
+  document.getElementById('personaExtraDni').value = '';
+  document.getElementById('personaExtraTelefono').value = '';
+  document.getElementById('personaExtraCorreo').value = '';
+  actualizarTituloPersonaExtra();
+}
+
+function rellenarPersonaExtraExistente() {
+  const clienteId = document.getElementById('personaExtraCliente').value;
+  const cliente = clientesDB.find(c => String(c.id) === String(clienteId));
+  if (!cliente) return;
+
+  document.getElementById('personaExtraNombre').value = cliente.nombre || '';
+  document.getElementById('personaExtraDni').value = cliente.dni || '';
+  document.getElementById('personaExtraTelefono').value = cliente.telefono || '';
+  document.getElementById('personaExtraCorreo').value = cliente.correo || '';
+  actualizarTituloPersonaExtra();
+}
+
+function actualizarTituloPersonaExtra() {
+  const nombre = document.getElementById('personaExtraNombre')?.value.trim() || 'Sin nombre';
+  const titulo = document.getElementById('personaExtraTitulo');
+  if (titulo) titulo.textContent = `Persona 2: ${nombre}`;
+}
+
+function obtenerPersonasFormulario() {
+  const tipoCliente = document
+    .getElementById('tabClienteNuevo')
+    .classList.contains('active') ? 'nuevo' : 'existente';
+
+  const personas = [{
+    tipoCliente,
+    cliente_id: tipoCliente === 'existente' ? document.getElementById('clienteExistente').value : null,
+    nombre: document.getElementById('nombre').value.trim(),
+    dni: document.getElementById('dni').value.trim(),
+    telefono: document.getElementById('telefono').value.trim(),
+    correo: document.getElementById('correo').value.trim()
+  }];
+
+  if (personaExtraActiva) {
+    const extraExistente = document.getElementById('personaExtraExistenteTab').classList.contains('active');
+    personas.push({
+      tipoCliente: extraExistente ? 'existente' : 'nuevo',
+      cliente_id: extraExistente ? document.getElementById('personaExtraCliente').value : null,
+      nombre: document.getElementById('personaExtraNombre').value.trim(),
+      dni: document.getElementById('personaExtraDni').value.trim(),
+      telefono: document.getElementById('personaExtraTelefono').value.trim(),
+      correo: document.getElementById('personaExtraCorreo').value.trim()
+    });
+  }
+
+  return personas;
+}
+
+async function cargarPlanes() {
+  try {
+    const res = await fetch(`${API_URL}/planes`);
+    planesDB = await res.json();
+
+    const select = document.getElementById('plan');
+
+    select.innerHTML =
+      '<option value="">Seleccionar plan...</option>';
+
+    planesDB.forEach(plan => {
+      const precioPlan = plan.precio ?? plan.precio_mensual;
+      select.innerHTML += `
+        <option value="${plan.id}">
+          ${plan.nombre} - S/${Number(precioPlan).toFixed(2)}
+        </option>
+      `;
+    });
+
+    actualizarCamposDuracion();
+
+  } catch (error) {
+    console.error('Error cargando planes:', error);
+  }
+}
+
+  /* ── Generador de código ── */
+  const CODES = ['GYM-A8K2PZ', 'GYM-B5L9XQ', 'GYM-C7M4RT'];
+  let codeIndex = 0;
+
+  /* ── Meses para fechas ── */
+  const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  function fmtDate(dt) {
+    return `${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+
+  /* ── Duración según plan ── */
+  function planSeleccionado() {
+    const planId = document.getElementById('plan').value;
+    return planesDB.find(p => String(p.id) === String(planId));
+  }
+
+  function unidadPlan(plan) {
+    return ['dias', 'meses', 'usos'].includes(plan?.duracion_unidad)
+      ? plan.duracion_unidad
+      : 'meses';
+  }
+
+  function cantidadPlan(plan) {
+    const valor = parseInt(plan?.duracion_valor, 10);
+    return Number.isFinite(valor) && valor > 0 ? valor : 1;
+  }
+
+  function etiquetaCantidad(unidad) {
+    return {
+      dias: 'Cantidad de dias',
+      meses: 'Cantidad de meses',
+      usos: 'Cantidad de usos'
+    }[unidad] || 'Cantidad de meses';
+  }
+
+  function textoCantidad(cantidad, unidad) {
+    if (unidad === 'dias') return `${cantidad} ${cantidad === 1 ? 'dia' : 'dias'}`;
+    if (unidad === 'usos') return `${cantidad} ${cantidad === 1 ? 'uso' : 'usos'}`;
+    return `${cantidad} ${cantidad === 1 ? 'mes' : 'meses'}`;
+  }
+
+  function calcularFechaFin(inicio, cantidad, unidad) {
+    const fin = new Date(inicio);
+
+    if (unidad === 'meses') {
+      fin.setMonth(fin.getMonth() + cantidad);
+    } else {
+      fin.setDate(fin.getDate() + cantidad);
+    }
+
+    return fin;
+  }
+
+  function actualizarCamposDuracion() {
+    const plan = planSeleccionado();
+    const unidad = unidadPlan(plan);
+    const cantidad = cantidadPlan(plan);
+    const input = document.getElementById('meses');
+    const label = document.getElementById('cantidadLabel');
+    const hint = document.getElementById('duracionHint');
+
+    if (!input || !label || !hint) return;
+
+    label.textContent = etiquetaCantidad(unidad);
+    input.placeholder = unidad === 'usos' ? 'Ej. 1' : unidad === 'dias' ? 'Ej. 7' : 'Ej. 3';
+    input.value = cantidad;
+    hint.textContent = unidad === 'usos'
+      ? 'Esta membresia se desactivara cuando se consuman todos los usos.'
+      : '';
+  }
+
+  function descuentoNormalizado() {
+    const valor = parseFloat(document.getElementById('promocion').value);
+    if (!Number.isFinite(valor)) return 0;
+    return Math.min(Math.max(valor, 0), 100);
+  }
+
+  /* ── Plan pill html ── */
+  function planPillHtml(plan) {
+    const cls = { Mensual:'mensual', Trimestral:'trimestral', Semestral:'semestral', Anual:'anual' }[plan] || 'mensual';
+    return `<span class="plan-pill ${cls}">${plan}</span>`;
+  }
+
+  function cerrarDniExistsModal() {
+  document
+    .getElementById('dniExistsModal')
+    .classList.remove('open');
+}
+
+function mostrarDniExiste(cliente) {
+  document.getElementById('dniExistsText').innerHTML = `
+    Ya existe un cliente registrado con este DNI:<br><br>
+    <strong>${cliente.nombre}</strong><br>
+    DNI: ${cliente.dni}<br><br>
+    Usa la pestaña <strong>Cliente existente</strong> para generarle una membresía.
+  `;
+
+  document
+    .getElementById('dniExistsModal')
+    .classList.add('open');
+}
+
+  /* ── Generar membresía ── */
+  async function generarMembresia() {
+  const tipoCliente = document
+  .getElementById('tabClienteNuevo')
+  .classList.contains('active') ? 'nuevo' : 'existente';
+
+  const nombre = document.getElementById('nombre').value.trim();
+  const dni = document.getElementById('dni').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const correo = document.getElementById('correo').value.trim();
+  const planId = document.getElementById('plan').value;
+  const meses = parseInt(document.getElementById('meses').value) || 1;
+  const promocion = parseFloat(document.getElementById('promocion').value) || 0;
+  const err = document.getElementById('formError');
+
+  const errores = [];
+
+if (tipoCliente === 'existente' &&
+    !document.getElementById('clienteExistente').value) {
+  errores.push('Selecciona un cliente existente');
+}
+
+if (!nombre) errores.push('Completa el nombre del cliente');
+if (!dni) errores.push('Completa el DNI');
+if (!planId) errores.push('Selecciona un plan');
+if (!selectedPayment) errores.push('Selecciona un método de pago');
+
+if (errores.length > 0) {
+
+  err.innerHTML =
+    '⚠️ ' + errores.join('<br>⚠️ ');
+
+  err.style.display = 'block';
+
+  err.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+
+  return;
+}
+
+  err.style.display = 'none';
+
+  if (tipoCliente === 'nuevo') {
+  await cargarClientes();
+
+  const dniIngresado = String(dni).replace(/\D/g, '');
+
+  const clienteDuplicado = clientesDB.find(cliente => {
+    const dniCliente = String(cliente.dni).replace(/\D/g, '');
+    return dniCliente === dniIngresado;
+  });
+
+  if (clienteDuplicado) {
+    mostrarDniExiste(clienteDuplicado);
+    return;
+  }
+}
+
+  try {
+    let clienteId;
+
+    if (tipoCliente === 'existente') {
+      clienteId = document.getElementById('clienteExistente').value;
+
+      if (!clienteId) {
+        alert('Selecciona un cliente existente');
+        return;
+      }
+    } else {
+  clienteId = null;
+}
+
+    const plan = planesDB.find(p => String(p.id) === String(planId));
+
+    if (!plan) {
+      alert('Plan no válido');
+      return;
+    }
+
+    const precioPlan = plan.precio ?? plan.precio_mensual;
+    const subtotal = Number(precioPlan) * meses;
+    const precioTotal = Math.max(subtotal - promocion, 0);
+
+    const inicio = new Date();
+const fin = new Date(inicio);
+
+const unidad = plan.duracion_unidad || 'meses';
+
+if (unidad === 'dias') {
+  fin.setDate(fin.getDate() + cantidad);
+} else if (unidad === 'meses') {
+  fin.setMonth(fin.getMonth() + cantidad);
+}
+
+const fechaInicioSQL = inicio.toLocaleDateString('en-CA');
+const fechaFinSQL = fin.toLocaleDateString('en-CA');
+
+    const codigo = 'PFS-PREVIA';
+
+membresiaPendiente = {
+  tipoCliente,
+  cliente_id: clienteId,
+  nombre,
+  dni,
+  telefono,
+  correo,
+  plan_id: planId,
+  plan_nombre: plan.nombre,
+  meses,
+  precio_total: precioTotal,
+  promocion: promocion > 0 ? `Descuento S/${promocion}` : null,
+  fecha_inicio: fechaInicioSQL,
+  fecha_fin: fechaFinSQL,
+  origen: 'presencial'
+};
+
+    document.getElementById('credCode').textContent = codigo;
+    document.getElementById('credNombre').textContent = nombre.split(' ')[0];
+    document.getElementById('credFin').textContent = fmtDate(fin);
+    document.getElementById('credPlanTag').textContent = plan.nombre;
+    document.getElementById('copyCodeText').textContent = codigo;
+
+    document.getElementById('detCodigo').textContent = codigo;
+    document.getElementById('detNombre').textContent = nombre;
+    document.getElementById('detDni').textContent = dni;
+    document.getElementById('detTelefono').textContent = telefono;
+    document.getElementById('detCorreo').textContent = correo;
+    document.getElementById('detPago').innerHTML = `
+  ${selectedPayment} —
+  <strong style="color:var(--red);font-size:16px;">
+    Total S/${precioTotal.toFixed(2)}
+  </strong>
+`;
+    document.getElementById('detInicio').textContent = fmtDate(inicio);
+    document.getElementById('detFin').textContent = fmtDate(fin);
+    document.getElementById('detPlan').innerHTML = planPillHtml(plan.nombre);
+
+    document.getElementById('emptyPreview').style.display = 'none';
+    const result = document.getElementById('membershipResult');
+    result.classList.add('visible');
+
+    const cred = document.getElementById('credentialCard');
+    cred.classList.remove('pop-in');
+    void cred.offsetWidth;
+    cred.classList.add('pop-in');
+
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (error) {
+    console.error(error);
+    alert('Error al generar la membresía');
+  }
+}
+async function generarMembresia() {
+  const personas = obtenerPersonasFormulario();
+  const planId = document.getElementById('plan').value;
+  const cantidad = parseInt(document.getElementById('meses').value) || 1;
+  const descuento = descuentoNormalizado();
+  const promocionTipo = document.getElementById('promocionTipo').value;
+  const err = document.getElementById('formError');
+  const errores = [];
+
+  if (promocionTipo === 'Promoción 2x1' && personas.length !== 2) {
+    errores.push('La promoción 2x1 necesita exactamente 2 personas');
+  }
+
+  personas.forEach((persona, index) => {
+    const etiqueta = `Persona ${index + 1}`;
+    if (persona.tipoCliente === 'existente' && !persona.cliente_id) {
+      errores.push(`${etiqueta}: selecciona un cliente existente`);
+    }
+    if (!persona.nombre) errores.push(`${etiqueta}: completa el nombre`);
+    if (!persona.dni) errores.push(`${etiqueta}: completa el DNI`);
+  });
+
+  const dnis = personas.map(p => String(p.dni || '').replace(/\D/g, '')).filter(Boolean);
+  if (dnis.length !== new Set(dnis).size) {
+    errores.push('No puedes usar el mismo DNI en dos personas');
+  }
+
+  if (!planId) errores.push('Selecciona un plan');
+  if (!selectedPayment) errores.push('Selecciona un método de pago');
+
+  const nuevoConDniExistente = personas.find(persona => {
+    if (persona.tipoCliente !== 'nuevo') return false;
+    const dniPersona = String(persona.dni || '').replace(/\D/g, '');
+    return clientesDB.some(cliente => String(cliente.dni || '').replace(/\D/g, '') === dniPersona);
+  });
+
+  if (nuevoConDniExistente) {
+    const dniPersona = String(nuevoConDniExistente.dni || '').replace(/\D/g, '');
+    const clienteDuplicado = clientesDB.find(cliente => String(cliente.dni || '').replace(/\D/g, '') === dniPersona);
+    mostrarDniExiste(clienteDuplicado);
+    return;
+  }
+
+  if (errores.length > 0) {
+    err.innerHTML = '⚠️ ' + errores.join('<br>⚠️ ');
+    err.style.display = 'block';
+    err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  err.style.display = 'none';
+
+  try {
+    const plan = planesDB.find(p => String(p.id) === String(planId));
+
+    if (!plan) {
+      alert('Plan no válido');
+      return;
+    }
+
+    const precioPlan = plan.precio ?? plan.precio_mensual;
+    const unidad = unidadPlan(plan);
+    const subtotal = Number(precioPlan) * cantidad;
+    const descuentoMonto = subtotal * (descuento / 100);
+    const precioTotal = Math.max(subtotal - descuentoMonto, 0);
+    const inicio = new Date();
+    const fin = unidad === 'usos'
+      ? new Date(inicio)
+      : calcularFechaFin(inicio, cantidad, unidad);
+
+    function fechaLocalSQL(fecha) {
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, '0');
+  const d = String(fecha.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+const fechaInicioSQL = fechaLocalSQL(inicio);
+const fechaFinSQL = fechaLocalSQL(fin);
+    const codigo = 'PFS-PREVIA';
+    const etiquetaPromocion = promocionTipo || (descuento > 0 ? `Descuento ${descuento}%` : null);
+
+    membresiaPendiente = {
+      esGrupal: personas.length > 1,
+      personas,
+      tipoCliente: personas[0].tipoCliente,
+      cliente_id: personas[0].cliente_id,
+      nombre: personas[0].nombre,
+      dni: personas[0].dni,
+      telefono: personas[0].telefono,
+      correo: personas[0].correo,
+      plan_id: planId,
+      plan_nombre: plan.nombre,
+      meses: cantidad,
+      duracion_unidad: unidad,
+      usos_totales: unidad === 'usos' ? cantidad : null,
+      usos_restantes: unidad === 'usos' ? cantidad : null,
+      precio_total: precioTotal,
+      promocion: etiquetaPromocion,
+      promocion_etiqueta: promocionTipo || etiquetaPromocion,
+      fecha_inicio: fechaInicioSQL,
+      fecha_fin: fechaFinSQL,
+      origen: 'presencial'
+    };
+
+    const nombresPreview = personas.map(p => p.nombre).join(' + ');
+
+    document.getElementById('credCode').textContent = codigo;
+    document.getElementById('credNombre').textContent = personas[0].nombre.split(' ')[0];
+    document.getElementById('credFin').textContent = unidad === 'usos'
+      ? textoCantidad(cantidad, unidad)
+      : fmtDate(fin);
+    document.getElementById('credPlanTag').textContent = promocionTipo || plan.nombre;
+    document.getElementById('copyCodeText').textContent = codigo;
+
+    document.getElementById('detCodigo').textContent = codigo;
+    document.getElementById('detNombre').textContent = nombresPreview;
+    document.getElementById('detDni').textContent = personas.map(p => p.dni).join(' / ');
+    document.getElementById('detTelefono').textContent = personas.map(p => p.telefono || '-').join(' / ');
+    document.getElementById('detCorreo').textContent = personas.map(p => p.correo || '-').join(' / ');
+    document.getElementById('detPago').innerHTML = `
+      ${selectedPayment} —
+      <strong style="color:var(--red);font-size:16px;">
+        Total S/${precioTotal.toFixed(2)}
+      </strong>
+      <br><span style="font-size:12px;color:var(--text-3);">
+        Subtotal S/${subtotal.toFixed(2)}
+        ${descuento > 0 ? ` · Descuento ${descuento}% (-S/${descuentoMonto.toFixed(2)})` : ' · Sin descuento'}
+      </span>
+      ${promocionTipo ? `<br><span style="font-size:12px;color:var(--text-3);">${promocionTipo}</span>` : ''}
+    `;
+    document.getElementById('detInicio').textContent = fmtDate(inicio);
+    document.getElementById('detFin').textContent = unidad === 'usos'
+      ? `Por consumo de usos (${textoCantidad(cantidad, unidad)})`
+      : fmtDate(fin);
+    document.getElementById('detPlan').innerHTML = planPillHtml(plan.nombre);
+
+    document.getElementById('emptyPreview').style.display = 'none';
+    const result = document.getElementById('membershipResult');
+    result.classList.add('visible');
+
+    const cred = document.getElementById('credentialCard');
+    cred.classList.remove('pop-in');
+    void cred.offsetWidth;
+    cred.classList.add('pop-in');
+
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (error) {
+    console.error(error);
+    alert('Error al generar la membresía');
+  }
+}
+  /* ── Copiar código ── */
+  function copiarCodigo() {
+    const code = document.getElementById('copyCodeText').textContent;
+    navigator.clipboard.writeText(code).catch(() => {});
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ ¡Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copiar código';
+      btn.classList.remove('copied');
+    }, 2000);
+  }
+
+  /* ── Limpiar formulario ── */
+  function resetForm() {
+    document.getElementById('nombre').value   = '';
+    document.getElementById('dni').value      = '';
+    document.getElementById('telefono').value = '';
+    document.getElementById('correo').value   = '';
+    document.getElementById('plan').value     = '';
+    actualizarCamposDuracion();
+    document.getElementById('promocionTipo').value = '';
+    document.getElementById('promocion').value = '0';
+    quitarPersonaExtra();
+    document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('selected'));
+    selectedPayment = '';
+    document.getElementById('formError').style.display = 'none';
+    document.getElementById('emptyPreview').style.display = '';
+    document.getElementById('membershipResult').classList.remove('visible');
+  }
+
+  async function confirmarMembresia() {
+  if (!membresiaPendiente) {
+    alert('Primero genera una vista previa.');
+    return;
+  }
+if (membresiaPendiente.tipoCliente === 'nuevo') {
+  const resCliente = await fetch(`${API_URL}/clientes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nombre: membresiaPendiente.nombre,
+      dni: membresiaPendiente.dni,
+      telefono: membresiaPendiente.telefono,
+      correo: membresiaPendiente.correo,
+      estado: 'activo'
+    })
+  });
+
+  if (!resCliente.ok) {
+    throw new Error('No se pudo crear o actualizar el cliente');
+  }
+
+  const clienteCreado = await resCliente.json();
+  membresiaPendiente.cliente_id = clienteCreado.id;
+}
+  try {
+    const resMembresia = await fetch(`${API_URL}/membresias`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(membresiaPendiente)
+    });
+
+    if (!resMembresia.ok) {
+      throw new Error('No se pudo crear la membresía');
+    }
+
+    const membresiaCreada = await resMembresia.json();
+    const codigo = membresiaCreada.codigo;
+    document.getElementById('successCode').textContent = codigo;
+
+    document.getElementById('credCode').textContent = codigo;
+    document.getElementById('copyCodeText').textContent = codigo;
+    document.getElementById('detCodigo').textContent = codigo;
+
+    membresiaPendiente = null;
+
+document
+  .getElementById('successModal')
+  .classList.add('open');
+
+  } catch (error) {
+    console.error(error);
+    alert('Error al confirmar la membresía');
+  }
+}
+
+async function confirmarMembresia() {
+  if (!membresiaPendiente) {
+    alert('Primero genera una vista previa.');
+    return;
+  }
+
+  try {
+    let membresiaCreada;
+
+    if (membresiaPendiente.esGrupal) {
+      const resMembresia = await fetch(`${API_URL}/membresias/grupal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan_id: membresiaPendiente.plan_id,
+          meses: membresiaPendiente.meses,
+          duracion_unidad: membresiaPendiente.duracion_unidad,
+          usos_totales: membresiaPendiente.usos_totales,
+          usos_restantes: membresiaPendiente.usos_restantes,
+          promocion_etiqueta: membresiaPendiente.promocion_etiqueta,
+          fecha_inicio: membresiaPendiente.fecha_inicio,
+          fecha_fin: membresiaPendiente.fecha_fin,
+          precio_total: membresiaPendiente.precio_total,
+          origen: membresiaPendiente.origen,
+          personas: membresiaPendiente.personas.map(persona => ({
+            cliente_id: persona.tipoCliente === 'existente' ? persona.cliente_id : null,
+            nombre: persona.nombre,
+            dni: persona.dni,
+            telefono: persona.telefono,
+            correo: persona.correo
+          }))
+        })
+      });
+
+      if (!resMembresia.ok) {
+        const error = await resMembresia.json().catch(() => ({}));
+        throw new Error(error.error || 'No se pudo crear la membresía grupal');
+      }
+
+      membresiaCreada = await resMembresia.json();
+    } else {
+      if (membresiaPendiente.tipoCliente === 'nuevo') {
+        const resCliente = await fetch(`${API_URL}/clientes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: membresiaPendiente.nombre,
+            dni: membresiaPendiente.dni,
+            telefono: membresiaPendiente.telefono,
+            correo: membresiaPendiente.correo,
+            estado: 'activo'
+          })
+        });
+
+        if (!resCliente.ok) {
+          throw new Error('No se pudo crear o actualizar el cliente');
+        }
+
+        const clienteCreado = await resCliente.json();
+        membresiaPendiente.cliente_id = clienteCreado.id;
+      }
+
+      const resMembresia = await fetch(`${API_URL}/membresias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(membresiaPendiente)
+      });
+
+      if (!resMembresia.ok) {
+        throw new Error('No se pudo crear la membresía');
+      }
+
+      membresiaCreada = await resMembresia.json();
+    }
+
+    const codigo = membresiaCreada.codigo;
+    document.getElementById('successCode').textContent = codigo;
+    document.getElementById('credCode').textContent = codigo;
+    document.getElementById('copyCodeText').textContent = codigo;
+    document.getElementById('detCodigo').textContent = codigo;
+
+    membresiaPendiente = null;
+
+    document
+      .getElementById('successModal')
+      .classList.add('open');
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message || 'Error al confirmar la membresía');
+  }
+}
+
+  /* ── Nav click ── */
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  async function iniciarPagina() {
+  await cargarClientes();
+  await cargarPlanes();
+
+  const params = new URLSearchParams(window.location.search);
+  const clienteId =
+  params.get('cliente_id') || params.get('cliente');
+
+  if (clienteId) {
+    cambiarTipoCliente('existente');
+
+    const select = document.getElementById('clienteExistente');
+    select.value = clienteId;
+
+    rellenarClienteExistente();
+
+    document.getElementById('plan').scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  }
+}
+
+iniciarPagina();
+
+document.getElementById('plan')?.addEventListener('change', actualizarCamposDuracion);
+document.getElementById('promocion')?.addEventListener('change', () => {
+  document.getElementById('promocion').value = descuentoNormalizado();
+});
+
+async function cargarSidebar() {
+  try {
+
+    const res = await fetch(
+      'https://perfection-fitness-backend-production.up.railway.app/api/sidebar'
+    );
+
+    const data = await res.json();
+
+    const clientes = document.getElementById('clientesBadge');
+    const membresias = document.getElementById('membresiasBadge');
+
+    if (clientes) {
+      clientes.textContent = data.clientes;
+    }
+
+    if (membresias) {
+      membresias.textContent = data.membresias;
+    }
+
+  } catch (error) {
+    console.error('Error sidebar:', error);
+  }
+}
+
+cargarSidebar();
+
+
+
+  let notificacionesPrevias = new Set();
+  let notificacionesInicializadas = false;
+  let notificationToastTimer = null;
+
+  function notificationId(n) {
+    return [n.tipo, n.dni || '', n.fecha_fin || ''].join('|');
+  }
+
+  function mostrarToastNotificacion(notificacion) {
+    let toast = document.getElementById('notificationToast');
+
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'notificationToast';
+      toast.className = 'notification-toast';
+      document.body.appendChild(toast);
+    }
+
+    toast.innerHTML = `
+      Nueva notificación: ${notificacion.titulo}
+      <span>${notificacion.cliente || ''}</span>
+    `;
+    toast.classList.add('show');
+
+    clearTimeout(notificationToastTimer);
+    notificationToastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3600);
+  }
+
+  async function cargarNotificaciones() {
+    const wrap = document.getElementById('notificationWrap');
+    if (!wrap) return;
+
+    try {
+      const res = await fetch('https://perfection-fitness-backend-production.up.railway.app/api/notificaciones');
+      const data = await res.json();
+      const notificaciones = Array.isArray(data) ? data : [];
+      const count = document.getElementById('notifCount');
+      const total = document.getElementById('notificationTotal');
+      const list = document.getElementById('notificationList');
+      const idsActuales = new Set(notificaciones.map(notificationId));
+
+      if (notificacionesInicializadas) {
+        const nueva = notificaciones.find(n => !notificacionesPrevias.has(notificationId(n)));
+        if (nueva) mostrarToastNotificacion(nueva);
+      }
+
+      notificacionesPrevias = idsActuales;
+      notificacionesInicializadas = true;
+
+      count.style.display = notificaciones.length > 0 ? 'flex' : 'none';
+      count.textContent = notificaciones.length > 9 ? '9+' : notificaciones.length;
+      total.textContent = notificaciones.length === 1 ? '1 pendiente' : notificaciones.length + ' pendientes';
+
+      if (notificaciones.length === 0) {
+        list.innerHTML = '<div class="notification-empty">No hay notificaciones pendientes</div>';
+        return;
+      }
+
+      list.innerHTML = notificaciones.map(n => `
+        <div class="notification-item ${n.tipo}">
+          <span class="notification-mark"></span>
+          <div>
+            <div class="notification-item-title">${n.titulo}</div>
+            <div class="notification-item-msg">${n.cliente} - ${n.plan}</div>
+            <div class="notification-item-meta">DNI ${n.dni || '-'} - Vence: ${n.fecha_fin}</div>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Error notificaciones:', error);
+    }
+  }
+
+  function toggleNotificaciones(event) {
+    event.stopPropagation();
+    document.getElementById('notificationPopover')?.classList.toggle('open');
+  }
+
+  document.addEventListener('click', (event) => {
+    const wrap = document.getElementById('notificationWrap');
+    const popover = document.getElementById('notificationPopover');
+    if (wrap && popover && !wrap.contains(event.target)) {
+      popover.classList.remove('open');
+    }
+  });
+
+  cargarNotificaciones();
+  setInterval(cargarNotificaciones, 30000);
+</script>
+
+        <div class="modal-overlay" id="successModal">
+  <div class="modal success-modal">
+
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path
+          d="M20 6L9 17L4 12"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+
+    <h2 class="success-title">
+      Membresía Creada
+    </h2>
+
+    <p class="success-text">
+      La membresía fue registrada correctamente.
+    </p>
+
+    <div class="success-code-box">
+      <span class="success-code-label">
+        Código de acceso
+      </span>
+
+      <div id="successCode" class="success-code">
+        PFS-XXXXXX
+      </div>
+    </div>
+
+    <button
+      class="btn btn-primary"
+      onclick="window.location.reload()"
+      style="width:100%;justify-content:center;"
+    >
+      Continuar
+    </button>
+
+  </div>
+</div>
+</div>
+
+<script src="../assets/js/perfil.js"></script>
+<script src="../assets/js/logout.js"></script>
+</body>
+</html>

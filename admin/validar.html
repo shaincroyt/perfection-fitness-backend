@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validar Ingreso — Panel Administrativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:        #DD0F0D;
+      --red-dark:   #B50C0A;
+      --red-deeper: #8C0908;
+      --yellow:     #F6D42E;
+      --white:      #FFFFFF;
+      --bg:         #F4F5F7;
+      --surface:    #FFFFFF;
+      --border:     #E8E9EC;
+      --text-1:     #1A1A1A;
+      --text-2:     #555560;
+      --text-3:     #9999A8;
+      --green:      #16a34a;
+      --green-bg:   #dcfce7;
+      --green-dark: #14532d;
+      --orange:     #d97706;
+      --orange-bg:  #fef3c7;
+      --blue:       #2563eb;
+      --blue-bg:    #dbeafe;
+      --sidebar-w:  240px;
+      --header-h:   64px;
+      --radius:     12px;
+      --shadow-sm:  0 1px 4px rgba(0,0,0,.06);
+      --shadow-md:  0 4px 20px rgba(0,0,0,.08);
+      --t: .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── LAYOUT ── */
+    .shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: var(--header-h) 1fr;
+  min-height: 100vh;
+  padding-left: var(--sidebar-w);
+}
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+  background: var(--red);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  z-index: 100;
+}
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: rgba(0,0,0,.10);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: 120px; left: -80px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .sidebar-logo {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .sidebar-logo-placeholder {
+      height: 36px; width: 36px;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: .06em;
+      color: var(--white);
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    nav {
+      flex: 1;
+      padding: 16px 0;
+      position: relative;
+      z-index: 1;
+      overflow-y: auto;
+    }
+    nav::-webkit-scrollbar { width: 0; }
+    .nav-section { padding: 0 12px; margin-bottom: 4px; }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.40);
+      padding: 12px 8px 6px;
+      display: block;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.75);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--t), color var(--t);
+      user-select: none;
+      position: relative;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: .8; }
+    .nav-item:hover { background: rgba(255,255,255,.12); color: var(--white); }
+    .nav-item.active { background: rgba(255,255,255,.18); color: var(--white); font-weight: 600; }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 50%; transform: translateY(-50%);
+      width: 3px; height: 22px;
+      background: var(--yellow);
+      border-radius: 0 3px 3px 0;
+    }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--yellow);
+      color: var(--red-deeper);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+      line-height: 16px;
+    }
+    .sidebar-user {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,.20);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--white);
+      flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--white); }
+    .user-role { font-size: 11px; color: rgba(255,255,255,.50); }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .header-breadcrumb { font-size: 12px; color: var(--text-3); font-weight: 400; }
+    .header-breadcrumb span { color: var(--red); font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
+    .header-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2);
+      transition: border-color var(--t), color var(--t);
+      position: relative;
+    }
+    .header-btn:hover { border-color: var(--red); color: var(--red); }
+    .notif-dot {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 7px; height: 7px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 1.5px solid var(--white);
+    }
+
+    /* Reloj en vivo */
+    .live-clock {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: .08em;
+      color: var(--text-1);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 14px;
+      line-height: 1.6;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      padding: 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp .45s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── LAYOUT CENTRAL ── */
+    .validate-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .card-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-icon.red    { background: rgba(221,15,13,.10); color: var(--red); }
+    .card-icon.green  { background: var(--green-bg); color: var(--green); }
+    .card-icon.orange { background: var(--orange-bg); color: var(--orange); }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+    .card-sub   { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .card-body  { padding: 24px; }
+
+    /* ── CAMPO DE CÓDIGO ── */
+    .code-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .code-input-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .code-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 18px;
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: .12em;
+      color: var(--text-1);
+      background: var(--bg);
+      outline: none;
+      text-transform: uppercase;
+      transition: all var(--t);
+    }
+    .code-input::placeholder {
+      color: var(--border);
+      font-size: 16px;
+    }
+    .code-input:focus {
+      border-color: var(--red);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(221,15,13,.08);
+    }
+    .btn-validate {
+      padding: 0 26px;
+      border-radius: 10px;
+      border: none;
+      background: var(--red);
+      color: white;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: .08em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--t);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 10px rgba(221,15,13,.30);
+    }
+    .btn-validate svg { width: 20px; height: 20px; }
+    .btn-validate:hover {
+      background: var(--red-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(221,15,13,.40);
+    }
+    .btn-validate:active { transform: translateY(0); }
+
+    /* CODES RÁPIDOS */
+    .quick-codes {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .quick-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+    }
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: monospace;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all var(--t);
+      letter-spacing: .04em;
+    }
+    .chip:hover { border-color: var(--red); color: var(--red); background: rgba(221,15,13,.05); }
+
+    /* ── RESULTADO ── */
+    .result-area {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Estado vacío */
+    .result-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 52px 20px;
+      text-align: center;
+    }
+    .result-empty-icon {
+      width: 72px; height: 72px;
+      background: var(--bg);
+      border-radius: 20px;
+      border: 2px dashed var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--border);
+    }
+    .result-empty p { font-size: 14px; color: var(--text-3); line-height: 1.6; }
+    .result-empty strong { color: var(--text-2); }
+
+    .person-select-card {
+      display: none;
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .person-select-card.show { display: block; }
+    .person-select-head {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .person-select-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .person-select-sub {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+    .person-options {
+      padding: 18px 20px;
+      display: grid;
+      gap: 10px;
+    }
+    .person-option {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--t);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .person-option:hover {
+      border-color: var(--red);
+      background: rgba(221,15,13,.04);
+    }
+    .person-option-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .person-option-meta {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 3px;
+    }
+    .person-option-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--red);
+      background: rgba(221,15,13,.10);
+      border-radius: 20px;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+    .person-option-badge.activa {
+      color: var(--green);
+      background: var(--green-bg);
+    }
+    .person-option-badge.inactiva {
+      color: #555;
+      background: #f1f3f5;
+    }
+    .person-option-badge.vencida,
+    .person-option-badge.vence_hoy {
+      color: #dc2626;
+      background: #fee2e2;
+    }
+    .person-option-badge.vence_manana {
+      color: var(--orange);
+      background: var(--orange-bg);
+    }
+    .person-option-badge.vence_3_dias {
+      color: #a16207;
+      background: #fef3c7;
+    }
+
+    /* ── TARJETA ACTIVA ── */
+    .result-active {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(22,163,74,.20);
+    }
+    .result-active.show { display: flex; }
+
+    .result-active-top {
+      background: linear-gradient(135deg, #14532d 0%, #16a34a 60%, #22c55e 100%);
+      padding: 28px 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-active-top::before {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,.07);
+      border-radius: 50%;
+    }
+    .result-active-top::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -30px;
+      width: 140px; height: 140px;
+      background: rgba(0,0,0,.07);
+      border-radius: 50%;
+    }
+
+    .active-check {
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,.20);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .active-check svg { width: 28px; height: 28px; color: white; }
+
+    .active-status {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.70);
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .active-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: .04em;
+      color: white;
+      line-height: 1.1;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 18px;
+    }
+    .active-code-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,.15);
+      border-radius: 8px;
+      padding: 8px 14px;
+      position: relative;
+      z-index: 1;
+      width: fit-content;
+    }
+    .active-code-row svg { width: 14px; height: 14px; color: rgba(255,255,255,.7); }
+    .active-code-text {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .10em;
+      color: rgba(255,255,255,.90);
+    }
+
+    .result-active-body {
+      background: white;
+      border: 1px solid #d1fae5;
+      border-top: none;
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+
+    .active-data-item {
+      padding: 14px 16px;
+      border-right: 1px solid #d1fae5;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .active-data-item:last-child { border-right: none; }
+    .active-data-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      color: var(--text-3);
+    }
+    .active-data-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .active-data-value.green { color: var(--green); }
+    .active-data-value.plan-badge {
+      display: inline-flex;
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: var(--green-bg);
+      color: var(--green);
+      width: fit-content;
+    }
+    .validation-subdetail {
+      margin-top: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-2);
+      line-height: 1.35;
+    }
+    .vigencia-detalle {
+      white-space: pre-line;
+      line-height: 1.35;
+    }
+
+    /* Días restantes grande */
+    .days-highlight {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: .04em;
+      color: var(--green);
+      line-height: 1;
+    }
+
+    /* ── TARJETA VENCIDA ── */
+    .result-expired {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(220,38,38,.18);
+    }
+    .result-expired.show { display: flex; }
+
+    .result-expired-top {
+      background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 60%, #ef4444 100%);
+      padding: 28px 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-expired-top::before {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,.07);
+      border-radius: 50%;
+    }
+    .result-expired-top::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -30px;
+      width: 140px; height: 140px;
+      background: rgba(0,0,0,.10);
+      border-radius: 50%;
+    }
+
+    .expired-x {
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,.18);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .expired-x svg { width: 28px; height: 28px; color: white; }
+    .expired-status {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.70);
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .expired-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: .04em;
+      color: white;
+      line-height: 1.1;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 18px;
+    }
+    .expired-code-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,.18);
+      border-radius: 8px;
+      padding: 8px 14px;
+      position: relative;
+      z-index: 1;
+      width: fit-content;
+    }
+    .expired-code-row svg { width: 14px; height: 14px; color: rgba(255,255,255,.7); }
+    .expired-code-text {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .10em;
+      color: rgba(255,255,255,.90);
+    }
+
+    .result-expired-body-new {
+  display: grid;
+  grid-template-columns: 1fr 1.65fr 1fr;
+  gap: 28px;
+  padding: 28px 32px;
+  background: #fff;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .result-expired-body-new {
+    grid-template-columns: 1fr;
+  }
+}
+
+.plan-panel-expired {
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  min-height: 220px;
+}
+
+.plan-big-badge-expired {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.plan-big-badge-expired svg {
+  stroke: #dc2626;
+  color: #dc2626;
+}
+
+.plan-note-expired {
+  margin-top: 28px;
+  color: #7f1d1d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.vigencia-row-expired {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #fecaca;
+}
+
+.vigencia-icon-expired {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+}
+
+.vigencia-icon-expired svg {
+  stroke: #dc2626;
+  color: #dc2626;
+}
+
+.estado-vencido {
+  display: inline-flex !important;
+  width: fit-content;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.days-simple-expired {
+  margin: 24px auto 18px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 12px solid #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #dc2626;
+}
+
+.days-simple-expired strong {
+  font-size: 58px;
+  line-height: .9;
+}
+
+.days-simple-expired span {
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.days-note-expired {
+  text-align: center;
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+}
+    .expired-data-item {
+      padding: 14px 16px;
+      border-right: 1px solid #fecaca;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .expired-data-item:last-child { border-right: none; }
+    .expired-data-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      color: var(--text-3);
+    }
+    .expired-data-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .expired-data-value.red { color: #dc2626; }
+
+    .expired-days {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: .04em;
+      color: #dc2626;
+      line-height: 1;
+    }
+
+    /* Alerta de renovación */
+    .renew-alert {
+      background: #fff1f2;
+      border: 1.5px solid #fecaca;
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #dc2626;
+      font-weight: 500;
+    }
+    .renew-alert svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .btn-renew {
+      margin-left: auto;
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: 1.5px solid #dc2626;
+      background: white;
+      color: #dc2626;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--t);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-renew:hover { background: #dc2626; color: white; }
+
+    /* ── HISTORIAL RECIENTE ── */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      transition: background var(--t);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item:hover { background: var(--bg); }
+    .history-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .history-dot.ok      { background: var(--green); }
+    .history-dot.expired { background: #dc2626; }
+    .history-code {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-2);
+      letter-spacing: .04em;
+      min-width: 110px;
+    }
+    .history-name  { font-size: 13px; font-weight: 600; color: var(--text-1); flex: 1; }
+    .history-time  { font-size: 11px; color: var(--text-3); white-space: nowrap; }
+    .history-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .history-status.ok      { background: var(--green-bg); color: var(--green); }
+    .history-status.expired { background: #fee2e2; color: #dc2626; }
+
+    /* ── ANIMACIONES ── */
+    @keyframes popIn {
+      0%   { opacity: 0; transform: scale(.92) translateY(12px); }
+      70%  { transform: scale(1.02) translateY(-2px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .pop-in { animation: popIn .38s cubic-bezier(.34,1.56,.64,1) both; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-6px); }
+      40%       { transform: translateX(6px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+    .shake { animation: shake .35s ease; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) {
+      .validate-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 820px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { display: none; }
+      .shell { grid-template-columns: 1fr; }
+      .main { padding: 16px; }
+      .live-clock { display: none; }
+    }
+    @media (max-width: 600px) {
+      .result-active-body,
+      .result-expired-body { grid-template-columns: 1fr 1fr; }
+      .active-data-item:nth-child(2),
+      .expired-data-item:nth-child(2) { border-right: none; }
+    }
+  
+    .notification-wrap { position: relative; }
+    .notif-count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 20px;
+      background: var(--red);
+      color: white;
+      border: 2px solid var(--white);
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .notif-dot { display: none; }
+    .notification-popover {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 340px;
+      max-width: calc(100vw - 36px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      z-index: 150;
+      display: none;
+      overflow: hidden;
+    }
+    .notification-popover.open { display: block; }
+    .notification-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .notification-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+    .notification-total { font-size: 11px; font-weight: 700; color: var(--text-3); }
+    .notification-list { max-height: 360px; overflow-y: auto; }
+    .notification-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-3);
+      font-size: 13px;
+    }
+    .notification-item {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 9px 1fr;
+      gap: 10px;
+    }
+    .notification-item:last-child { border-bottom: none; }
+    .notification-mark {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-top: 6px;
+      background: var(--orange);
+    }
+    .notification-item.vencida_hoy .notification-mark { background: var(--red); }
+    .notification-item.vence_manana .notification-mark { background: var(--orange); }
+    .notification-item.vence_3_dias .notification-mark { background: var(--yellow); }
+    .notification-item-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+      margin-bottom: 3px;
+    }
+    .notification-item-msg { font-size: 12px; color: var(--text-2); line-height: 1.35; }
+    .notification-item-meta { margin-top: 5px; font-size: 11px; color: var(--text-3); }
+
+    .notification-toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 300;
+      min-width: 260px;
+      max-width: calc(100vw - 44px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      border-radius: 10px;
+      box-shadow: var(--shadow-md);
+      padding: 13px 15px;
+      color: var(--text-1);
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity var(--t), transform var(--t);
+    }
+    .notification-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .notification-toast span {
+      display: block;
+      color: var(--text-3);
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    @media (max-width:600px) {
+      .notification-popover {
+        position: fixed;
+        top: 66px;
+        right: 18px;
+        left: 18px;
+        width: auto;
+        max-width: none;
+      }
+    }
+
+    .result-active-body-new {
+  grid-template-columns: 1fr 1.65fr 1fr;
+  gap: 28px;
+  padding: 28px 32px;
+  background: #fff;
+  align-items: start;
+}
+
+.validation-panel {
+  padding: 22px;
+  border-right: 1px solid #d1fae5;
+}
+
+.validation-panel:last-child {
+  border-right: none;
+}
+
+.plan-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  min-height: 220px;
+}
+
+.validation-label,
+.section-title,
+.mini-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: #64748b;
+}
+
+.section-title {
+  font-size: 15px;
+  margin-bottom: 18px;
+}
+
+.section-title.center {
+  text-align: center;
+}
+
+.plan-big-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #dcfce7;
+  color: #087a2f;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.plan-big-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #dcfce7;
+  color: #087a2f;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.plan-big-badge svg {
+  stroke: #087a2f;
+  color: #087a2f;
+}
+
+.plan-note {
+  margin-top: 28px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.vigencia-row {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.vigencia-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669;
+}
+
+.vigencia-icon svg {
+  stroke: #059669;
+  color: #059669;
+}
+
+.vigencia-row strong {
+  display: block;
+  margin-top: 3px;
+  color: #087a2f;
+  font-size: 20px;
+}
+
+.vigencia-message {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f0fdf4;
+  color: #14532d;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.days-simple {
+  margin: 24px auto 18px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 12px solid #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #087a2f;
+}
+
+.days-simple strong {
+  font-size: 58px;
+  line-height: .9;
+}
+
+.days-simple span {
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.days-note {
+  text-align: center;
+  background: #f0fdf4;
+  color: #087a2f;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .result-active-body-new {
+    grid-template-columns: 1fr;
+  }
+
+  .validation-panel {
+    border-right: none;
+    border-bottom: 1px solid #d1fae5;
+  }
+
+  .validation-panel:last-child {
+    border-bottom: none;
+  }
+}
+
+.estado-activo {
+  display: inline-flex !important;
+  width: fit-content;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #087a2f;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+  </style>
+  <link rel="stylesheet" href="../assets/css/logout.css">
+  <script src="../assets/js/admin-auth.js"></script>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ════════════ SIDEBAR ════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <!-- Logo: reemplaza src con tu imagen -->
+      <div class="sidebar-logo-placeholder">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,.8)">
+          <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-label"><!-- Nombre --></div>
+        <div class="logo-sub">Administración</div>
+      </div>
+    </div>
+ 
+        <nav>
+      <div class="nav-section">
+        <span class="nav-label">Principal</span>
+
+        <div class="nav-item" onclick="window.location.href='dashboard.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='clientes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Clientes
+          <span class="nav-badge" id="clientesBadge">0</span>
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='membresias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+          Membresías
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='nueva-membresia.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          Nueva Membresía
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Control</span>
+
+        <div class="nav-item active" onclick="window.location.href='validar.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Validar Ingreso
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='asistencias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          Asistencias
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='planes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          Planes
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Sistema</span>
+        <div class="nav-item" onclick="window.location.href='configuracion.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          Configuración
+        </div>
+      </div>
+    </nav>
+ 
+    <div class="sidebar-user">
+      <div class="user-avatar">AD</div>
+      <div>
+        <div class="user-name">Administrador</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+      <button type="button" class="admin-logout-btn admin-logout-trigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ════════════ HEADER ════════════ -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-title">Validar Ingreso</div>
+      <div class="header-breadcrumb">Control / <span>Validación de Membresía</span></div>
+    </div>
+    <div class="header-right">
+      <div class="live-clock" id="liveClock">00:00:00</div>
+      <div class="header-date" id="headerDate"></div>
+      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+      <div class="notification-wrap" id="notificationWrap">
+        <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="notif-dot"></span>
+      <span class="notif-count" id="notifCount">0</span>
+        </button>
+        <div class="notification-popover" id="notificationPopover">
+          <div class="notification-head">
+            <div class="notification-title">Notificaciones</div>
+            <div class="notification-total" id="notificationTotal">0 pendientes</div>
+          </div>
+          <div class="notification-list" id="notificationList">
+            <div class="notification-empty">Cargando notificaciones...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════ MAIN ════════════ -->
+  <main class="main">
+
+    <div class="validate-grid">
+
+      <!-- ── COLUMNA IZQUIERDA: INPUT + HISTORIAL ── -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- CAMPO VALIDAR -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Validar Membresía</div>
+              <div class="card-sub">Ingresa el código o usa los accesos rápidos</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <label class="code-label" for="codeInput">Código de membresía</label>
+            <div class="code-input-wrap">
+              <input
+                type="text"
+                class="code-input"
+                id="codeInput"
+                placeholder="PFS-XXXXXX"
+                maxlength="10"
+                autocomplete="off"
+                autofocus
+              />
+              <button class="btn-validate" id="btnValidar" onclick="validar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Validar
+              </button>
+            </div>
+
+            <!-- Accesos rápidos de demo -->
+            
+          </div>
+        </div>
+
+        <!-- HISTORIAL RECIENTE -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon" style="background:#f1f5f9;color:var(--text-2);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Historial reciente</div>
+              <div class="card-sub">Últimas validaciones de hoy</div>
+            </div>
+          </div>
+          <div class="history-list" id="historyList">
+            <!-- Se llena dinámicamente -->
+            <div style="padding:24px;text-align:center;color:var(--text-3);font-size:13px;">
+              Aún no hay validaciones en esta sesión.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── COLUMNA DERECHA: RESULTADO ── -->
+      <div class="result-area" id="resultArea">
+
+        <!-- Estado vacío -->
+        <div class="card" id="emptyResult">
+          <div class="result-empty">
+            <div class="result-empty-icon">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <p>Ingresa un código de membresía<br/>y presiona <strong>Validar</strong><br/>para ver el resultado aquí.</p>
+          </div>
+        </div>
+
+        <!-- ── RESULTADO: ACTIVO ── -->
+        <div class="person-select-card pop-in" id="personSelectCard">
+          <div class="person-select-head">
+            <div class="person-select-title">Selecciona la persona que ingresa</div>
+            <div class="person-select-sub" id="personSelectSub">Este código pertenece a más de una membresía.</div>
+          </div>
+          <div class="person-options" id="personOptions"></div>
+        </div>
+
+        <div class="result-active pop-in" id="resultActive">
+          <div class="result-active-top">
+            <div class="active-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="active-status">✓ Membresía Activa — Acceso permitido</div>
+            <div class="active-name" id="activeNombre">Juan Pérez</div>
+            <div class="active-code-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span class="active-code-text" id="activeCode">GYM-A8K2PZ</span>
+            </div>
+          </div>
+          <div class="result-active-body result-active-body-new">
+  <div class="validation-panel plan-panel">
+    <div class="validation-label">Plan</div>
+    <div class="plan-big-badge" id="activePlan">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#087a2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+  <span>Día Libre</span>
+</div>
+    <p class="plan-note" id="activePlanNote">Acceso válido durante el periodo contratado.</p>
+  </div>
+
+  <div class="validation-panel vigencia-panel">
+  <div class="section-title">Vigencia del plan</div>
+
+  <div class="vigencia-row">
+    <span class="vigencia-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </span>
+    <div>
+      <span class="mini-label">Válido hasta</span>
+      <strong id="activeVence">05/06/2026</strong>
+    </div>
+  </div>
+
+  <div class="vigencia-row">
+    <span class="vigencia-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </span>
+    <div>
+      <span class="mini-label">Duración contratada</span>
+      <strong id="activeDuracion">1 día</strong>
+    </div>
+  </div>
+
+  <div class="vigencia-row">
+    <span class="vigencia-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </span>
+    <div>
+      <span class="mini-label">Estado</span>
+      <strong class="estado-activo">Activo</strong>
+    </div>
+  </div>
+
+  
+</div>
+<div class="validation-panel days-panel">
+    <div class="section-title center">Días restantes</div>
+    <div class="days-simple">
+      <strong id="activeDias">1</strong>
+      <span id="activeDiasTexto">día</span>
+    </div>
+    <div class="days-note" id="activeDaysNote">Tu plan vence mañana</div>
+  </div>
+        </div>
+        </div>
+
+        <!-- ── RESULTADO: VENCIDO ── -->
+        <div class="result-expired pop-in" id="resultExpired">
+          <div class="result-expired-top">
+            <div class="expired-x">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <div class="expired-status">✗ Membresía Vencida — Acceso denegado</div>
+            <div class="expired-name" id="expiredNombre">María López</div>
+            <div class="expired-code-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span class="expired-code-text" id="expiredCode">GYM-B5L9XQ</span>
+            </div>
+          </div>
+          <div class="result-expired-body result-expired-body-new">
+  <div class="validation-panel plan-panel-expired">
+    <div class="validation-label">Plan</div>
+    <div class="plan-big-badge-expired" id="expiredPlan">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span>Mensual</span>
+    </div>
+    <p class="plan-note-expired" id="expiredPlanNote">Esta membresía ha vencido y necesita renovación.</p>
+  </div>
+
+  <div class="validation-panel vigencia-panel-expired">
+    <div class="section-title">Vigencia del plan</div>
+    <div class="vigencia-row-expired">
+      <span class="vigencia-icon-expired">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </span>
+      <div>
+        <span class="mini-label">Venció el</span>
+        <strong id="expiredVence" style="color:#dc2626;">01/05/2026</strong>
+      </div>
+    </div>
+
+    <div class="vigencia-row-expired">
+      <span class="vigencia-icon-expired">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </span>
+      <div>
+        <span class="mini-label">Duración contratada</span>
+        <strong id="expiredDuracion" style="color:#dc2626;">1 mes</strong>
+      </div>
+    </div>
+
+    <div class="vigencia-row-expired">
+      <span class="vigencia-icon-expired">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </span>
+      <div>
+        <span class="mini-label">Estado</span>
+        <strong class="estado-vencido">Vencido</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="validation-panel days-panel-expired">
+    <div class="section-title center">Días vencido</div>
+    <div class="days-simple-expired">
+      <strong id="expiredDias">33</strong>
+      <span id="expiredDiasTexto">días</span>
+    </div>
+    <div class="days-note-expired" id="expiredDaysNote">Tu membresía vence desde hace 33 días</div>
+  </div>
+</div>
+
+        <!-- Alerta de renovación (solo en vencido) -->
+        <div class="renew-alert" id="renewAlert" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span>Esta membresía necesita renovación para permitir el ingreso.</span>
+          <a href="membresias.html"><button class="btn-renew">Renovar ahora</button></a>
+        </div>
+
+        <!-- Código no encontrado -->
+        <div class="card" id="resultNotFound" style="display:none;">
+          <div class="result-empty">
+            <div class="result-empty-icon" style="border-color:#fecaca;color:#fca5a5;">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <p style="color:#dc2626;"><strong>Código no encontrado</strong><br/><span style="color:var(--text-3);">Verifica que el código sea correcto<br/>e intenta nuevamente.</span></p>
+          </div>
+        </div>
+
+      </div><!-- /result-area -->
+    </div>
+
+  </main>
+</div>
+
+<script>
+  /* ── Fecha y reloj ── */
+  const d = new Date();
+  const opts = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
+  document.getElementById('headerDate').textContent =
+    d.toLocaleDateString('es-PE', opts).replace(/^\w/, c => c.toUpperCase());
+
+  function tickClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('liveClock').textContent = `${h}:${m}:${s}`;
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  /* ── Base de datos ficticia ── */
+  const API_URL = 'https://perfection-fitness-backend-production.up.railway.app/api';
+
+  async function cargarHistorialReal() {
+  try {
+    const res = await fetch(`${API_URL}/asistencias`);
+    const data = await res.json();
+
+    history = data.slice(0, 8).map(a => ({
+      code: a.codigo_usado,
+      nombre: a.cliente || 'Código no encontrado',
+      status: a.estado === 'permitido' ? 'ok' : 'expired',
+      time: new Date(a.fecha_hora).toLocaleTimeString('es-PE', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }));
+
+    renderHistory();
+
+  } catch (error) {
+    console.error('Error cargando historial:', error);
+  }
+}
+  /* ── Historial ── */
+  let history = [];
+
+  function diffDays(dateStr) {
+    const target = new Date(dateStr + 'T00:00:00');
+    const today  = new Date();
+    today.setHours(0,0,0,0);
+    return Math.round((target - today) / 86400000);
+  }
+
+  function fmtDate(str) {
+    const [y,m,day] = str.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  function estadoVisualValidacion(data) {
+    if (data && data.estado_visual) return data.estado_visual;
+
+    const dias = Number(data && data.dias_restantes);
+    if ((data && data.estado === 'vencida') || dias < 0) return 'vencida';
+    if (dias === 0) return 'vence_hoy';
+    if (dias === 1) return 'vence_manana';
+    if (dias === 3) return 'vence_3_dias';
+    if (data && (data.estado === 'activa' || data.valido)) return 'activa';
+    return 'inactiva';
+  }
+
+  function textoEstadoVisual(estado) {
+    return {
+      vencida: 'Vencida',
+      vence_hoy: 'Vence hoy',
+      vence_manana: 'Vence mañana',
+      vence_3_dias: 'Vence en 3 días',
+      activa: 'Activa',
+      inactiva: 'Inactiva'
+    }[estado] || 'Inactiva';
+  }
+
+  function textoAcceso(data) {
+    const estado = estadoVisualValidacion(data);
+    const texto = textoEstadoVisual(estado);
+    if (data.duracion_unidad === 'usos') {
+      if (data.valido) {
+        return `${data.mensaje || 'Ingreso permitido'} - Usos restantes: ${data.usos_restantes ?? 0}`;
+      }
+
+      return data.mensaje || 'Membresia consumida';
+    }
+    if (data.duracion_unidad === 'dias') {
+      return data.valido
+        ? 'Plan por d\u00edas - Acceso permitido'
+        : 'Plan por d\u00edas - Acceso denegado';
+    }
+    return data.valido
+      ? `✓ ${texto} — Acceso permitido`
+      : `✗ ${texto} — Acceso denegado`;
+  }
+
+  function textoDuracionContratada(data) {
+    const cantidad = Number(data.meses || data.duracion_valor || 1);
+    const unidad = data.duracion_unidad === 'dias' ? 'd\u00eda' : 'mes';
+    return `${cantidad} ${unidad}${cantidad === 1 ? '' : 's'}`;
+  }
+
+  function detalleVigencia(data, fechaFin) {
+    if (data.duracion_unidad === 'usos') {
+      return `${data.usos_restantes ?? 0}/${data.usos_totales ?? 0} usos disponibles`;
+    }
+
+    if (data.duracion_unidad === 'dias') {
+      const partes = [
+        'Plan por d\u00edas',
+        `V\u00e1lido hasta: ${fmtDate(fechaFin)}`,
+        `Duraci\u00f3n contratada: ${textoDuracionContratada(data)}`
+      ];
+      const dias = Number(data.dias_restantes);
+
+      if (data.valido && dias >= 0 && dias <= 2) {
+        partes.push('El acceso sigue activo hasta la fecha de vencimiento registrada.');
+      }
+
+      return partes.join('\n');
+    }
+
+    return fmtDate(fechaFin);
+  }
+
+  function textoPromocion(data) {
+    if (!data || !data.promocion) return '';
+    if (data.descuento_porcentaje !== null && data.descuento_porcentaje !== undefined) {
+      return `Descuento: ${Number(data.descuento_porcentaje)}%`;
+    }
+    return `Promoci\u00f3n: ${data.promocion}`;
+  }
+
+  function mostrarPromocion(anchorId, data) {
+    const anchor = document.getElementById(anchorId);
+    if (!anchor) return;
+
+    let detalle = document.getElementById(`${anchorId}Promo`);
+    if (!detalle) {
+      detalle = document.createElement('div');
+      detalle.id = `${anchorId}Promo`;
+      detalle.className = 'validation-subdetail';
+      anchor.insertAdjacentElement('afterend', detalle);
+    }
+
+    const texto = textoPromocion(data);
+    detalle.textContent = texto;
+    detalle.style.display = texto ? 'block' : 'none';
+  }
+
+  function mostrarDetalleVigencia(elementId, data, fechaFin) {
+    const el = document.getElementById(elementId);
+    el.textContent = detalleVigencia(data, fechaFin);
+    el.classList.toggle('vigencia-detalle', data.duracion_unidad === 'dias');
+  }
+
+  function nowTime() {
+    const n = new Date();
+    return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  }
+
+  /* ── Mostrar / ocultar paneles ── */
+  function hideAll() {
+    document.getElementById('emptyResult').style.display    = 'none';
+    document.getElementById('resultNotFound').style.display = 'none';
+    document.getElementById('renewAlert').style.display     = 'none';
+    document.getElementById('personSelectCard').classList.remove('show');
+    document.getElementById('resultActive').classList.remove('show');
+    document.getElementById('resultExpired').classList.remove('show');
+  }
+
+  function reAnimate(el) {
+    el.classList.remove('pop-in');
+    void el.offsetWidth;
+    el.classList.add('pop-in');
+  }
+
+  /* ── Validar ── */
+  function mostrarSeleccionPersonas(data) {
+    const card = document.getElementById('personSelectCard');
+    const options = document.getElementById('personOptions');
+    document.getElementById('personSelectSub').textContent =
+      data.promocion
+        ? `${data.codigo} · ${data.promocion}`
+        : `${data.codigo} pertenece a más de una persona`;
+
+    options.innerHTML = data.personas.map(persona => `
+      <button type="button" class="person-option" onclick="validarPersonaCompartida('${data.codigo}', ${persona.membresia_id})">
+        <div>
+          <div class="person-option-name">${persona.nombre}</div>
+          <div class="person-option-meta">DNI: ${persona.dni || '-'} · ${persona.plan} · Vence: ${fmtDate(String(persona.fecha_fin).slice(0, 10))}</div>
+        </div>
+        <span class="person-option-badge ${estadoVisualValidacion(persona)}">${textoEstadoVisual(estadoVisualValidacion(persona))}</span>
+      </button>
+    `).join('');
+
+    card.classList.add('show');
+    reAnimate(card);
+  }
+
+  async function validarPersonaCompartida(codigo, membresiaId) {
+    hideAll();
+
+    try {
+      const res = await fetch(`${API_URL}/validar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          codigo,
+          membresia_id: membresiaId
+        })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        document.getElementById('resultNotFound').style.display = 'block';
+        return;
+      }
+
+      mostrarResultadoValidacion(data);
+      await cargarHistorialReal();
+
+    } catch (error) {
+      console.error(error);
+      document.getElementById('resultNotFound').style.display = 'block';
+    }
+  }
+
+  function mostrarResultadoValidacion(data) {
+  const fechaFin = data.fecha_fin ? String(data.fecha_fin).slice(0, 10) : '';
+  const dias = Number(data.dias_restantes);
+
+  if (data.valido) {
+    document.querySelector('.active-status').textContent = textoAcceso(data);
+    document.getElementById('activeNombre').textContent = data.cliente;
+    document.getElementById('activeCode').textContent = data.codigo;
+    document.querySelector('#activePlan span').textContent = data.plan_nombre || data.plan;
+
+    mostrarPromocion('activePlan', data);
+    document.getElementById('activeVence').textContent = fmtDate(fechaFin);
+
+    document.getElementById('activeDuracion').textContent = textoDuracionContratada(data);
+
+    const valorRestante = data.duracion_unidad === 'usos'
+      ? Number(data.usos_restantes ?? 0)
+      : Math.max(dias, 0);
+
+    document.getElementById('activeDias').textContent = valorRestante;
+
+    document.getElementById('activeDiasTexto').textContent =
+      data.duracion_unidad === 'usos'
+        ? 'usos'
+        : valorRestante === 1 ? 'día' : 'días';
+
+    document.getElementById('activeDaysNote').textContent =
+      data.duracion_unidad === 'usos'
+        ? `Te quedan ${valorRestante} usos`
+        : valorRestante === 0
+          ? 'Tu plan vence hoy'
+          : valorRestante === 1
+            ? 'Tu plan vence mañana'
+            : `Tu plan vence en ${valorRestante} días`;
+
+   
+
+    document.getElementById('resultActive').classList.add('show');
+    reAnimate(document.getElementById('resultActive'));
+    addHistory(data.codigo, data.cliente, 'ok');
+
+  } else {
+    document.querySelector('.expired-status').textContent = textoAcceso(data);
+    document.getElementById('expiredNombre').textContent = data.cliente;
+    document.getElementById('expiredCode').textContent = data.codigo;
+    document.querySelector('#expiredPlan span').textContent = data.plan_nombre || data.plan;
+document.getElementById('expiredDuracion').textContent = textoDuracionContratada(data);
+
+    mostrarPromocion('expiredPlan', data);
+    mostrarDetalleVigencia('expiredVence', data, fechaFin);
+
+    document.getElementById('expiredDias').textContent = data.duracion_unidad === 'usos'
+      ? (data.usos_restantes ?? 0)
+      : Math.abs(dias);
+
+    document.getElementById('resultExpired').classList.add('show');
+    document.getElementById('renewAlert').style.display = 'flex';
+    reAnimate(document.getElementById('resultExpired'));
+    addHistory(data.codigo, data.cliente, 'expired');
+  }
+}
+
+  async function validar() {
+  const raw = document.getElementById('codeInput').value.trim().toUpperCase();
+  const code = raw.replace(/\s/g, '');
+
+  if (!code) {
+    const inp = document.getElementById('codeInput');
+    inp.classList.add('shake');
+    setTimeout(() => inp.classList.remove('shake'), 400);
+    return;
+  }
+
+  hideAll();
+
+  try {
+    const res = await fetch(`${API_URL}/validar/${code}`);
+    const data = await res.json();
+
+    if (data.requiereSeleccion) {
+      mostrarSeleccionPersonas(data);
+      document.getElementById('codeInput').value = '';
+      document.getElementById('codeInput').focus();
+      return;
+    }
+
+    if (!res.ok || !data.valido && data.estado === 'inexistente') {
+      document.getElementById('resultNotFound').style.display = 'block';
+      addHistory(code, 'No encontrado', 'not-found');
+      document.getElementById('codeInput').value = '';
+      return;
+    }
+
+    mostrarResultadoValidacion(data);
+
+    document.getElementById('codeInput').value = '';
+    document.getElementById('codeInput').focus();
+
+    document.getElementById('codeInput').value = '';
+document.getElementById('codeInput').focus();
+
+await cargarHistorialReal();
+
+  } catch (error) {
+    console.error(error);
+    document.getElementById('resultNotFound').style.display = 'block';
+  }
+}
+
+  /* ── Agregar al historial ── */
+  function addHistory(code, nombre, status) {
+    history.unshift({ code, nombre, status, time: nowTime() });
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('historyList');
+    if (history.length === 0) return;
+
+    container.innerHTML = history.slice(0,8).map(h => {
+      const dotCls    = h.status === 'ok' ? 'ok' : 'expired';
+      const statusLbl = h.status === 'ok'  ? 'Activo' : h.status === 'expired' ? 'Vencido' : 'No encontrado';
+      const statusCls = h.status === 'ok'  ? 'ok' : 'expired';
+      return `
+        <div class="history-item">
+          <div class="history-dot ${dotCls}"></div>
+          <div class="history-code">${h.code}</div>
+          <div class="history-name">${h.nombre}</div>
+          <div class="history-time">${h.time}</div>
+          <div class="history-status ${statusCls}">${statusLbl}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ── Chips de acceso rápido ── */
+  function usarCodigo(code) {
+    document.getElementById('codeInput').value = code;
+    document.getElementById('codeInput').focus();
+    validar();
+  }
+
+  /* ── Enter para validar ── */
+  document.getElementById('codeInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') validar();
+  });
+
+  /* ── Auto-formato GYM- ── */
+  document.getElementById('codeInput').addEventListener('input', function() {
+    let v = this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
+    this.value = v;
+  });
+
+  /* ── Nav click ── */
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+  cargarHistorialReal();
+
+  async function cargarSidebar() {
+  try {
+
+    const res = await fetch(
+      'https://perfection-fitness-backend-production.up.railway.app/api/sidebar'
+    );
+
+    const data = await res.json();
+
+    const clientes = document.getElementById('clientesBadge');
+    const membresias = document.getElementById('membresiasBadge');
+
+    if (clientes) {
+      clientes.textContent = data.clientes;
+    }
+
+    if (membresias) {
+      membresias.textContent = data.membresias;
+    }
+
+  } catch (error) {
+    console.error('Error sidebar:', error);
+  }
+}
+
+cargarSidebar();
+
+
+  let notificacionesPrevias = new Set();
+  let notificacionesInicializadas = false;
+  let notificationToastTimer = null;
+
+  function notificationId(n) {
+    return [n.tipo, n.dni || '', n.fecha_fin || ''].join('|');
+  }
+
+  function mostrarToastNotificacion(notificacion) {
+    let toast = document.getElementById('notificationToast');
+
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'notificationToast';
+      toast.className = 'notification-toast';
+      document.body.appendChild(toast);
+    }
+
+    toast.innerHTML = `
+      Nueva notificación: ${notificacion.titulo}
+      <span>${notificacion.cliente || ''}</span>
+    `;
+    toast.classList.add('show');
+
+    clearTimeout(notificationToastTimer);
+    notificationToastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3600);
+  }
+
+  async function cargarNotificaciones() {
+    const wrap = document.getElementById('notificationWrap');
+    if (!wrap) return;
+
+    try {
+      const res = await fetch('https://perfection-fitness-backend-production.up.railway.app/api/notificaciones');
+      const data = await res.json();
+      const notificaciones = Array.isArray(data) ? data : [];
+      const count = document.getElementById('notifCount');
+      const total = document.getElementById('notificationTotal');
+      const list = document.getElementById('notificationList');
+      const idsActuales = new Set(notificaciones.map(notificationId));
+
+      if (notificacionesInicializadas) {
+        const nueva = notificaciones.find(n => !notificacionesPrevias.has(notificationId(n)));
+        if (nueva) mostrarToastNotificacion(nueva);
+      }
+
+      notificacionesPrevias = idsActuales;
+      notificacionesInicializadas = true;
+
+      count.style.display = notificaciones.length > 0 ? 'flex' : 'none';
+      count.textContent = notificaciones.length > 9 ? '9+' : notificaciones.length;
+      total.textContent = notificaciones.length === 1 ? '1 pendiente' : notificaciones.length + ' pendientes';
+
+      if (notificaciones.length === 0) {
+        list.innerHTML = '<div class="notification-empty">No hay notificaciones pendientes</div>';
+        return;
+      }
+
+      list.innerHTML = notificaciones.map(n => `
+        <div class="notification-item ${n.tipo}">
+          <span class="notification-mark"></span>
+          <div>
+            <div class="notification-item-title">${n.titulo}</div>
+            <div class="notification-item-msg">${n.cliente} - ${n.plan}</div>
+            <div class="notification-item-meta">DNI ${n.dni || '-'} - Vence: ${n.fecha_fin}</div>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Error notificaciones:', error);
+    }
+  }
+
+  function toggleNotificaciones(event) {
+    event.stopPropagation();
+    document.getElementById('notificationPopover')?.classList.toggle('open');
+  }
+
+  document.addEventListener('click', (event) => {
+    const wrap = document.getElementById('notificationWrap');
+    const popover = document.getElementById('notificationPopover');
+    if (wrap && popover && !wrap.contains(event.target)) {
+      popover.classList.remove('open');
+    }
+  });
+
+  cargarNotificaciones();
+  setInterval(cargarNotificaciones, 30000);
+</script>
+<script src="../assets/js/perfil.js"></script>
+<script src="../assets/js/logout.js"></script>
+</body>
+</html>

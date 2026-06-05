@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Membresías — Panel Administrativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:       #DD0F0D;
+      --red-dark:  #B50C0A;
+      --red-deeper:#8C0908;
+      --yellow:    #F6D42E;
+      --white:     #FFFFFF;
+      --bg:        #F4F5F7;
+      --surface:   #FFFFFF;
+      --border:    #E8E9EC;
+      --text-1:    #1A1A1A;
+      --text-2:    #555560;
+      --text-3:    #9999A8;
+      --green:     #16a34a;
+      --green-bg:  #dcfce7;
+      --orange:    #d97706;
+      --orange-bg: #fef3c7;
+      --blue:      #2563eb;
+      --blue-bg:   #dbeafe;
+      --sidebar-w: 240px;
+      --header-h:  64px;
+      --radius:    12px;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,.08);
+      --t: .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-1); -webkit-font-smoothing: antialiased; }
+
+    /* LAYOUT */
+    .shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: var(--header-h) 1fr;
+  min-height: 100vh;
+  padding-left: var(--sidebar-w);
+}
+
+    /* SIDEBAR */
+    .sidebar {
+  background: var(--red);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  z-index: 100;
+}
+
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: rgba(0,0,0,.10);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: 120px; left: -80px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .sidebar-logo {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sidebar-logo-placeholder {
+      height: 36px;
+      width: 36px;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: .06em;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    nav {
+      flex: 1;
+      padding: 16px 0;
+      position: relative;
+      z-index: 1;
+      overflow-y: auto;
+    }
+    nav::-webkit-scrollbar { width: 0; }
+
+    .nav-section { padding: 0 12px; margin-bottom: 4px; }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.40);
+      padding: 12px 8px 6px;
+      display: block;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.75);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--t), color var(--t);
+      user-select: none;
+      position: relative;
+      text-decoration: none;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: .8; }
+    .nav-item:hover { background: rgba(255,255,255,.12); color: var(--white); }
+    .nav-item.active { background: rgba(255,255,255,.18); color: var(--white); font-weight: 600; }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 50%; transform: translateY(-50%);
+      width: 3px; height: 22px;
+      background: var(--yellow);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--yellow);
+      color: var(--red-deeper);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+      line-height: 16px;
+    }
+
+    .sidebar-user {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,.20);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--white);
+      flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--white); }
+    .user-role { font-size: 11px; color: rgba(255,255,255,.50); }
+
+    /* HEADER */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .header-breadcrumb { font-size: 12px; color: var(--text-3); font-weight: 400; }
+    .header-breadcrumb span { color: var(--red); font-weight: 500; }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
+
+    .header-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2);
+      transition: border-color var(--t), color var(--t);
+      position: relative;
+    }
+    .header-btn:hover { border-color: var(--red); color: var(--red); }
+    .notif-dot {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 7px; height: 7px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 1.5px solid var(--white);
+    }
+
+    /* MAIN */
+    .main {
+      padding: 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp .45s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* PAGE HEADER */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+    /* BUTTON */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all var(--t);
+      white-space: nowrap;
+    }
+    .btn svg { width: 16px; height: 16px; }
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      box-shadow: 0 2px 8px rgba(221,15,13,.25);
+    }
+    .btn-primary:hover { background: var(--red-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(221,15,13,.35); }
+    .btn-outline {
+      background: white;
+      color: var(--text-2);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--bg); border-color: #ccc; }
+
+    /* STAT CARDS */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 22px 20px 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: box-shadow var(--t), transform var(--t);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .stat-card.c-red::after    { background: var(--red); }
+    .stat-card.c-green::after  { background: var(--green); }
+    .stat-card.c-orange::after { background: var(--orange); }
+    .stat-card.c-blue::after   { background: var(--blue); }
+
+    .stat-top { display: flex; align-items: flex-start; justify-content: space-between; }
+
+    .stat-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon.red    { background: rgba(221,15,13,.10); color: var(--red); }
+    .stat-icon.green  { background: var(--green-bg); color: var(--green); }
+    .stat-icon.orange { background: var(--orange-bg); color: var(--orange); }
+    .stat-icon.blue   { background: var(--blue-bg); color: var(--blue); }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px;
+      line-height: 1;
+      color: var(--text-1);
+      letter-spacing: .02em;
+    }
+
+    /* SECTION HEADER */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 18px;
+      background: var(--red);
+      border-radius: 4px;
+    }
+
+    /* TOOLBAR */
+    .toolbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-wrap { position: relative; flex: 1; min-width: 220px; }
+    .search-icon {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      pointer-events: none;
+    }
+    .search-icon svg { width: 16px; height: 16px; }
+    .search-input {
+      width: 100%;
+      padding: 9px 12px 9px 38px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-1);
+      background: var(--bg);
+      outline: none;
+      transition: all var(--t);
+    }
+    .search-input::placeholder { color: var(--text-3); }
+    .search-input:focus { border-color: var(--red); background: white; box-shadow: 0 0 0 3px rgba(221,15,13,.08); }
+
+    .filter-select {
+      padding: 9px 32px 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-2);
+      background: var(--bg);
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239999A8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: all var(--t);
+    }
+    .filter-select:focus { border-color: var(--red); background-color: white; box-shadow: 0 0 0 3px rgba(221,15,13,.08); }
+
+    /* TABLE */
+    .table-wrap {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    thead th {
+      background: var(--bg);
+      padding: 12px 18px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--t);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(221,15,13,.03); }
+
+    td { padding: 14px 18px; color: var(--text-1); vertical-align: middle; }
+
+    .avatar-cell { display: flex; align-items: center; gap: 11px; }
+    .avatar-sm {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      font-size: 12px; font-weight: 700; color: white;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .client-name { font-weight: 600; color: var(--text-1); }
+    .client-id   { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+    /* CÓDIGO CHIP */
+    .code-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'DM Sans', monospace;
+      color: var(--text-2);
+      letter-spacing: .04em;
+    }
+    .code-chip svg { width: 12px; height: 12px; color: var(--text-3); }
+
+    /* PLAN BADGE */
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      letter-spacing: .03em;
+    }
+    .plan-badge.mensual   { background: var(--blue-bg); color: var(--blue); }
+    .plan-badge.trimestral{ background: #ede9fe; color: #7c3aed; }
+    .plan-badge.semestral { background: var(--orange-bg); color: var(--orange); }
+    .plan-badge.anual     { background: var(--green-bg); color: var(--green); }
+    .promo-badge {
+      display: inline-flex;
+      margin-top: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--red);
+      background: rgba(221,15,13,.10);
+      border-radius: 20px;
+      padding: 3px 9px;
+      white-space: nowrap;
+    }
+
+    /* BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .badge.active      { background: var(--green-bg); color: var(--green); }
+    .badge.active .badge-dot { background: var(--green); }
+    .badge.activa      { background: var(--green-bg); color: var(--green); }
+    .badge.activa .badge-dot { background: var(--green); }
+    .badge.inactive    { background: #f1f3f5; color: #555; }
+    .badge.inactive .badge-dot { background: #888; }
+    .badge.inactiva    { background: #f1f3f5; color: #555; }
+    .badge.inactiva .badge-dot { background: #888; }
+    .badge.expired     { background: #fee2e2; color: #dc2626; }
+    .badge.expired .badge-dot { background: #dc2626; }
+    .badge.vencida,
+    .badge.vence_hoy { background: #fee2e2; color: #dc2626; }
+    .badge.vencida .badge-dot,
+    .badge.vence_hoy .badge-dot { background: #dc2626; }
+    .badge.pending     { background: var(--orange-bg); color: var(--orange); }
+    .badge.pending .badge-dot { background: var(--orange); }
+    .badge.vence_manana { background: var(--orange-bg); color: var(--orange); }
+    .badge.vence_manana .badge-dot { background: var(--orange); }
+    .badge.vence_3_dias { background: #fef3c7; color: #a16207; }
+    .badge.vence_3_dias .badge-dot { background: var(--yellow); }
+
+    /* ACTION BUTTONS */
+    .actions-cell { display: flex; align-items: center; gap: 6px; }
+    .icon-btn {
+      width: 30px; height: 30px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text-3);
+      transition: all var(--t);
+    }
+    .icon-btn svg { width: 14px; height: 14px; }
+    .icon-btn:hover { background: var(--bg); color: var(--text-1); border-color: #ccc; }
+    .icon-btn.danger:hover { background: #fee2e2; color: #dc2626; border-color: rgba(220,38,38,.2); }
+
+    /* FOOTER */
+    .table-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg);
+    }
+    .table-info { font-size: 12.5px; color: var(--text-3); }
+    .table-info strong { color: var(--text-2); }
+
+    .pagination { display: flex; gap: 4px; }
+    .page-btn {
+      width: 32px; height: 32px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-2);
+      font-family: 'DM Sans', sans-serif;
+      transition: all var(--t);
+    }
+    .page-btn svg { width: 14px; height: 14px; }
+    .page-btn:hover { background: var(--bg); color: var(--text-1); }
+    .page-btn.active { background: var(--red); color: white; border-color: var(--red); }
+    .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* EMPTY STATE */
+    .empty-state { padding: 60px 20px; text-align: center; display: none; }
+    .empty-state svg { width: 48px; height: 48px; color: var(--border); margin: 0 auto 16px; display: block; }
+    .empty-state p { color: var(--text-3); font-size: 14px; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(3px);
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: var(--shadow-md);
+      animation: slideUp .22s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-header {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+    }
+    .modal-close {
+      width: 30px; height: 30px;
+      border-radius: 7px; border: 1px solid var(--border);
+      background: white; cursor: pointer; color: var(--text-3);
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--t);
+    }
+    .modal-close:hover { background: #fee2e2; color: #dc2626; border-color: transparent; }
+    .modal-close svg { width: 16px; height: 16px; }
+
+    .modal-body { padding: 22px 24px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; }
+    .form-input, .form-select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-1);
+      background: var(--bg);
+      outline: none;
+      transition: all var(--t);
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--red);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(221,15,13,.08);
+    }
+    .form-select {
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239999A8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+      cursor: pointer;
+    }
+
+    /* CODE PREVIEW IN MODAL */
+    .code-preview {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .code-preview strong {
+      font-family: monospace;
+      color: var(--red);
+      font-size: 14px;
+      letter-spacing: .06em;
+    }
+
+    .modal-footer {
+      padding: 16px 24px 22px;
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 820px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { display: none; }
+      .shell { grid-template-columns: 1fr; }
+      .main { padding: 18px; }
+      .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    }
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .page-header { flex-direction: column; }
+      .form-grid { grid-template-columns: 1fr; }
+      th:nth-child(4), td:nth-child(4),
+      th:nth-child(5), td:nth-child(5) { display: none; }
+    }
+
+    .modal-icon.danger{
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:#fee2e2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:32px;
+    margin:0 auto 20px;
+}
+
+.btn-danger{
+    background:var(--red);
+    color:white;
+}
+
+  
+    .notification-wrap { position: relative; }
+    .notif-count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 20px;
+      background: var(--red);
+      color: white;
+      border: 2px solid var(--white);
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .notif-dot { display: none; }
+    .notification-popover {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 340px;
+      max-width: calc(100vw - 36px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      z-index: 150;
+      display: none;
+      overflow: hidden;
+    }
+    .notification-popover.open { display: block; }
+    .notification-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .notification-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+    .notification-total { font-size: 11px; font-weight: 700; color: var(--text-3); }
+    .notification-list { max-height: 360px; overflow-y: auto; }
+    .notification-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-3);
+      font-size: 13px;
+    }
+    .notification-item {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 9px 1fr;
+      gap: 10px;
+    }
+    .notification-item:last-child { border-bottom: none; }
+    .notification-mark {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-top: 6px;
+      background: var(--orange);
+    }
+    .notification-item.vencida_hoy .notification-mark { background: var(--red); }
+    .notification-item.vence_manana .notification-mark { background: var(--orange); }
+    .notification-item.vence_3_dias .notification-mark { background: var(--yellow); }
+    .notification-item-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+      margin-bottom: 3px;
+    }
+    .notification-item-msg { font-size: 12px; color: var(--text-2); line-height: 1.35; }
+    .notification-item-meta { margin-top: 5px; font-size: 11px; color: var(--text-3); }
+
+    .notification-toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 300;
+      min-width: 260px;
+      max-width: calc(100vw - 44px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      border-radius: 10px;
+      box-shadow: var(--shadow-md);
+      padding: 13px 15px;
+      color: var(--text-1);
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity var(--t), transform var(--t);
+    }
+    .notification-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .notification-toast span {
+      display: block;
+      color: var(--text-3);
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    @media (max-width:600px) {
+      .notification-popover {
+        position: fixed;
+        top: 66px;
+        right: 18px;
+        left: 18px;
+        width: auto;
+        max-width: none;
+      }
+    }
+
+  </style>
+  <link rel="stylesheet" href="../assets/css/logout.css">
+  <script src="../assets/js/admin-auth.js"></script>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <!-- Logo: reemplaza src con tu imagen -->
+      <div class="sidebar-logo-placeholder">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,.8)">
+          <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-label"><!-- Nombre --></div>
+        <div class="logo-sub">Administración</div>
+      </div>
+    </div>
+ 
+        <nav>
+      <div class="nav-section">
+        <span class="nav-label">Principal</span>
+
+        <div class="nav-item" onclick="window.location.href='dashboard.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='clientes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Clientes
+          <span class="nav-badge" id="clientesBadge">0</span>
+        </div>
+
+        <div class="nav-item active" onclick="window.location.href='membresias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+          Membresías
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='nueva-membresia.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          Nueva Membresía
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Control</span>
+
+        <div class="nav-item" onclick="window.location.href='validar.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Validar Ingreso
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='asistencias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          Asistencias
+        </div>
+
+        <div class="nav-item" onclick="window.location.href='planes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          Planes
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Sistema</span>
+        <div class="nav-item" onclick="window.location.href='configuracion.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          Configuración
+        </div>
+      </div>
+    </nav>
+ 
+    <div class="sidebar-user">
+      <div class="user-avatar">AD</div>
+      <div>
+        <div class="user-name">Administrador</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+      <button type="button" class="admin-logout-btn admin-logout-trigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-title">Membresías</div>
+      <div class="header-breadcrumb">Inicio / <span>Gestión de Membresías</span></div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="headerDate"></div>
+      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+      <div class="notification-wrap" id="notificationWrap">
+        <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="notif-dot"></span>
+      <span class="notif-count" id="notifCount">0</span>
+        </button>
+        <div class="notification-popover" id="notificationPopover">
+          <div class="notification-head">
+            <div class="notification-title">Notificaciones</div>
+            <div class="notification-total" id="notificationTotal">0 pendientes</div>
+          </div>
+          <div class="notification-list" id="notificationList">
+            <div class="notification-empty">Cargando notificaciones...</div>
+          </div>
+        </div>
+      </div>
+      <button class="header-btn" title="Exportar" onclick="exportarMembresias()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      </button>
+      <button class="btn btn-primary" id="btnCrearMembresia" onclick="openModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Crear Membresía
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- STAT CARDS -->
+    <div class="cards-grid">
+      <div class="stat-card c-red">
+        <div class="stat-top">
+          <div class="stat-icon red">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="stat-label">Total Membresías</div>
+          <div class="stat-value">999</div>
+        </div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-top">
+          <div class="stat-icon green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="stat-label">Activas</div>
+          <div class="stat-value">999</div>
+        </div>
+      </div>
+      <div class="stat-card c-orange">
+        <div class="stat-top">
+          <div class="stat-icon orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="stat-label">Por Vencer</div>
+          <div class="stat-value">999</div>
+        </div>
+      </div>
+      <div class="stat-card c-blue">
+        <div class="stat-top">
+          <div class="stat-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="stat-label">Vencidas</div>
+          <div class="stat-value">999</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE SECTION -->
+    <section>
+      <div class="section-head">
+        <div class="section-title">Todas las Membresías</div>
+        <div class="toolbar" style="padding:8px 14px;box-shadow:none;border:1px solid var(--border);background:var(--surface);">
+          <div class="search-wrap" style="min-width:210px;">
+            <span class="search-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input type="text" class="search-input" id="searchInput" placeholder="Buscar por cliente o código..."/>
+          </div>
+          <select class="filter-select" id="planFilter">
+            <option value="">Todos los planes</option>
+          </select>
+          <select class="filter-select" id="statusFilter">
+            <option value="">Todos los estados</option>
+            <option value="activa">Activa</option>
+            <option value="vence_hoy">Vence hoy</option>
+            <option value="vence_manana">Vence mañana</option>
+            <option value="vence_3_dias">Vence en 3 días</option>
+            <option value="vencida">Vencida</option>
+            <option value="inactiva">Inactiva</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table id="membresiasTable">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Código</th>
+                <th>Tipo de Plan</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            <p>No se encontraron membresías con esos criterios.</p>
+          </div>
+        </div>
+        <div class="table-footer">
+          <div class="table-info" id="tableInfo"></div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL CREAR MEMBRESÍA -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Nueva Membresía</span>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Cliente</label>
+          <select class="form-select" id="modalCliente">
+            <option value="">Seleccionar cliente...</option>
+            <option>Carlos Ramírez</option>
+            <option>María López</option>
+            <option>José Quispe</option>
+            <option>Ana Torres</option>
+            <option>Luis Mendoza</option>
+            <option>Rosa Huanca</option>
+            <option>Diego Vargas</option>
+            <option>Sofía Castillo</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Código generado</label>
+          <div class="code-preview" id="codePreview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;color:var(--text-3)"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            Se generará automáticamente — ej. <strong id="codeDisplay">GYM-XXXXXX</strong>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Plan</label>
+          <select class="form-select" id="modalPlan">
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select">
+            <option>Activo</option>
+            <option>Pendiente</option>
+            <option>Vencido</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de Inicio</label>
+          <input type="date" class="form-input" id="modalFechaInicio"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de Fin</label>
+          <input type="date" class="form-input" id="modalFechaFin"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar Membresía
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Eliminar membresía</span>
+      <button class="modal-close" onclick="cerrarModalEliminar()">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body" style="text-align:center;">
+      <div class="modal-icon danger">🗑️</div>
+
+      <p style="color:var(--text-2);line-height:1.6;">
+        Esta acción eliminará la membresía seleccionada.
+        El cliente permanecerá registrado en el sistema.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cerrarModalEliminar()">
+        Cancelar
+      </button>
+
+      <button class="btn btn-danger" id="confirmDeleteBtn">
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+
+  
+ // 1. Capturar los parámetros que vienen en la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // 2. Extraer el valor del parámetro 'estado'
+  const estadoSeleccionado = urlParams.get('estado');
+
+  // 3. Si el parámetro existe, asignarlo al select con id 'statusFilter'
+  if (estadoSeleccionado) {
+    const select = document.getElementById('statusFilter');
+    
+    
+    if (select) {
+      select.value = estadoSeleccionado;
+      
+      
+    }
+  }
+
+
+
+
+  /* Fecha en header */
+  const d = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('headerDate').textContent =
+    d.toLocaleDateString('es-PE', opts).replace(/^\w/, c => c.toUpperCase());
+
+const API_URL = 'https://perfection-fitness-backend-production.up.railway.app/api';
+
+function descargarCSV(nombreArchivo, columnas, filas) {
+  const escaparValor = (valor) => {
+    if (valor === null || valor === undefined) return '';
+
+    const texto = String(valor).replace(/"/g, '""');
+    return /[",\r\n]/.test(texto) ? `"${texto}"` : texto;
+  };
+
+  const encabezado = columnas.map(col => escaparValor(col.titulo)).join(',');
+  const cuerpo = filas.map(fila =>
+    columnas.map(col => escaparValor(fila[col.campo])).join(',')
+  ).join('\n');
+  const contenido = '\ufeff' + [encabezado, cuerpo].join('\n');
+  const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = nombreArchivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+async function exportarMembresias() {
+  try {
+    const res = await fetch(`${API_URL}/exportar/membresias`);
+
+    if (!res.ok) {
+      throw new Error('Error al exportar membresias');
+    }
+
+    const filas = await res.json();
+
+    if (!Array.isArray(filas) || filas.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    descargarCSV('membresias_perfection_fitness.csv', [
+      { titulo: 'ID', campo: 'id' },
+      { titulo: 'Cliente', campo: 'cliente' },
+      { titulo: 'DNI', campo: 'dni' },
+      { titulo: 'Plan', campo: 'plan' },
+      { titulo: 'Código', campo: 'codigo' },
+      { titulo: 'Meses', campo: 'meses' },
+      { titulo: 'Unidad duración', campo: 'duracion_unidad' },
+      { titulo: 'Usos totales', campo: 'usos_totales' },
+      { titulo: 'Usos restantes', campo: 'usos_restantes' },
+      { titulo: 'Precio total', campo: 'precio_total' },
+      { titulo: 'Promoción', campo: 'promocion' },
+      { titulo: 'Fecha inicio', campo: 'fecha_inicio' },
+      { titulo: 'Fecha fin', campo: 'fecha_fin' },
+      { titulo: 'Estado', campo: 'estado' }
+    ], filas);
+
+  } catch (error) {
+    console.error(error);
+    alert('Error al exportar');
+  }
+}
+
+let membresias = [];
+let filtered = [...membresias];
+let planesActivos = [];
+
+async function cargarPlanesActivos() {
+  try {
+    const res = await fetch(`${API_URL}/planes`);
+    planesActivos = await res.json();
+
+    const modalPlan = document.getElementById('modalPlan');
+    if (!modalPlan) return;
+
+    modalPlan.innerHTML = `
+      <option value="">Seleccionar...</option>
+      ${planesActivos.map(plan => `
+        <option value="${plan.id}">${plan.nombre}</option>
+      `).join('')}
+    `;
+  } catch (error) {
+    console.error('Error cargando planes:', error);
+  }
+}
+
+function cargarFiltroPlanes() {
+  const planFilter = document.getElementById('planFilter');
+
+  const planesUnicos = [
+    ...new Set(
+      membresias
+        .map(m => m.plan)
+        .filter(Boolean)
+    )
+  ];
+
+  planFilter.innerHTML = `
+    <option value="">Todos los planes</option>
+    ${planesUnicos.map(plan => `
+      <option value="${plan}">${plan}</option>
+    `).join('')}
+  `;
+}
+
+async function cargarMembresias() {
+  try {
+    const res = await fetch(`${API_URL}/membresias`);
+    membresias = await res.json();
+
+    filtered = [...membresias];
+    cargarFiltroPlanes();
+
+    actualizarCards();
+    render();
+
+  } catch (error) {
+    console.error('Error cargando membresías:', error);
+  }
+}
+  
+
+  const PER_PAGE = 10;
+  let currentPage = 1;
+
+  function initials(name) {
+    return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+  }
+
+  function badgeClass(estado) {
+  return estado === 'activa' ? 'active' : 'expired';
+}
+
+function estadoTexto(estado) {
+  return estado === 'activa' ? 'Activo' : 'Vencido';
+}
+
+function estadoDetalle(m) {
+
+  const dias = Number(m.dias_restantes);
+
+  if (m.estado === 'vencida') {
+    return `Vencido hace ${Math.abs(dias)} día(s)`;
+  }
+
+  if (dias === 0) {
+    return 'Vence hoy';
+  }
+
+  if (dias === 1) {
+    return 'Vence mañana';
+  }
+
+  return `Vence en ${dias} días`;
+}
+
+function estadoVisualMembresia(m) {
+  if (m.estado_visual) return m.estado_visual;
+
+  const dias = Number(m.dias_restantes);
+
+  if (m.estado === 'vencida' || dias < 0) return 'vencida';
+  if (dias === 0) return 'vence_hoy';
+  if (dias === 1) return 'vence_manana';
+  if (dias === 3) return 'vence_3_dias';
+  if (m.estado === 'activa') return 'activa';
+
+  return 'inactiva';
+}
+
+function estadoVisualTexto(estado) {
+  return {
+    vencida: 'Vencida',
+    vence_hoy: 'Vence hoy',
+    vence_manana: 'Vence mañana',
+    vence_3_dias: 'Vence en 3 días',
+    activa: 'Activa',
+    inactiva: 'Inactiva'
+  }[estado] || 'Inactiva';
+}
+
+function badgeVisualClass(m) {
+  return estadoVisualMembresia(m);
+}
+
+function estadoVisualDetalle(m) {
+  const dias = Number(m.dias_restantes);
+  const estado = estadoVisualMembresia(m);
+
+  if (estado === 'vencida') {
+    return `Vencida hace ${Math.abs(dias)} día(s)`;
+  }
+
+  if (estado === 'activa' && dias > 3) {
+    return `Vence en ${dias} días`;
+  }
+
+  return estadoVisualTexto(estado);
+}
+
+  function planClass(plan) {
+    return { Mensual:'mensual', Trimestral:'trimestral', Semestral:'semestral', Anual:'anual' }[plan] || 'mensual';
+  }
+
+  function textoDuracionMembresia(m) {
+    const unidad = m.duracion_unidad || 'meses';
+
+    if (unidad === 'usos') {
+      const total = parseInt(m.usos_totales, 10) || parseInt(m.meses, 10) || 1;
+      return `${total} ${total === 1 ? 'uso' : 'usos'}`;
+    }
+
+    const cantidad = parseInt(m.meses, 10) || 1;
+
+    if (unidad === 'dias') return `${cantidad} ${cantidad === 1 ? 'dia' : 'dias'}`;
+    return `${cantidad} ${cantidad === 1 ? 'mes' : 'meses'}`;
+  }
+
+  function textoUsosDisponibles(m) {
+    if ((m.duracion_unidad || 'meses') !== 'usos') return '';
+
+    const total = parseInt(m.usos_totales, 10) || 0;
+    const restantes = parseInt(m.usos_restantes, 10) || 0;
+    const palabra = total === 1 ? 'uso disponible' : 'usos disponibles';
+
+    return `${restantes}/${total} ${palabra}`;
+  }
+
+  function formatDate(fecha) {
+  if (!fecha) return '—';
+
+  return new Date(fecha).toLocaleDateString('es-PE', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+}
+function actualizarCards() {
+  const total = membresias.length;
+
+  const activas = membresias.filter(
+    m => estadoVisualMembresia(m) === 'activa'
+  ).length;
+
+  const vencidas = membresias.filter(
+    m => estadoVisualMembresia(m) === 'vencida'
+  ).length;
+
+  const porVencer = membresias.filter(m =>
+    estadoVisualMembresia(m) === 'vence_hoy' ||
+    estadoVisualMembresia(m) === 'vence_manana' ||
+    estadoVisualMembresia(m) === 'vence_3_dias'
+  ).length;
+
+  document.querySelectorAll('.stat-value')[0].textContent = total;
+  document.querySelectorAll('.stat-value')[1].textContent = activas;
+  document.querySelectorAll('.stat-value')[2].textContent = porVencer;
+  document.querySelectorAll('.stat-value')[3].textContent = vencidas;
+}
+  function render() {
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+  const info  = document.getElementById('tableInfo');
+  const start = (currentPage - 1) * PER_PAGE;
+  const page  = filtered.slice(start, start + PER_PAGE);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+
+    tbody.innerHTML = page.map(m => `
+      <tr>
+        <td>
+          <div class="avatar-cell">
+            <div class="avatar-sm" style="background:var(--red)">
+              ${initials(m.cliente)}
+            </div>
+            <div>
+              <div class="client-name">${m.cliente}</div>
+              <div class="client-id">DNI: ${m.dni || '-'}</div>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <span class="code-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+            ${m.codigo}
+          </span>
+        </td>
+
+        <td>
+          <span class="plan-badge ${planClass(m.plan)}">
+            ${m.plan}
+          </span>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">
+            ${textoDuracionMembresia(m)}
+          </div>
+          ${m.promocion ? `<div><span class="promo-badge">${m.promocion}</span></div>` : ''}
+        </td>
+
+        <td style="color:var(--text-2)">
+          ${formatDate(m.fecha_inicio)}
+        </td>
+
+        <td style="color:var(--text-2)">
+          ${formatDate(m.fecha_fin)}
+        </td>
+
+        <td>
+          <div>
+  <span class="badge ${badgeVisualClass(m)}">
+    <span class="badge-dot"></span>
+    ${estadoVisualTexto(estadoVisualMembresia(m))}
+  </span>
+
+  <div style="
+    font-size:11px;
+    color:var(--text-3);
+    margin-top:4px;
+  ">
+    ${estadoVisualDetalle(m)}
+    ${textoUsosDisponibles(m) ? `<br>${textoUsosDisponibles(m)}` : ''}
+  </div>
+</div>
+        </td>
+
+        <td>
+  <div class="actions-cell">
+
+    <button class="btn btn-primary"
+  onclick="renovarMembresia(${m.cliente_id})">
+  Renovar
+</button>
+
+    <button
+      class="icon-btn danger"
+      title="Eliminar membresía"
+      onclick="eliminarMembresia(${m.id})">
+
+      <svg viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           stroke-linecap="round"
+           stroke-linejoin="round">
+
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/>
+        <path d="M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+
+      </svg>
+
+    </button>
+
+  </div>
+</td>
+      </tr>
+    `).join('');
+  }
+
+  const total = filtered.length;
+
+  info.innerHTML = total === 0
+    ? 'Sin resultados'
+    : `Mostrando <strong>${start + 1}–${Math.min(start + PER_PAGE, total)}</strong> de <strong>${total}</strong> membresías`;
+
+  renderPagination();
+}
+
+  function renderPagination() {
+    const pages = Math.ceil(filtered.length / PER_PAGE);
+    const pag = document.getElementById('pagination');
+    if (pages <= 1) { pag.innerHTML = ''; return; }
+
+    let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>`;
+    for (let i = 1; i <= pages; i++) {
+      html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>`;
+    pag.innerHTML = html;
+  }
+
+  function goPage(p) {
+    const pages = Math.ceil(filtered.length / PER_PAGE);
+    if (p < 1 || p > pages) return;
+    currentPage = p;
+    render();
+  }
+
+  function applyFilters() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const plan   = document.getElementById('planFilter').value;
+  const status = document.getElementById('statusFilter').value;
+
+  currentPage = 1;
+
+  filtered = membresias.filter(m => {
+    const cliente = String(m.cliente || '').toLowerCase();
+    const codigo = String(m.codigo || '').toLowerCase();
+    const planNombre = String(m.plan || '');
+    const estado = estadoVisualMembresia(m);
+
+    const matchQ =
+      !q ||
+      cliente.includes(q) ||
+      codigo.includes(q);
+
+    const matchP =
+      !plan ||
+      planNombre === plan;
+
+    const matchS =
+      !status ||
+      estado === status;
+
+    return matchQ && matchP && matchS;
+  });
+
+  render();
+}
+
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('planFilter').addEventListener('change', applyFilters);
+  document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+  let membresiaAEliminar = null;
+
+  function eliminarMembresia(id) {
+
+  membresiaAEliminar = id;
+
+  document
+    .getElementById('deleteModal')
+    .classList.add('open');
+}
+
+function cerrarModalEliminar() {
+
+  membresiaAEliminar = null;
+
+  document
+    .getElementById('deleteModal')
+    .classList.remove('open');
+}
+
+  function renovarMembresia(clienteId) {
+  window.location.href =
+    `nueva-membresia.html?cliente_id=${clienteId}`;
+}
+  /* Generador de código ficticio en modal */
+  const codes = ['GYM-A8K2PZ','GYM-B5L9XQ','GYM-C7M4RT'];
+  let codeIdx = 0;
+  function openModal() {
+    document.getElementById('codeDisplay').textContent = codes[codeIdx % codes.length];
+    codeIdx++;
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* Nav items */
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  
+
+ cargarMembresias();
+ cargarPlanesActivos();
+
+ document
+  .getElementById('confirmDeleteBtn')
+  .addEventListener('click', async () => {
+
+    if (!membresiaAEliminar) return;
+
+    try {
+
+      const res = await fetch(
+        `${API_URL}/membresias/${membresiaAEliminar}`,
+        {
+          method: 'DELETE'
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error();
+      }
+
+      cerrarModalEliminar();
+
+      await cargarMembresias();
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert('Error al eliminar membresía');
+    }
+});
+
+async function cargarSidebar() {
+  try {
+
+    const res = await fetch(
+      'https://perfection-fitness-backend-production.up.railway.app/api/sidebar'
+    );
+
+    const data = await res.json();
+
+    const clientes = document.getElementById('clientesBadge');
+    const membresias = document.getElementById('membresiasBadge');
+
+    if (clientes) {
+      clientes.textContent = data.clientes;
+    }
+
+    if (membresias) {
+      membresias.textContent = data.membresias;
+    }
+
+  } catch (error) {
+    console.error('Error sidebar:', error);
+  }
+}
+
+cargarSidebar();
+
+
+  let notificacionesPrevias = new Set();
+  let notificacionesInicializadas = false;
+  let notificationToastTimer = null;
+
+  function notificationId(n) {
+    return [n.tipo, n.dni || '', n.fecha_fin || ''].join('|');
+  }
+
+  function mostrarToastNotificacion(notificacion) {
+    let toast = document.getElementById('notificationToast');
+
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'notificationToast';
+      toast.className = 'notification-toast';
+      document.body.appendChild(toast);
+    }
+
+    toast.innerHTML = `
+      Nueva notificación: ${notificacion.titulo}
+      <span>${notificacion.cliente || ''}</span>
+    `;
+    toast.classList.add('show');
+
+    clearTimeout(notificationToastTimer);
+    notificationToastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3600);
+  }
+
+  async function cargarNotificaciones() {
+    const wrap = document.getElementById('notificationWrap');
+    if (!wrap) return;
+
+    try {
+      const res = await fetch('https://perfection-fitness-backend-production.up.railway.app/api/notificaciones');
+      const data = await res.json();
+      const notificaciones = Array.isArray(data) ? data : [];
+      const count = document.getElementById('notifCount');
+      const total = document.getElementById('notificationTotal');
+      const list = document.getElementById('notificationList');
+      const idsActuales = new Set(notificaciones.map(notificationId));
+
+      if (notificacionesInicializadas) {
+        const nueva = notificaciones.find(n => !notificacionesPrevias.has(notificationId(n)));
+        if (nueva) mostrarToastNotificacion(nueva);
+      }
+
+      notificacionesPrevias = idsActuales;
+      notificacionesInicializadas = true;
+
+      count.style.display = notificaciones.length > 0 ? 'flex' : 'none';
+      count.textContent = notificaciones.length > 9 ? '9+' : notificaciones.length;
+      total.textContent = notificaciones.length === 1 ? '1 pendiente' : notificaciones.length + ' pendientes';
+
+      if (notificaciones.length === 0) {
+        list.innerHTML = '<div class="notification-empty">No hay notificaciones pendientes</div>';
+        return;
+      }
+
+      list.innerHTML = notificaciones.map(n => `
+        <div class="notification-item ${n.tipo}">
+          <span class="notification-mark"></span>
+          <div>
+            <div class="notification-item-title">${n.titulo}</div>
+            <div class="notification-item-msg">${n.cliente} - ${n.plan}</div>
+            <div class="notification-item-meta">DNI ${n.dni || '-'} - Vence: ${n.fecha_fin}</div>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Error notificaciones:', error);
+    }
+  }
+
+  function toggleNotificaciones(event) {
+    event.stopPropagation();
+    document.getElementById('notificationPopover')?.classList.toggle('open');
+  }
+
+  document.addEventListener('click', (event) => {
+    const wrap = document.getElementById('notificationWrap');
+    const popover = document.getElementById('notificationPopover');
+    if (wrap && popover && !wrap.contains(event.target)) {
+      popover.classList.remove('open');
+    }
+  });
+
+  cargarNotificaciones();
+  setInterval(cargarNotificaciones, 30000);
+</script>
+
+
+<script src="../assets/js/perfil.js"></script>
+<script src="../assets/js/logout.js"></script>
+</body>
+</html>

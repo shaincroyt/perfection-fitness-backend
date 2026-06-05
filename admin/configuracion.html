@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Configuración — Panel Administrativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/logout.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:#DD0F0D;
+      --red-dark:#B50C0A;
+      --red-deeper:#8C0908;
+      --yellow:#F6D42E;
+      --white:#FFFFFF;
+      --bg:#F4F5F7;
+      --surface:#FFFFFF;
+      --border:#E8E9EC;
+      --text-1:#1A1A1A;
+      --text-2:#555560;
+      --text-3:#9999A8;
+      --green:#16a34a;
+      --green-bg:#dcfce7;
+      --sidebar-w:240px;
+      --header-h:64px;
+      --radius:12px;
+      --shadow-sm:0 1px 4px rgba(0,0,0,.06);
+      --shadow-md:0 4px 20px rgba(0,0,0,.08);
+      --t:.2s cubic-bezier(.4,0,.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: var(--header-h) 1fr;
+      min-height: 100vh;
+      padding-left: var(--sidebar-w);
+    }
+
+    .sidebar {
+      background: var(--red);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      z-index: 100;
+    }
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: rgba(0,0,0,.10);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: 120px; left: -80px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .sidebar-logo {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .sidebar-logo-placeholder {
+      height: 36px; width: 36px;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: .06em;
+      color: var(--white);
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    nav {
+      flex: 1;
+      padding: 16px 0;
+      position: relative;
+      z-index: 1;
+      overflow-y: auto;
+    }
+    nav::-webkit-scrollbar { width: 0; }
+    .nav-section { padding: 0 12px; margin-bottom: 4px; }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.40);
+      padding: 12px 8px 6px;
+      display: block;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.75);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--t), color var(--t);
+      user-select: none;
+      position: relative;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: .8; }
+    .nav-item:hover { background: rgba(255,255,255,.12); color: var(--white); }
+    .nav-item.active { background: rgba(255,255,255,.18); color: var(--white); font-weight: 600; }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 50%; transform: translateY(-50%);
+      width: 3px; height: 22px;
+      background: var(--yellow);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-user {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,.20);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--white);
+      flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--white); }
+    .user-role { font-size: 11px; color: rgba(255,255,255,.50); }
+
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .header-breadcrumb { font-size: 12px; color: var(--text-3); font-weight: 400; }
+    .header-breadcrumb span { color: var(--red); font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
+
+    .main {
+      padding: 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp .45s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: .04em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 620px) minmax(260px, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-icon {
+      width: 36px; height: 36px;
+      background: rgba(221,15,13,.10);
+      color: var(--red);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+    .card-subtitle { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .card-body { padding: 24px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+    }
+    .form-input {
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-1);
+      background: var(--bg);
+      outline: none;
+      transition: all var(--t);
+    }
+    .form-input:focus {
+      border-color: var(--red);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(221,15,13,.08);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all var(--t);
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      box-shadow: 0 2px 8px rgba(221,15,13,.25);
+    }
+    .btn-primary:hover { background: var(--red-dark); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: .65; cursor: wait; transform: none; }
+
+    .message {
+      display: none;
+      margin-top: 16px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .message.visible { display: block; }
+    .message.success { background: var(--green-bg); color: var(--green); }
+    .message.error { background: #fee2e2; color: #dc2626; }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-3); font-weight: 600; }
+    .info-value { color: var(--text-1); font-weight: 700; text-align: right; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--green-bg);
+      color: var(--green);
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    @media (max-width: 1000px) {
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 820px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { display: none; }
+      .shell { padding-left: 0; }
+      .main { padding: 18px; }
+    }
+  </style>
+  <script src="../assets/js/admin-auth.js"></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-placeholder">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,.8)">
+          <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-label"></div>
+        <div class="logo-sub">Administración</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <span class="nav-label">Principal</span>
+        <div class="nav-item" onclick="window.location.href='dashboard.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item" onclick="window.location.href='clientes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Clientes
+        </div>
+        <div class="nav-item" onclick="window.location.href='membresias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+          Membresías
+        </div>
+        <div class="nav-item" onclick="window.location.href='nueva-membresia.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+          Nueva Membresía
+        </div>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">Control</span>
+        <div class="nav-item" onclick="window.location.href='validar.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Validar Ingreso
+        </div>
+        <div class="nav-item" onclick="window.location.href='asistencias.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2z"/></svg>
+          Asistencias
+        </div>
+        <div class="nav-item" onclick="window.location.href='planes.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+          Planes
+        </div>
+      </div>
+      <div class="nav-section">
+        <span class="nav-label">Sistema</span>
+        <div class="nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          Configuración
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">AD</div>
+      <div>
+        <div class="user-name" id="sidebarAdminName">Administrador</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+      <button type="button" class="admin-logout-btn admin-logout-trigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <header class="header">
+    <div class="header-left">
+      <div class="header-title">Configuración</div>
+      <div class="header-breadcrumb">Sistema / <span>Cuenta de administrador</span></div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="headerDate"></div>
+      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Configuración</div>
+        <div class="page-subtitle">Gestiona la seguridad de la cuenta administrativa.</div>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-3.1 0H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Cambiar contraseña</div>
+            <div class="card-subtitle">Actualiza la clave de acceso del administrador</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <form id="passwordForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="passwordActual">Contraseña actual</label>
+                <input class="form-input" type="password" id="passwordActual" autocomplete="current-password" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="passwordNueva">Nueva contraseña</label>
+                <input class="form-input" type="password" id="passwordNueva" autocomplete="new-password" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="confirmarPassword">Confirmar nueva contraseña</label>
+                <input class="form-input" type="password" id="confirmarPassword" autocomplete="new-password" />
+              </div>
+              <button class="btn btn-primary" type="submit" id="passwordSubmit">
+                Actualizar contraseña
+              </button>
+            </div>
+          </form>
+          <div class="message success" id="passwordSuccess">Contraseña actualizada correctamente</div>
+          <div class="message error" id="passwordError">Error al actualizar contraseña</div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Cuenta actual</div>
+            <div class="card-subtitle">Datos de la sesión activa</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="info-label">Administrador</span>
+            <span class="info-value" id="adminNombre">Administrador</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Usuario</span>
+            <span class="info-value" id="adminUsuario">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Estado</span>
+            <span class="info-value"><span class="status-pill"><span class="status-dot"></span>Sesión activa</span></span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+const API_URL = 'https://perfection-fitness-backend-production.up.railway.app/api';
+
+const d = new Date();
+const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+document.getElementById('headerDate').textContent =
+  d.toLocaleDateString('es-PE', opts).replace(/^\w/, c => c.toUpperCase());
+
+function mostrarMensaje(tipo, texto) {
+  const success = document.getElementById('passwordSuccess');
+  const error = document.getElementById('passwordError');
+
+  success.classList.remove('visible');
+  error.classList.remove('visible');
+
+  if (tipo === 'success') {
+    success.textContent = texto;
+    success.classList.add('visible');
+  } else {
+    error.textContent = texto;
+    error.classList.add('visible');
+  }
+}
+
+async function cargarSesion() {
+  try {
+    const res = await fetch(`${API_URL}/verificar-sesion`, {
+      credentials: 'include'
+    });
+    const data = await res.json();
+
+    if (!data.logueado) {
+      window.location.href = '/admin/login.html';
+      return;
+    }
+
+    const admin = data.admin || {};
+    document.getElementById('adminNombre').textContent = admin.nombre || 'Administrador';
+    document.getElementById('adminUsuario').textContent = admin.usuario || '-';
+    document.getElementById('sidebarAdminName').textContent = admin.nombre || 'Administrador';
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+document.getElementById('passwordForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const submit = document.getElementById('passwordSubmit');
+  const passwordActual = document.getElementById('passwordActual').value.trim();
+  const passwordNueva = document.getElementById('passwordNueva').value.trim();
+  const confirmarPassword = document.getElementById('confirmarPassword').value.trim();
+
+  if (!passwordActual || !passwordNueva || !confirmarPassword) {
+    mostrarMensaje('error', 'Completa todos los campos');
+    return;
+  }
+
+  if (passwordNueva !== confirmarPassword) {
+    mostrarMensaje('error', 'Las contraseñas no coinciden');
+    return;
+  }
+
+  submit.disabled = true;
+  submit.textContent = 'Actualizando...';
+
+  try {
+    const res = await fetch(`${API_URL}/admin/cambiar-password`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        password_actual: passwordActual,
+        password_nueva: passwordNueva,
+        confirmar_password: confirmarPassword
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Error al actualizar contraseña');
+    }
+
+    document.getElementById('passwordForm').reset();
+    mostrarMensaje('success', 'Contraseña actualizada correctamente');
+
+  } catch (error) {
+    mostrarMensaje('error', error.message || 'Error al actualizar contraseña');
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Actualizar contraseña';
+  }
+});
+
+cargarSesion();
+</script>
+<script src="../assets/js/perfil.js"></script>
+<script src="../assets/js/logout.js"></script>
+</body>
+</html>

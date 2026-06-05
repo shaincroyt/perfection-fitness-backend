@@ -6,6 +6,20 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 
 const app = express();
+const publicDir = path.join(__dirname, '..', 'public');
+const adminDir = path.join(__dirname, 'admin');
+const adminAssetsDir = path.join(__dirname, 'admin-assets');
+const privateAdminPages = new Set([
+    'dashboard.html',
+    'clientes.html',
+    'membresias.html',
+    'validar.html',
+    'asistencias.html',
+    'planes.html',
+    'configuracion.html',
+    'nueva-membresia.html'
+]);
+
 app.set('trust proxy', 1);
 
 app.use(cors({
@@ -31,17 +45,13 @@ app.use(session({
     }
 }));
 
-function protegerAdmin(req, res, next) {
-    if (req.session && req.session.admin) {
-        return next();
-    }
-
-    return res.redirect('/admin/login.html');
-}
-
 function requireAdminSession(req, res, next) {
     if (req.session && req.session.admin && req.session.adminId) {
         return next();
+    }
+
+    if (req.originalUrl.startsWith('/admin')) {
+        return res.redirect('/admin/login.html');
     }
 
     return res.status(401).json({
@@ -382,16 +392,26 @@ app.put('/api/admin/cambiar-password', async (req, res) => {
 });
 
 app.get('/admin/login.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'admin', 'login.html'));
+    res.sendFile(path.join(adminDir, 'login.html'));
 });
 
-app.get(['/admin', '/admin/'], protegerAdmin, (req, res) => {
+app.get(['/admin', '/admin/'], requireAdminSession, (req, res) => {
     res.redirect('/admin/dashboard.html');
 });
 
-app.use('/admin', protegerAdmin, express.static(path.join(__dirname, '..', 'public', 'admin')));
+app.get('/admin/:page', requireAdminSession, (req, res, next) => {
+    const { page } = req.params;
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+    if (!privateAdminPages.has(page)) {
+        return next();
+    }
+
+    return res.sendFile(path.join(adminDir, page));
+});
+
+app.use('/assets', express.static(adminAssetsDir));
+
+app.use(express.static(publicDir));
 
 // GET CLIENTES
 app.get('/api/clientes', async (req, res) => {
