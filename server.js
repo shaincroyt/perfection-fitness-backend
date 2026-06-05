@@ -399,6 +399,8 @@ app.get(['/admin', '/admin/'], requireAdminSession, (req, res) => {
     res.redirect('/admin/dashboard.html');
 });
 
+app.use('/admin/styles', express.static(path.join(adminDir, 'styles')));
+
 app.get('/admin/:page', requireAdminSession, (req, res, next) => {
     const { page } = req.params;
 
