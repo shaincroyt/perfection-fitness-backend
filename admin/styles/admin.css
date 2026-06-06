@@ -4946,7 +4946,7 @@ body.admin-page-validar .usage-summary strong {
 }
 
 body.admin-page-validar .usage-note {
-  color: var(--red);
+  color: var(--green-dark);
   font-weight: 700;
 }
 
