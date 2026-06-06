@@ -407,7 +407,7 @@
   setInterval(tickClock, 1000);
 
   /* ── Base de datos ficticia ── */
-  const API_URL = 'https://perfection-fitness-backend-production.up.railway.app/api';
+  const API_URL = '/api';
 
   async function cargarHistorialReal() {
   try {
@@ -786,7 +786,7 @@ await cargarHistorialReal();
   try {
 
     const res = await fetch(
-      'https://perfection-fitness-backend-production.up.railway.app/api/sidebar'
+      '/api/sidebar'
     );
 
     const data = await res.json();
@@ -845,7 +845,7 @@ cargarSidebar();
     if (!wrap) return;
 
     try {
-      const res = await fetch('https://perfection-fitness-backend-production.up.railway.app/api/notificaciones');
+      const res = await fetch('/api/notificaciones');
       const data = await res.json();
       const notificaciones = Array.isArray(data) ? data : [];
       const count = document.getElementById('notifCount');

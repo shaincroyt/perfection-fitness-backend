@@ -301,7 +301,7 @@
   /* Hoy en formato YYYY-MM-DD */
   const todayStr = now.toISOString().split('T')[0];
 
-  const API_URL = 'https://perfection-fitness-backend-production.up.railway.app/api';
+  const API_URL = '/api';
 
 function descargarCSV(nombreArchivo, columnas, filas) {
   const escaparValor = (valor) => {
@@ -709,7 +709,7 @@ const matchS = !status || r.estado === status;
   try {
 
     const res = await fetch(
-      'perfection-fitness-backend-production.up.railway.app/api/sidebar'
+      '/api/sidebar'
     );
 
     const data = await res.json();
@@ -768,7 +768,7 @@ cargarSidebar();
     if (!wrap) return;
 
     try {
-      const res = await fetch('https://perfection-fitness-backend-production.up.railway.app/api/notificaciones');
+      const res = await fetch('/api/notificaciones');
       const data = await res.json();
       const notificaciones = Array.isArray(data) ? data : [];
       const count = document.getElementById('notifCount');

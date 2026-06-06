@@ -295,7 +295,7 @@
 
 <script>
 
-  const API_URL = 'https://perfection-fitness-backend-production.up.railway.app/api/clientes';
+  const API_URL = '/api/clientes';
 
   function descargarCSV(nombreArchivo, columnas, filas) {
     const escaparValor = (valor) => {
@@ -324,7 +324,7 @@
 
   async function exportarClientes() {
     try {
-      const res = await fetch('https://perfection-fitness-backend-production.up.railway.app/api/exportar/clientes');
+      const res = await fetch('/api/exportar/clientes');
 
       if (!res.ok) {
         throw new Error('Error al exportar clientes');
@@ -845,7 +845,7 @@ window.darMembresia = function(clienteId) {
     if (!wrap) return;
 
     try {
-      const res = await fetch('https://perfection-fitness-backend-production.up.railway.app/api/notificaciones');
+      const res = await fetch('/api/notificaciones');
       const data = await res.json();
       const notificaciones = Array.isArray(data) ? data : [];
       const count = document.getElementById('notifCount');

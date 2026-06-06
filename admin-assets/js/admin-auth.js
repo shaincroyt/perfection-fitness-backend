@@ -15,15 +15,8 @@
 
   if (!isProtectedPage) return;
 
-  const railwayApiOrigin = 'https://perfection-fitness-backend-production.up.railway.app';
-
-  function getApiOrigin() {
-    if (window.ADMIN_API_ORIGIN) return window.ADMIN_API_ORIGIN;
-    return railwayApiOrigin;
-  }
-
-  const apiOrigin = getApiOrigin();
-  const sessionUrl = `${apiOrigin}/api/auth/session`;
+  const API_BASE = '/api';
+  const sessionUrl = `${API_BASE}/auth/session`;
   const loginUrl = '/admin/login.html';
   const originalFetch = window.fetch.bind(window);
   let redirecting = false;
@@ -35,8 +28,7 @@
   }
 
   window.AdminAuth = {
-    apiOrigin,
-    apiBase: `${apiOrigin}/api`,
+    apiBase: API_BASE,
     checkSession
   };
 
