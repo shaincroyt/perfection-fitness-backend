@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nueva MembresÃ­a â€” Panel Administrativo</title>
+  <title>Nueva Membresía — Panel Administrativo</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles/admin.css">
 <script src="../assets/js/admin-auth.js"></script>
@@ -13,7 +13,7 @@
 <body class="admin-page admin-page-nueva-membresia">
 <div class="shell">
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â• SIDEBAR â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ════════════ SIDEBAR ════════════ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <!-- Logo: reemplaza src con tu imagen -->
@@ -24,7 +24,7 @@
       </div>
       <div>
         <div class="logo-label"><!-- Nombre --></div>
-        <div class="logo-sub">AdministraciÃ³n</div>
+        <div class="logo-sub">Administración</div>
       </div>
     </div>
  
@@ -45,12 +45,12 @@
 
         <div class="nav-item" onclick="window.location.href='membresias.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-          MembresÃ­as
+          Membresías
         </div>
 
         <div class="nav-item active" onclick="window.location.href='nueva-membresia.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-          Nueva MembresÃ­a
+          Nueva Membresía
         </div>
       </div>
 
@@ -77,7 +77,7 @@
         <span class="nav-label">Sistema</span>
         <div class="nav-item" onclick="window.location.href='configuracion.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-          ConfiguraciÃ³n
+          Configuración
         </div>
       </div>
     </nav>
@@ -90,22 +90,22 @@
       </div>
       <button type="button" class="admin-logout-btn admin-logout-trigger">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar sesiÃ³n
+        Cerrar sesión
       </button>
     </div>
   </aside>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â• HEADER â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ════════════ HEADER ════════════ -->
   <header class="header">
     <div class="header-left">
-      <div class="header-title">Nueva MembresÃ­a</div>
-      <div class="header-breadcrumb">Inicio / MembresÃ­as / <span>Crear Nueva</span></div>
+      <div class="header-title">Nueva Membresía</div>
+      <div class="header-breadcrumb">Inicio / Membresías / <span>Crear Nueva</span></div>
     </div>
     <div class="header-right">
       <div class="header-date" id="headerDate"></div>
-      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesiÃ³n">
+      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesión">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar sesiÃ³n
+        Cerrar sesión
       </button>
       <div class="notification-wrap" id="notificationWrap">
         <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
@@ -123,27 +123,27 @@
           </div>
         </div>
       </div>
-      <button class="header-btn" title="Volver a MembresÃ­as" onclick="history.back()">
+      <button class="header-btn" title="Volver a Membresías" onclick="history.back()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
       </button>
     </div>
   </header>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â• MAIN â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ════════════ MAIN ════════════ -->
   <main class="main">
 
     <!-- PAGE HEADER -->
     <div class="page-header">
       <div>
-        <div class="page-title">Crear MembresÃ­a</div>
-        <div class="page-subtitle">Completa los datos del cliente para generar su membresÃ­a.</div>
+        <div class="page-title">Crear Membresía</div>
+        <div class="page-subtitle">Completa los datos del cliente para generar su membresía.</div>
       </div>
     </div>
 
     <!-- CONTENT GRID -->
     <div class="content-grid">
 
-      <!-- â”€â”€ FORMULARIO â”€â”€ -->
+      <!-- ── FORMULARIO ── -->
       <div class="card">
         <div class="card-header">
           <div class="card-icon">
@@ -151,7 +151,7 @@
           </div>
           <div>
             <div class="card-title">Datos del Cliente</div>
-            <div class="card-subtitle">InformaciÃ³n personal y configuraciÃ³n del plan</div>
+            <div class="card-subtitle">Información personal y configuración del plan</div>
           </div>
         </div>
         <div class="card-body">
@@ -174,7 +174,7 @@
                   <label class="form-label" for="clienteExistente">Buscar cliente existente</label>
                   <select class="form-select" id="clienteExistente">
                     <option value="">Seleccionar cliente de la base de datos...</option>
-                    <option value="" disabled>Los clientes se cargarÃ¡n aquÃ­ cuando conectes el backend</option>
+                    <option value="" disabled>Los clientes se cargarán aquí cuando conectes el backend</option>
                   </select>
                 </div>
                 <div class="client-selected-card">
@@ -195,14 +195,14 @@
                   </div>
                   <div>
                     <div class="client-new-title">Registrar cliente nuevo</div>
-                    <div class="client-new-sub">Completa la informaciÃ³n personal y luego genera la membresÃ­a con el mismo formulario.</div>
+                    <div class="client-new-sub">Completa la información personal y luego genera la membresía con el mismo formulario.</div>
                   </div>
                 </div>
               </div>
 
               <div class="form-group full">
                 <label class="form-label" for="nombre">Nombre Completo</label>
-                <input type="text" class="form-input" id="nombre" placeholder="Ej. Carlos RamÃ­rez Torres"/>
+                <input type="text" class="form-input" id="nombre" placeholder="Ej. Carlos Ramírez Torres"/>
               </div>
 
               <div class="form-group">
@@ -211,21 +211,21 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="telefono">TelÃ©fono</label>
+                <label class="form-label" for="telefono">Teléfono</label>
                 <input type="tel" class="form-input" id="telefono" placeholder="Ej. 987 654 321"/>
               </div>
 
               <div class="form-group full">
-                <label class="form-label" for="correo">Correo ElectrÃ³nico</label>
+                <label class="form-label" for="correo">Correo Electrónico</label>
                 <input type="email" class="form-input" id="correo" placeholder="Ej. cliente@correo.com"/>
               </div>
 
               <div class="group-controls">
                 <div class="form-group">
-                  <label class="form-label" for="promocionTipo">PromociÃ³n grupal</label>
+                  <label class="form-label" for="promocionTipo">Promoción grupal</label>
                   <select class="form-select" id="promocionTipo" onchange="actualizarPromocionGrupal()">
-                    <option value="">Sin promociÃ³n</option>
-                    <option value="PromociÃ³n 2x1">PromociÃ³n 2x1</option>
+                    <option value="">Sin promoción</option>
+                    <option value="Promoción 2x1">Promoción 2x1</option>
                   </select>
                 </div>
                 <button type="button" class="btn btn-outline" id="btnAgregarPersona" onclick="agregarPersonaExtra()">
@@ -268,26 +268,26 @@
                   />
                 </div>
 
-              <!-- MÃ‰TODO DE PAGO -->
+              <!-- MÉTODO DE PAGO -->
               <div class="form-group full">
-                <label class="form-label">MÃ©todo de Pago</label>
+                <label class="form-label">Método de Pago</label>
                 <div class="payment-options" id="paymentOptions">
 
                   <label class="payment-opt" id="opt-efectivo" onclick="selectPayment(this,'Efectivo')">
                     <input type="radio" name="pago" value="Efectivo"/>
-                    <div class="payment-icon cash">ðŸ’µ</div>
+                    <div class="payment-icon cash">💵</div>
                     <div class="payment-label">Efectivo</div>
                   </label>
 
                   <label class="payment-opt" id="opt-tarjeta" onclick="selectPayment(this,'Tarjeta')">
                     <input type="radio" name="pago" value="Tarjeta"/>
-                    <div class="payment-icon card">ðŸ’³</div>
+                    <div class="payment-icon card">💳</div>
                     <div class="payment-label">Tarjeta</div>
                   </label>
 
                   <label class="payment-opt" id="opt-transferencia" onclick="selectPayment(this,'Transferencia')">
                     <input type="radio" name="pago" value="Transferencia"/>
-                    <div class="payment-icon transfer">ðŸ¦</div>
+                    <div class="payment-icon transfer">🏦</div>
                     <div class="payment-label">Transferencia</div>
                   </label>
 
@@ -298,7 +298,7 @@
 
             <!-- ERROR -->
             <div id="formError" style="display:none; margin-top:14px; padding:10px 14px; background:#fee2e2; color:#dc2626; border-radius:8px; font-size:13px; font-weight:500;">
-              âš ï¸ Por favor completa todos los campos antes de continuar.
+              ⚠️ Por favor completa todos los campos antes de continuar.
             </div>
 
             <div class="form-footer" style="margin-top:22px;">
@@ -315,7 +315,7 @@
         </div>
       </div>
 
-      <!-- â”€â”€ PANEL DERECHO: VISTA PREVIA / RESULTADO â”€â”€ -->
+      <!-- ── PANEL DERECHO: VISTA PREVIA / RESULTADO ── -->
       <div class="preview-card">
         <div class="preview-header">
           <div class="preview-icon">
@@ -323,17 +323,17 @@
           </div>
           <div>
             <div class="preview-title">Vista Previa</div>
-            <div class="preview-sub">MembresÃ­a generada</div>
+            <div class="preview-sub">Membresía generada</div>
           </div>
         </div>
         <div class="preview-body">
 
-          <!-- Estado vacÃ­o -->
+          <!-- Estado vacío -->
           <div class="empty-preview" id="emptyPreview">
             <div class="empty-preview-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
             </div>
-            <p>Completa el formulario y presiona<br/><strong style="color:var(--text-2)">Generar MembresÃ­a</strong><br/>para ver la tarjeta aquÃ­.</p>
+            <p>Completa el formulario y presiona<br/><strong style="color:var(--text-2)">Generar Membresía</strong><br/>para ver la tarjeta aquí.</p>
           </div>
 
           <!-- Resultado generado -->
@@ -342,20 +342,20 @@
             <!-- Tarjeta tipo credencial -->
             <div class="mem-credential pop-in" id="credentialCard">
               <div class="cred-top">
-                <div class="cred-brand">ðŸ’ª Mi Gimnasio</div>
-                <div class="cred-tag" id="credPlanTag">â€”</div>
+                <div class="cred-brand">💪 Mi Gimnasio</div>
+                <div class="cred-tag" id="credPlanTag">—</div>
               </div>
-              <div class="cred-code-label">CÃ³digo de MembresÃ­a</div>
+              <div class="cred-code-label">Código de Membresía</div>
               <div class="cred-code" id="credCode">GYM-A8K2PZ</div>
               <div class="cred-divider"></div>
               <div class="cred-info-grid">
                 <div class="cred-info-item">
                   <div class="cred-info-label">Titular</div>
-                  <div class="cred-info-value" id="credNombre">â€”</div>
+                  <div class="cred-info-value" id="credNombre">—</div>
                 </div>
                 <div class="cred-info-item">
-                  <div class="cred-info-label">VÃ¡lido hasta</div>
-                  <div class="cred-info-value" id="credFin">â€”</div>
+                  <div class="cred-info-label">Válido hasta</div>
+                  <div class="cred-info-value" id="credFin">—</div>
                 </div>
               </div>
             </div>
@@ -366,10 +366,10 @@
               onclick="confirmarMembresia()"
               style="justify-content:center;"
             >
-              Confirmar MembresÃ­a
+              Confirmar Membresía
             </button>
 
-            <!-- CÃ³digo copy -->
+            <!-- Código copy -->
             <div class="copy-row">
               <span class="copy-code" id="copyCodeText">GYM-A8K2PZ</span>
               
@@ -378,44 +378,44 @@
             <!-- Tabla de datos -->
             <div class="mem-details" id="memDetails">
               <div class="mem-detail-row">
-                <span class="mem-detail-label">CÃ³digo</span>
-                <span class="mem-detail-value code" id="detCodigo">â€”</span>
+                <span class="mem-detail-label">Código</span>
+                <span class="mem-detail-value code" id="detCodigo">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Cliente</span>
-                <span class="mem-detail-value" id="detNombre">â€”</span>
+                <span class="mem-detail-value" id="detNombre">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">DNI</span>
-                <span class="mem-detail-value" id="detDni">â€”</span>
+                <span class="mem-detail-value" id="detDni">—</span>
               </div>
               <div class="mem-detail-row">
-                <span class="mem-detail-label">TelÃ©fono</span>
-                <span class="mem-detail-value" id="detTelefono">â€”</span>
+                <span class="mem-detail-label">Teléfono</span>
+                <span class="mem-detail-value" id="detTelefono">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Correo</span>
-                <span class="mem-detail-value" id="detCorreo" style="font-size:12px">â€”</span>
+                <span class="mem-detail-value" id="detCorreo" style="font-size:12px">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Plan</span>
-                <span class="mem-detail-value" id="detPlan">â€”</span>
+                <span class="mem-detail-value" id="detPlan">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Asistencias incluidas</span>
-                <span class="mem-detail-value" id="detAsistencias">Ã¢â‚¬â€</span>
+                <span class="mem-detail-value" id="detAsistencias">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Pago</span>
-                <span class="mem-detail-value" id="detPago">â€”</span>
+                <span class="mem-detail-value" id="detPago">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Inicio</span>
-                <span class="mem-detail-value" id="detInicio">â€”</span>
+                <span class="mem-detail-value" id="detInicio">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Vence</span>
-                <span class="mem-detail-value" id="detFin">â€”</span>
+                <span class="mem-detail-value" id="detFin">—</span>
               </div>
               <div class="mem-detail-row">
                 <span class="mem-detail-label">Estado</span>
@@ -465,13 +465,13 @@
 
 <script>
 
-  /* â”€â”€ Fecha en header â”€â”€ */
+  /* ── Fecha en header ── */
   const d = new Date();
   const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   document.getElementById('headerDate').textContent =
     d.toLocaleDateString('es-PE', opts).replace(/^\w/, c => c.toUpperCase());
 
-  /* â”€â”€ MÃ©todo de pago seleccionado â”€â”€ */
+  /* ── Método de pago seleccionado ── */
   let selectedPayment = '';
   let membresiaPendiente = null;
 
@@ -486,7 +486,7 @@ let personaExtraActiva = false;
     selectedPayment = value;
   }
 
-  /* â”€â”€ Tipo de cliente: solo alterna la vista â”€â”€ */
+  /* ── Tipo de cliente: solo alterna la vista ── */
   function cambiarTipoCliente(tipo) {
   const existente = tipo === 'existente';
 
@@ -581,7 +581,7 @@ card.classList.add('loaded');
   <div>
     <div class="client-selected-title">${cliente.nombre}</div>
     <div class="client-selected-sub">
-      DNI: ${cliente.dni || '-'} Â· Tel: ${cliente.telefono || '-'}
+      DNI: ${cliente.dni || '-'} · Tel: ${cliente.telefono || '-'}
     </div>
   </div>
 `;
@@ -615,11 +615,11 @@ function actualizarPromocionGrupal() {
   const tipo = document.getElementById('promocionTipo').value;
   const btn = document.getElementById('btnAgregarPersona');
 
-  if (tipo === 'PromociÃ³n 2x1' && !personaExtraActiva) {
+  if (tipo === 'Promoción 2x1' && !personaExtraActiva) {
     btn.disabled = false;
   }
 
-  if (tipo === 'PromociÃ³n 2x1' && personaExtraActiva) {
+  if (tipo === 'Promoción 2x1' && personaExtraActiva) {
     btn.disabled = true;
   }
 }
@@ -628,7 +628,7 @@ function agregarPersonaExtra() {
   if (personaExtraActiva) return;
 
   const tipoPromo = document.getElementById('promocionTipo').value;
-  if (tipoPromo === 'PromociÃ³n 2x1' && personaExtraActiva) return;
+  if (tipoPromo === 'Promoción 2x1' && personaExtraActiva) return;
 
   personaExtraActiva = true;
   document.getElementById('btnAgregarPersona').disabled = true;
@@ -657,18 +657,18 @@ function agregarPersonaExtra() {
 
         <div class="form-group full">
           <label class="form-label" for="personaExtraNombre">Nombre Completo</label>
-          <input type="text" class="form-input" id="personaExtraNombre" placeholder="Ej. LucÃ­a GÃ³mez" oninput="actualizarTituloPersonaExtra()"/>
+          <input type="text" class="form-input" id="personaExtraNombre" placeholder="Ej. Lucía Gómez" oninput="actualizarTituloPersonaExtra()"/>
         </div>
         <div class="form-group">
           <label class="form-label" for="personaExtraDni">DNI</label>
           <input type="text" class="form-input" id="personaExtraDni" maxlength="8" placeholder="Ej. 45821396"/>
         </div>
         <div class="form-group">
-          <label class="form-label" for="personaExtraTelefono">TelÃ©fono</label>
+          <label class="form-label" for="personaExtraTelefono">Teléfono</label>
           <input type="tel" class="form-input" id="personaExtraTelefono" placeholder="Ej. 987 654 321"/>
         </div>
         <div class="form-group full">
-          <label class="form-label" for="personaExtraCorreo">Correo ElectrÃ³nico</label>
+          <label class="form-label" for="personaExtraCorreo">Correo Electrónico</label>
           <input type="email" class="form-input" id="personaExtraCorreo" placeholder="Ej. cliente@correo.com"/>
         </div>
 
@@ -778,17 +778,17 @@ async function cargarPlanes() {
   }
 }
 
-  /* â”€â”€ Generador de cÃ³digo â”€â”€ */
+  /* ── Generador de código ── */
   const CODES = ['GYM-A8K2PZ', 'GYM-B5L9XQ', 'GYM-C7M4RT'];
   let codeIndex = 0;
 
-  /* â”€â”€ Meses para fechas â”€â”€ */
+  /* ── Meses para fechas ── */
   const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   function fmtDate(dt) {
     return `${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
   }
 
-  /* â”€â”€ DuraciÃ³n segÃºn plan â”€â”€ */
+  /* ── Duración según plan ── */
   function planSeleccionado() {
     const planId = document.getElementById('plan').value;
     return planesDB.find(p => String(p.id) === String(planId));
@@ -870,7 +870,7 @@ async function cargarPlanes() {
     return Math.min(Math.max(valor, 0), 100);
   }
 
-  /* â”€â”€ Plan pill html â”€â”€ */
+  /* ── Plan pill html ── */
   function planPillHtml(plan) {
     const cls = { Mensual:'mensual', Trimestral:'trimestral', Semestral:'semestral', Anual:'anual' }[plan] || 'mensual';
     return `<span class="plan-pill ${cls}">${plan}</span>`;
@@ -887,7 +887,7 @@ function mostrarDniExiste(cliente) {
     Ya existe un cliente registrado con este DNI:<br><br>
     <strong>${cliente.nombre}</strong><br>
     DNI: ${cliente.dni}<br><br>
-    Usa la pestaÃ±a <strong>Cliente existente</strong> para generarle una membresÃ­a.
+    Usa la pestaña <strong>Cliente existente</strong> para generarle una membresía.
   `;
 
   document
@@ -895,7 +895,7 @@ function mostrarDniExiste(cliente) {
     .classList.add('open');
 }
 
-  /* â”€â”€ Generar membresÃ­a â”€â”€ */
+  /* ── Generar membresía ── */
   async function generarMembresia() {
   const tipoCliente = document
   .getElementById('tabClienteNuevo')
@@ -920,12 +920,12 @@ if (tipoCliente === 'existente' &&
 if (!nombre) errores.push('Completa el nombre del cliente');
 if (!dni) errores.push('Completa el DNI');
 if (!planId) errores.push('Selecciona un plan');
-if (!selectedPayment) errores.push('Selecciona un mÃ©todo de pago');
+if (!selectedPayment) errores.push('Selecciona un método de pago');
 
 if (errores.length > 0) {
 
   err.innerHTML =
-    'âš ï¸ ' + errores.join('<br>âš ï¸ ');
+    '⚠️ ' + errores.join('<br>⚠️ ');
 
   err.style.display = 'block';
 
@@ -972,7 +972,7 @@ if (errores.length > 0) {
     const plan = planesDB.find(p => String(p.id) === String(planId));
 
     if (!plan) {
-      alert('Plan no vÃ¡lido');
+      alert('Plan no válido');
       return;
     }
 
@@ -1025,7 +1025,7 @@ membresiaPendiente = {
     document.getElementById('detTelefono').textContent = telefono;
     document.getElementById('detCorreo').textContent = correo;
     document.getElementById('detPago').innerHTML = `
-  ${selectedPayment} â€”
+  ${selectedPayment} —
   <strong style="color:var(--red);font-size:16px;">
     Total S/${precioTotal.toFixed(2)}
   </strong>
@@ -1047,7 +1047,7 @@ membresiaPendiente = {
 
   } catch (error) {
     console.error(error);
-    alert('Error al generar la membresÃ­a');
+    alert('Error al generar la membresía');
   }
 }
 async function generarMembresia() {
@@ -1059,8 +1059,8 @@ async function generarMembresia() {
   const err = document.getElementById('formError');
   const errores = [];
 
-  if (promocionTipo === 'PromociÃ³n 2x1' && personas.length !== 2) {
-    errores.push('La promociÃ³n 2x1 necesita exactamente 2 personas');
+  if (promocionTipo === 'Promoción 2x1' && personas.length !== 2) {
+    errores.push('La promoción 2x1 necesita exactamente 2 personas');
   }
 
   personas.forEach((persona, index) => {
@@ -1078,7 +1078,7 @@ async function generarMembresia() {
   }
 
   if (!planId) errores.push('Selecciona un plan');
-  if (!selectedPayment) errores.push('Selecciona un mÃ©todo de pago');
+  if (!selectedPayment) errores.push('Selecciona un método de pago');
 
   const nuevoConDniExistente = personas.find(persona => {
     if (persona.tipoCliente !== 'nuevo') return false;
@@ -1094,7 +1094,7 @@ async function generarMembresia() {
   }
 
   if (errores.length > 0) {
-    err.innerHTML = 'âš ï¸ ' + errores.join('<br>âš ï¸ ');
+    err.innerHTML = '⚠️ ' + errores.join('<br>⚠️ ');
     err.style.display = 'block';
     err.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
@@ -1106,7 +1106,7 @@ async function generarMembresia() {
     const plan = planesDB.find(p => String(p.id) === String(planId));
 
     if (!plan) {
-      alert('Plan no vÃ¡lido');
+      alert('Plan no válido');
       return;
     }
 
@@ -1174,13 +1174,13 @@ const fechaFinSQL = fechaLocalSQL(fin);
     document.getElementById('detTelefono').textContent = personas.map(p => p.telefono || '-').join(' / ');
     document.getElementById('detCorreo').textContent = personas.map(p => p.correo || '-').join(' / ');
     document.getElementById('detPago').innerHTML = `
-      ${selectedPayment} â€”
+      ${selectedPayment} —
       <strong style="color:var(--red);font-size:16px;">
         Total S/${precioTotal.toFixed(2)}
       </strong>
       <br><span style="font-size:12px;color:var(--text-3);">
         Subtotal S/${subtotal.toFixed(2)}
-        ${descuento > 0 ? ` Â· Descuento ${descuento}% (-S/${descuentoMonto.toFixed(2)})` : ' Â· Sin descuento'}
+        ${descuento > 0 ? ` · Descuento ${descuento}% (-S/${descuentoMonto.toFixed(2)})` : ' · Sin descuento'}
       </span>
       ${promocionTipo ? `<br><span style="font-size:12px;color:var(--text-3);">${promocionTipo}</span>` : ''}
     `;
@@ -1204,23 +1204,23 @@ const fechaFinSQL = fechaLocalSQL(fin);
 
   } catch (error) {
     console.error(error);
-    alert('Error al generar la membresÃ­a');
+    alert('Error al generar la membresía');
   }
 }
-  /* â”€â”€ Copiar cÃ³digo â”€â”€ */
+  /* ── Copiar código ── */
   function copiarCodigo() {
     const code = document.getElementById('copyCodeText').textContent;
     navigator.clipboard.writeText(code).catch(() => {});
     const btn = document.getElementById('copyBtn');
-    btn.textContent = 'âœ… Â¡Copiado!';
+    btn.textContent = '✅ ¡Copiado!';
     btn.classList.add('copied');
     setTimeout(() => {
-      btn.textContent = 'ðŸ“‹ Copiar cÃ³digo';
+      btn.textContent = '📋 Copiar código';
       btn.classList.remove('copied');
     }, 2000);
   }
 
-  /* â”€â”€ Limpiar formulario â”€â”€ */
+  /* ── Limpiar formulario ── */
   function resetForm() {
     document.getElementById('nombre').value   = '';
     document.getElementById('dni').value      = '';
@@ -1276,7 +1276,7 @@ async function confirmarMembresia() {
 
       if (!resMembresia.ok) {
         const error = await resMembresia.json().catch(() => ({}));
-        throw new Error(error.error || 'No se pudo crear la membresÃ­a grupal');
+        throw new Error(error.error || 'No se pudo crear la membresía grupal');
       }
 
       membresiaCreada = await resMembresia.json();
@@ -1309,7 +1309,7 @@ async function confirmarMembresia() {
       });
 
       if (!resMembresia.ok) {
-        throw new Error('No se pudo crear la membresÃ­a');
+        throw new Error('No se pudo crear la membresía');
       }
 
       membresiaCreada = await resMembresia.json();
@@ -1333,11 +1333,11 @@ async function confirmarMembresia() {
 
   } catch (error) {
     console.error(error);
-    alert(error.message || 'Error al confirmar la membresÃ­a');
+    alert(error.message || 'Error al confirmar la membresía');
   }
 }
 
-  /* â”€â”€ Nav click â”€â”€ */
+  /* ── Nav click ── */
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -1423,16 +1423,16 @@ cargarSidebar();
     </div>
 
     <h2 class="success-title">
-      MembresÃ­a Creada
+      Membresía Creada
     </h2>
 
     <p class="success-text">
-      La membresÃ­a fue registrada correctamente.
+      La membresía fue registrada correctamente.
     </p>
 
     <div class="success-code-box">
       <span class="success-code-label">
-        CÃ³digo de acceso
+        Código de acceso
       </span>
 
       <div id="successCode" class="success-code">

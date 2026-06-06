@@ -496,7 +496,7 @@ app.post('/api/logout', async (req, res) => {
         if (error) {
             return res.status(500).json({
                 ok: false,
-                error: 'Error al cerrar sesiÃ³n'
+                error: 'Error al cerrar sesión'
             });
         }
 

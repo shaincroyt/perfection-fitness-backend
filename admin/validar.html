@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Validar Ingreso â€” Panel Administrativo</title>
+  <title>Validar Ingreso — Panel Administrativo</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles/admin.css">
 <script src="../assets/js/admin-auth.js"></script>
@@ -13,7 +13,7 @@
 <body class="admin-page admin-page-validar">
 <div class="shell">
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â• SIDEBAR â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ════════════ SIDEBAR ════════════ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <!-- Logo: reemplaza src con tu imagen -->
@@ -24,7 +24,7 @@
       </div>
       <div>
         <div class="logo-label"><!-- Nombre --></div>
-        <div class="logo-sub">AdministraciÃ³n</div>
+        <div class="logo-sub">Administración</div>
       </div>
     </div>
  
@@ -45,12 +45,12 @@
 
         <div class="nav-item" onclick="window.location.href='membresias.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-          MembresÃ­as
+          Membresías
         </div>
 
         <div class="nav-item" onclick="window.location.href='nueva-membresia.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-          Nueva MembresÃ­a
+          Nueva Membresía
         </div>
       </div>
 
@@ -77,7 +77,7 @@
         <span class="nav-label">Sistema</span>
         <div class="nav-item" onclick="window.location.href='configuracion.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-          ConfiguraciÃ³n
+          Configuración
         </div>
       </div>
     </nav>
@@ -90,23 +90,23 @@
       </div>
       <button type="button" class="admin-logout-btn admin-logout-trigger">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar sesiÃ³n
+        Cerrar sesión
       </button>
     </div>
   </aside>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â• HEADER â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ════════════ HEADER ════════════ -->
   <header class="header">
     <div class="header-left">
       <div class="header-title">Validar Ingreso</div>
-      <div class="header-breadcrumb">Control / <span>ValidaciÃ³n de MembresÃ­a</span></div>
+      <div class="header-breadcrumb">Control / <span>Validación de Membresía</span></div>
     </div>
     <div class="header-right">
       <div class="live-clock" id="liveClock">00:00:00</div>
       <div class="header-date" id="headerDate"></div>
-      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesiÃ³n">
+      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesión">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar sesiÃ³n
+        Cerrar sesión
       </button>
       <div class="notification-wrap" id="notificationWrap">
         <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
@@ -127,12 +127,12 @@
     </div>
   </header>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â•â• MAIN â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ════════════ MAIN ════════════ -->
   <main class="main">
 
     <div class="validate-grid">
 
-      <!-- â”€â”€ COLUMNA IZQUIERDA: INPUT + HISTORIAL â”€â”€ -->
+      <!-- ── COLUMNA IZQUIERDA: INPUT + HISTORIAL ── -->
       <div style="display:flex;flex-direction:column;gap:20px;">
 
         <!-- CAMPO VALIDAR -->
@@ -142,12 +142,12 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
             </div>
             <div>
-              <div class="card-title">Validar MembresÃ­a</div>
-              <div class="card-sub">Ingresa el cÃ³digo o usa los accesos rÃ¡pidos</div>
+              <div class="card-title">Validar Membresía</div>
+              <div class="card-sub">Ingresa el código o usa los accesos rápidos</div>
             </div>
           </div>
           <div class="card-body">
-            <label class="code-label" for="codeInput">CÃ³digo de membresÃ­a</label>
+            <label class="code-label" for="codeInput">Código de membresía</label>
             <div class="code-input-wrap">
               <input
                 type="text"
@@ -164,7 +164,7 @@
               </button>
             </div>
 
-            <!-- Accesos rÃ¡pidos de demo -->
+            <!-- Accesos rápidos de demo -->
             
           </div>
         </div>
@@ -177,11 +177,11 @@
             </div>
             <div>
               <div class="card-title">Historial reciente</div>
-              <div class="card-sub">Ãšltimas validaciones de hoy</div>
+              <div class="card-sub">Últimas validaciones de hoy</div>
             </div>
           </div>
           <div class="history-list" id="historyList">
-            <!-- Se llena dinÃ¡micamente -->
+            <!-- Se llena dinámicamente -->
             <div class="admin-list-state">
               <span class="admin-loading-inline"><span class="admin-mini-spinner"></span>Cargando historial...</span>
             </div>
@@ -190,10 +190,10 @@
 
       </div>
 
-      <!-- â”€â”€ COLUMNA DERECHA: RESULTADO â”€â”€ -->
+      <!-- ── COLUMNA DERECHA: RESULTADO ── -->
       <div class="result-area" id="resultArea">
 
-        <!-- Estado vacÃ­o -->
+        <!-- Estado vacío -->
         <div class="card" id="emptyResult">
           <div class="result-empty">
             <div class="result-empty-icon">
@@ -202,15 +202,15 @@
                 <circle cx="12" cy="12" r="3"/>
               </svg>
             </div>
-            <p>Ingresa un cÃ³digo de membresÃ­a<br/>y presiona <strong>Validar</strong><br/>para ver el resultado aquÃ­.</p>
+            <p>Ingresa un código de membresía<br/>y presiona <strong>Validar</strong><br/>para ver el resultado aquí.</p>
           </div>
         </div>
 
-        <!-- â”€â”€ RESULTADO: ACTIVO â”€â”€ -->
+        <!-- ── RESULTADO: ACTIVO ── -->
         <div class="person-select-card pop-in" id="personSelectCard">
           <div class="person-select-head">
             <div class="person-select-title">Selecciona la persona que ingresa</div>
-            <div class="person-select-sub" id="personSelectSub">Este cÃ³digo pertenece a mÃ¡s de una membresÃ­a.</div>
+            <div class="person-select-sub" id="personSelectSub">Este código pertenece a más de una membresía.</div>
           </div>
           <div class="person-options" id="personOptions"></div>
         </div>
@@ -220,8 +220,8 @@
             <div class="active-check">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <div class="active-status">âœ“ MembresÃ­a Activa â€” Acceso permitido</div>
-            <div class="active-name" id="activeNombre">Juan PÃ©rez</div>
+            <div class="active-status">✓ Membresía Activa — Acceso permitido</div>
+            <div class="active-name" id="activeNombre">Juan Pérez</div>
             <div class="active-code-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
               <span class="active-code-text" id="activeCode">GYM-A8K2PZ</span>
@@ -234,9 +234,9 @@
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#087a2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
   </svg>
-  <span>DÃ­a Libre</span>
+  <span>Día Libre</span>
 </div>
-    <p class="plan-note" id="activePlanNote">Acceso vÃ¡lido durante el periodo contratado.</p>
+    <p class="plan-note" id="activePlanNote">Acceso válido durante el periodo contratado.</p>
   </div>
 
   <div class="validation-panel vigencia-panel">
@@ -249,7 +249,7 @@
       </svg>
     </span>
     <div>
-      <span class="mini-label">VÃ¡lido hasta</span>
+      <span class="mini-label">Válido hasta</span>
       <strong id="activeVence">05/06/2026</strong>
     </div>
   </div>
@@ -261,8 +261,8 @@
       </svg>
     </span>
     <div>
-      <span class="mini-label">DuraciÃ³n contratada</span>
-      <strong id="activeDuracion">1 dÃ­a</strong>
+      <span class="mini-label">Duración contratada</span>
+      <strong id="activeDuracion">1 día</strong>
     </div>
   </div>
 
@@ -281,24 +281,24 @@
   
 </div>
 <div class="validation-panel days-panel">
-    <div class="section-title center">DÃ­as restantes</div>
+    <div class="section-title center">Días restantes</div>
     <div class="days-simple">
       <strong id="activeDias">1</strong>
-      <span id="activeDiasTexto">dÃ­a</span>
+      <span id="activeDiasTexto">día</span>
     </div>
-    <div class="days-note" id="activeDaysNote">Tu plan vence maÃ±ana</div>
+    <div class="days-note" id="activeDaysNote">Tu plan vence mañana</div>
   </div>
         </div>
         </div>
 
-        <!-- â”€â”€ RESULTADO: VENCIDO â”€â”€ -->
+        <!-- ── RESULTADO: VENCIDO ── -->
         <div class="result-expired pop-in" id="resultExpired">
           <div class="result-expired-top">
             <div class="expired-x">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </div>
-            <div class="expired-status">âœ— MembresÃ­a Vencida â€” Acceso denegado</div>
-            <div class="expired-name" id="expiredNombre">MarÃ­a LÃ³pez</div>
+            <div class="expired-status">✗ Membresía Vencida — Acceso denegado</div>
+            <div class="expired-name" id="expiredNombre">María López</div>
             <div class="expired-code-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
               <span class="expired-code-text" id="expiredCode">GYM-B5L9XQ</span>
@@ -313,7 +313,7 @@
       </svg>
       <span>Mensual</span>
     </div>
-    <p class="plan-note-expired" id="expiredPlanNote">Esta membresÃ­a ha vencido y necesita renovaciÃ³n.</p>
+    <p class="plan-note-expired" id="expiredPlanNote">Esta membresía ha vencido y necesita renovación.</p>
   </div>
 
   <div class="validation-panel vigencia-panel-expired">
@@ -325,7 +325,7 @@
         </svg>
       </span>
       <div>
-        <span class="mini-label">VenciÃ³ el</span>
+        <span class="mini-label">Venció el</span>
         <strong id="expiredVence" style="color:#dc2626;">01/05/2026</strong>
       </div>
     </div>
@@ -337,7 +337,7 @@
         </svg>
       </span>
       <div>
-        <span class="mini-label">DuraciÃ³n contratada</span>
+        <span class="mini-label">Duración contratada</span>
         <strong id="expiredDuracion" style="color:#dc2626;">1 mes</strong>
       </div>
     </div>
@@ -356,23 +356,23 @@
   </div>
 
   <div class="validation-panel days-panel-expired">
-    <div class="section-title center">DÃ­as vencido</div>
+    <div class="section-title center">Días vencido</div>
     <div class="days-simple-expired">
       <strong id="expiredDias">33</strong>
-      <span id="expiredDiasTexto">dÃ­as</span>
+      <span id="expiredDiasTexto">días</span>
     </div>
-    <div class="days-note-expired" id="expiredDaysNote">Tu membresÃ­a vence desde hace 33 dÃ­as</div>
+    <div class="days-note-expired" id="expiredDaysNote">Tu membresía vence desde hace 33 días</div>
   </div>
 </div>
 
-        <!-- Alerta de renovaciÃ³n (solo en vencido) -->
+        <!-- Alerta de renovación (solo en vencido) -->
         <div class="renew-alert" id="renewAlert" style="display:none;">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          <span>Esta membresÃ­a necesita renovaciÃ³n para permitir el ingreso.</span>
+          <span>Esta membresía necesita renovación para permitir el ingreso.</span>
           <a href="membresias.html"><button class="btn-renew">Renovar ahora</button></a>
         </div>
 
-        <!-- CÃ³digo no encontrado -->
+        <!-- Código no encontrado -->
         <div class="card" id="resultNotFound" style="display:none;">
           <div class="result-empty">
             <div class="result-empty-icon" style="border-color:#fecaca;color:#fca5a5;">
@@ -380,7 +380,7 @@
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
             </div>
-            <p style="color:#dc2626;"><strong>CÃ³digo no encontrado</strong><br/><span style="color:var(--text-3);">Verifica que el cÃ³digo sea correcto<br/>e intenta nuevamente.</span></p>
+            <p style="color:#dc2626;"><strong>Código no encontrado</strong><br/><span style="color:var(--text-3);">Verifica que el código sea correcto<br/>e intenta nuevamente.</span></p>
           </div>
         </div>
 
@@ -391,7 +391,7 @@
 </div>
 
 <script>
-  /* â”€â”€ Fecha y reloj â”€â”€ */
+  /* ── Fecha y reloj ── */
   const d = new Date();
   const opts = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
   document.getElementById('headerDate').textContent =
@@ -407,7 +407,7 @@
   tickClock();
   setInterval(tickClock, 1000);
 
-  /* â”€â”€ Base de datos ficticia â”€â”€ */
+  /* ── Base de datos ficticia ── */
   const API_URL = '/api';
 
   async function cargarHistorialReal() {
@@ -429,7 +429,7 @@
 
     history = data.slice(0, 8).map(a => ({
       code: a.codigo_usado,
-      nombre: a.cliente || 'CÃ³digo no encontrado',
+      nombre: a.cliente || 'Código no encontrado',
       status: a.estado === 'permitido' ? 'ok' : 'expired',
       time: new Date(a.fecha_hora).toLocaleTimeString('es-PE', {
         hour: '2-digit',
@@ -446,7 +446,7 @@
     }
   }
 }
-  /* â”€â”€ Historial â”€â”€ */
+  /* ── Historial ── */
   let history = [];
 
   function diffDays(dateStr) {
@@ -477,8 +477,8 @@
     return {
       vencida: 'Vencida',
       vence_hoy: 'Vence hoy',
-      vence_manana: 'Vence maÃ±ana',
-      vence_3_dias: 'Vence en 3 dÃ­as',
+      vence_manana: 'Vence mañana',
+      vence_3_dias: 'Vence en 3 días',
       activa: 'Activa',
       sin_asistencias: 'Sin asistencias',
       inactiva: 'Inactiva'
@@ -497,8 +497,8 @@
         : 'Plan por d\u00edas - Acceso denegado';
     }
     return data.valido
-      ? `âœ“ ${texto} â€” Acceso permitido`
-      : `âœ— ${texto} â€” Acceso denegado`;
+      ? `✓ ${texto} — Acceso permitido`
+      : `✗ ${texto} — Acceso denegado`;
   }
 
   function textoDuracionContratada(data) {
@@ -607,7 +607,7 @@
     return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
   }
 
-  /* â”€â”€ Mostrar / ocultar paneles â”€â”€ */
+  /* ── Mostrar / ocultar paneles ── */
   function hideAll() {
     document.getElementById('emptyResult').style.display    = 'none';
     document.getElementById('resultNotFound').style.display = 'none';
@@ -623,20 +623,20 @@
     el.classList.add('pop-in');
   }
 
-  /* â”€â”€ Validar â”€â”€ */
+  /* ── Validar ── */
   function mostrarSeleccionPersonas(data) {
     const card = document.getElementById('personSelectCard');
     const options = document.getElementById('personOptions');
     document.getElementById('personSelectSub').textContent =
       data.promocion
-        ? `${data.codigo} Â· ${data.promocion}`
-        : `${data.codigo} pertenece a mÃ¡s de una persona`;
+        ? `${data.codigo} · ${data.promocion}`
+        : `${data.codigo} pertenece a más de una persona`;
 
     options.innerHTML = data.personas.map(persona => `
       <button type="button" class="person-option" onclick="validarPersonaCompartida('${data.codigo}', ${persona.membresia_id})">
         <div>
           <div class="person-option-name">${persona.nombre}</div>
-          <div class="person-option-meta">DNI: ${persona.dni || '-'} Â· ${persona.plan} Â· Vence: ${fmtDate(String(persona.fecha_fin).slice(0, 10))} Â· Asistencias: ${textoAsistenciasRestantes(persona)}</div>
+          <div class="person-option-meta">DNI: ${persona.dni || '-'} · ${persona.plan} · Vence: ${fmtDate(String(persona.fecha_fin).slice(0, 10))} · Asistencias: ${textoAsistenciasRestantes(persona)}</div>
         </div>
         <span class="person-option-badge ${estadoVisualValidacion(persona)}">${textoEstadoVisual(estadoVisualValidacion(persona))}</span>
       </button>
@@ -694,14 +694,14 @@
     document.getElementById('activeDias').textContent = valorRestante;
 
     document.getElementById('activeDiasTexto').textContent =
-      valorRestante === 1 ? 'dÃ­a' : 'dÃ­as';
+      valorRestante === 1 ? 'día' : 'días';
 
     document.getElementById('activeDaysNote').textContent =
       valorRestante === 0
           ? 'Tu plan vence hoy'
           : valorRestante === 1
-            ? 'Tu plan vence maÃ±ana'
-            : `Tu plan vence en ${valorRestante} dÃ­as`;
+            ? 'Tu plan vence mañana'
+            : `Tu plan vence en ${valorRestante} días`;
 
     mostrarAsistencias('activeDaysNote', data);
 
@@ -728,7 +728,7 @@ document.getElementById('expiredDuracion').textContent = textoDuracionContratada
     }
 
     document.getElementById('expiredDias').textContent = Math.abs(dias);
-    document.getElementById('expiredDiasTexto').textContent = Math.abs(dias) === 1 ? 'dÃ­a' : 'dÃ­as';
+    document.getElementById('expiredDiasTexto').textContent = Math.abs(dias) === 1 ? 'día' : 'días';
     document.getElementById('expiredDaysNote').textContent = data.estado === 'sin_asistencias'
       ? `Asistencias usadas: ${textoAsistenciasUsadas(data)}`
       : `Tu membresia vencio hace ${Math.abs(dias)} ${Math.abs(dias) === 1 ? 'dia' : 'dias'}`;
@@ -788,7 +788,7 @@ await cargarHistorialReal();
   }
 }
 
-  /* â”€â”€ Agregar al historial â”€â”€ */
+  /* ── Agregar al historial ── */
   function addHistory(code, nombre, status) {
     history.unshift({ code, nombre, status, time: nowTime() });
     renderHistory();
@@ -817,25 +817,25 @@ await cargarHistorialReal();
     }).join('');
   }
 
-  /* â”€â”€ Chips de acceso rÃ¡pido â”€â”€ */
+  /* ── Chips de acceso rápido ── */
   function usarCodigo(code) {
     document.getElementById('codeInput').value = code;
     document.getElementById('codeInput').focus();
     validar();
   }
 
-  /* â”€â”€ Enter para validar â”€â”€ */
+  /* ── Enter para validar ── */
   document.getElementById('codeInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') validar();
   });
 
-  /* â”€â”€ Auto-formato GYM- â”€â”€ */
+  /* ── Auto-formato GYM- ── */
   document.getElementById('codeInput').addEventListener('input', function() {
     let v = this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
     this.value = v;
   });
 
-  /* â”€â”€ Nav click â”€â”€ */
+  /* ── Nav click ── */
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
