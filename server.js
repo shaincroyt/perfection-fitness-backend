@@ -68,6 +68,125 @@ function getSessionAdmin(req) {
     };
 }
 
+function formatearMoneda(valor) {
+    return `S/${Number(valor || 0).toFixed(2)}`;
+}
+
+function formatearFechaCorta(valor) {
+    if (!valor) return '';
+    const fecha = new Date(valor);
+    if (Number.isNaN(fecha.getTime())) return String(valor).slice(0, 10);
+    return fecha.toLocaleDateString('es-PE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
+
+async function crearNotificacion({
+    tipo,
+    titulo,
+    mensaje,
+    entidad,
+    entidad_id,
+    usuario_id = null,
+    usuario_nombre = null
+}, conn = pool) {
+    try {
+        await conn.query(
+            `INSERT IGNORE INTO notificaciones
+             (tipo, titulo, mensaje, entidad, entidad_id, usuario_id, usuario_nombre)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                tipo,
+                titulo,
+                mensaje,
+                entidad,
+                entidad_id,
+                usuario_id,
+                usuario_nombre
+            ]
+        );
+    } catch (error) {
+        console.error('Error creando notificacion:', error);
+    }
+}
+
+function adminNotificacion(req) {
+    return {
+        usuario_id: req.session && req.session.adminId ? req.session.adminId : null,
+        usuario_nombre: req.session && req.session.adminNombre ? req.session.adminNombre : null
+    };
+}
+
+async function obtenerResumenMembresia(id, conn = pool) {
+    const [[membresia]] = await conn.query(
+        `SELECT
+            m.id,
+            m.cliente_id,
+            c.nombre AS cliente,
+            p.nombre AS plan,
+            m.precio_total,
+            m.fecha_fin
+         FROM membresias m
+         INNER JOIN clientes c ON c.id = m.cliente_id
+         INNER JOIN planes p ON p.id = m.plan_id
+         WHERE m.id = ?
+         LIMIT 1`,
+        [id]
+    );
+
+    return membresia;
+}
+
+async function sincronizarNotificacionesVencimiento() {
+    await actualizarMembresiasVencidas();
+
+    const [porVencer] = await pool.query(`
+        SELECT
+            m.id,
+            c.nombre AS cliente,
+            DATE_FORMAT(m.fecha_fin, '%Y-%m-%d') AS fecha_fin
+        FROM membresias m
+        INNER JOIN clientes c ON c.id = m.cliente_id
+        WHERE m.estado = 'activa'
+        AND COALESCE(m.duracion_unidad, 'meses') != 'usos'
+        AND DATE(m.fecha_fin) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
+    `);
+
+    for (const item of porVencer) {
+        await crearNotificacion({
+            tipo: 'membresia_por_vencer',
+            titulo: 'Membresia por vencer',
+            mensaje: `La membresia de ${item.cliente} vence el ${formatearFechaCorta(item.fecha_fin)}.`,
+            entidad: 'membresia',
+            entidad_id: item.id
+        });
+    }
+
+    const [vencidas] = await pool.query(`
+        SELECT
+            m.id,
+            c.nombre AS cliente,
+            DATE_FORMAT(m.fecha_fin, '%Y-%m-%d') AS fecha_fin
+        FROM membresias m
+        INNER JOIN clientes c ON c.id = m.cliente_id
+        WHERE m.estado = 'vencida'
+        AND COALESCE(m.duracion_unidad, 'meses') != 'usos'
+        AND DATE(m.fecha_fin) < CURDATE()
+    `);
+
+    for (const item of vencidas) {
+        await crearNotificacion({
+            tipo: 'membresia_vencida',
+            titulo: 'Membresia vencida',
+            mensaje: `La membresia de ${item.cliente} vencio el ${formatearFechaCorta(item.fecha_fin)}.`,
+            entidad: 'membresia',
+            entidad_id: item.id
+        });
+    }
+}
+
 function generarHashPassword(password) {
     return bcrypt.hash(String(password), 10);
 }
@@ -484,6 +603,15 @@ app.post('/api/clientes', async (req, res) => {
             [nombre, dni, telefono, correo, estado || 'activo']
         );
 
+        await crearNotificacion({
+            tipo: 'cliente_creado',
+            titulo: 'Nuevo cliente registrado',
+            mensaje: `Se registro a ${nombre} con DNI ${dni}.`,
+            entidad: 'cliente',
+            entidad_id: result.insertId,
+            ...adminNotificacion(req)
+        });
+
         res.json({
             id: result.insertId,
             creado: true
@@ -534,7 +662,23 @@ app.delete('/api/clientes/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
+        const [[cliente]] = await pool.query(
+            `SELECT nombre FROM clientes WHERE id = ? LIMIT 1`,
+            [id]
+        );
+
         await pool.query('DELETE FROM clientes WHERE id = ?', [id]);
+
+        if (cliente) {
+            await crearNotificacion({
+                tipo: 'cliente_eliminado',
+                titulo: 'Cliente eliminado',
+                mensaje: `Se elimino o desactivo a ${cliente.nombre}.`,
+                entidad: 'cliente',
+                entidad_id: id,
+                ...adminNotificacion(req)
+            });
+        }
 
         res.json({ mensaje: 'Cliente eliminado correctamente' });
     } catch (error) {
@@ -1005,6 +1149,18 @@ if (membresiaExistente.length > 0) {
         [cliente_id]
     );
 
+    const resumen = await obtenerResumenMembresia(membresia.id);
+    if (resumen) {
+        await crearNotificacion({
+            tipo: 'membresia_creada',
+            titulo: 'Nueva membresia creada',
+            mensaje: `${resumen.cliente} adquirio el plan ${resumen.plan} por ${formatearMoneda(resumen.precio_total)}.`,
+            entidad: 'membresia',
+            entidad_id: membresia.id,
+            ...adminNotificacion(req)
+        });
+    }
+
     return res.json({
         id: membresia.id,
         codigo,
@@ -1037,6 +1193,18 @@ if (membresiaExistente.length > 0) {
      WHERE id = ?`,
     [cliente_id]
 );
+
+        const resumen = await obtenerResumenMembresia(result.insertId);
+        if (resumen) {
+            await crearNotificacion({
+                tipo: 'membresia_creada',
+                titulo: 'Nueva membresia creada',
+                mensaje: `${resumen.cliente} adquirio el plan ${resumen.plan} por ${formatearMoneda(resumen.precio_total)}.`,
+                entidad: 'membresia',
+                entidad_id: result.insertId,
+                ...adminNotificacion(req)
+            });
+        }
 
         res.json({
             id: result.insertId,
@@ -1111,6 +1279,7 @@ app.post('/api/membresias/grupal', async (req, res) => {
         for (let i = 0; i < personas.length; i++) {
             const persona = personas[i];
             let clienteId = persona.cliente_id || null;
+            let clienteNuevo = null;
 
             if (clienteId) {
                 const [[cliente]] = await conn.query(
@@ -1147,6 +1316,7 @@ app.post('/api/membresias/grupal', async (req, res) => {
                 );
 
                 clienteId = clienteCreado.insertId;
+                clienteNuevo = { id: clienteId, nombre, dni };
             }
 
             const precioRegistro = i === 0 ? Number(precio_total || 0) : 0;
@@ -1177,6 +1347,29 @@ app.post('/api/membresias/grupal', async (req, res) => {
                  WHERE id = ?`,
                 [clienteId]
             );
+
+            if (clienteNuevo) {
+                await crearNotificacion({
+                    tipo: 'cliente_creado',
+                    titulo: 'Nuevo cliente registrado',
+                    mensaje: `Se registro a ${clienteNuevo.nombre} con DNI ${clienteNuevo.dni}.`,
+                    entidad: 'cliente',
+                    entidad_id: clienteNuevo.id,
+                    ...adminNotificacion(req)
+                }, conn);
+            }
+
+            const resumen = await obtenerResumenMembresia(membresiaCreada.insertId, conn);
+            if (resumen) {
+                await crearNotificacion({
+                    tipo: 'membresia_creada',
+                    titulo: 'Nueva membresia creada',
+                    mensaje: `${resumen.cliente} adquirio el plan ${resumen.plan} por ${formatearMoneda(resumen.precio_total)}.`,
+                    entidad: 'membresia',
+                    entidad_id: membresiaCreada.insertId,
+                    ...adminNotificacion(req)
+                }, conn);
+            }
 
             membresiasCreadas.push({
                 id: membresiaCreada.insertId,
@@ -1873,47 +2066,107 @@ app.get('/api/dashboard', async (req, res) => {
 
 app.get('/api/notificaciones', async (req, res) => {
     try {
+        await sincronizarNotificacionesVencimiento();
+
         const [rows] = await pool.query(`
             SELECT
-                CASE
-                    WHEN DATE(m.fecha_fin) = CURDATE() THEN 'vencida_hoy'
-                    WHEN DATE(m.fecha_fin) = DATE_ADD(CURDATE(), INTERVAL 1 DAY) THEN 'vence_manana'
-                    WHEN DATE(m.fecha_fin) = DATE_ADD(CURDATE(), INTERVAL 3 DAY) THEN 'vence_3_dias'
-                END AS tipo,
-                CASE
-                    WHEN m.fecha_fin = CURDATE() THEN 'Membresía vencida hoy'
-                    WHEN m.fecha_fin = DATE_ADD(CURDATE(), INTERVAL 1 DAY) THEN 'Membresía vence mañana'
-                    WHEN m.fecha_fin = DATE_ADD(CURDATE(), INTERVAL 3 DAY) THEN 'Membresía vence en 3 días'
-                END AS titulo,
-                CASE
-                    WHEN m.fecha_fin = CURDATE() THEN CONCAT(c.nombre, ' vence hoy')
-                    WHEN m.fecha_fin = DATE_ADD(CURDATE(), INTERVAL 1 DAY) THEN CONCAT(c.nombre, ' vence mañana')
-                    WHEN m.fecha_fin = DATE_ADD(CURDATE(), INTERVAL 3 DAY) THEN CONCAT(c.nombre, ' vence en 3 días')
-                END AS mensaje,
-                c.nombre AS cliente,
-                c.dni,
-                p.nombre AS plan,
-                DATE_FORMAT(m.fecha_fin, '%Y-%m-%d') AS fecha_fin,
-                DATEDIFF(DATE(m.fecha_fin), CURDATE()) AS dias_restantes
-            FROM membresias m
-            INNER JOIN clientes c ON m.cliente_id = c.id
-            INNER JOIN planes p ON m.plan_id = p.id
-            WHERE m.estado = 'activa'
-            AND COALESCE(m.duracion_unidad, 'meses') != 'usos'
-            AND DATE(m.fecha_fin) IN (
-                CURDATE(),
-                DATE_ADD(CURDATE(), INTERVAL 1 DAY),
-                DATE_ADD(CURDATE(), INTERVAL 3 DAY)
-            )
-            ORDER BY m.fecha_fin ASC, c.nombre ASC
+                id,
+                tipo,
+                titulo,
+                mensaje,
+                entidad,
+                entidad_id,
+                usuario_id,
+                usuario_nombre,
+                leida,
+                fecha_creacion
+            FROM notificaciones
+            ORDER BY fecha_creacion DESC
+            LIMIT 50
         `);
 
-        res.json(rows);
+        const [[contador]] = await pool.query(`
+            SELECT COUNT(*) AS total
+            FROM notificaciones
+            WHERE leida = 0
+        `);
+
+        return res.json({
+            notificaciones: rows,
+            total_no_leidas: contador.total
+        });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({
+        return res.status(500).json({
             error: 'Error al obtener notificaciones'
+        });
+    }
+});
+
+app.put('/api/notificaciones/:id/leida', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [result] = await pool.query(
+            `UPDATE notificaciones
+             SET leida = 1
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                error: 'Notificacion no encontrada'
+            });
+        }
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: 'Error al marcar notificacion'
+        });
+    }
+});
+
+app.put('/api/notificaciones/leidas', async (req, res) => {
+    try {
+        await pool.query(`
+            UPDATE notificaciones
+            SET leida = 1
+            WHERE leida = 0
+        `);
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: 'Error al marcar notificaciones'
+        });
+    }
+});
+
+app.delete('/api/notificaciones/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [result] = await pool.query(
+            `DELETE FROM notificaciones WHERE id = ?`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                error: 'Notificacion no encontrada'
+            });
+        }
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: 'Error al eliminar notificacion'
         });
     }
 });
@@ -1970,7 +2223,12 @@ app.delete('/api/membresias/:id', async (req, res) => {
         const { id } = req.params;
 
         const [[membresia]] = await pool.query(
-            `SELECT cliente_id FROM membresias WHERE id = ?`,
+            `SELECT
+                m.cliente_id,
+                c.nombre AS cliente
+             FROM membresias m
+             INNER JOIN clientes c ON c.id = m.cliente_id
+             WHERE m.id = ?`,
             [id]
         );
 
@@ -1993,6 +2251,15 @@ app.delete('/api/membresias/:id', async (req, res) => {
             `DELETE FROM membresias WHERE id = ?`,
             [id]
         );
+
+        await crearNotificacion({
+            tipo: 'membresia_eliminada',
+            titulo: 'Membresia eliminada',
+            mensaje: `Se elimino la membresia de ${membresia.cliente}.`,
+            entidad: 'membresia',
+            entidad_id: id,
+            ...adminNotificacion(req)
+        });
 
         const [[activas]] = await pool.query(
             `SELECT COUNT(*) AS total
@@ -2027,6 +2294,11 @@ app.put('/api/clientes/:id/desactivar', async (req, res) => {
     try {
         const { id } = req.params;
 
+        const [[cliente]] = await pool.query(
+            `SELECT nombre FROM clientes WHERE id = ? LIMIT 1`,
+            [id]
+        );
+
         await pool.query(
             `UPDATE clientes
              SET estado = 'inactivo'
@@ -2041,6 +2313,17 @@ app.put('/api/clientes/:id/desactivar', async (req, res) => {
              AND estado = 'activa'`,
             [id]
         );
+
+        if (cliente) {
+            await crearNotificacion({
+                tipo: 'cliente_eliminado',
+                titulo: 'Cliente eliminado',
+                mensaje: `Se elimino o desactivo a ${cliente.nombre}.`,
+                entidad: 'cliente',
+                entidad_id: id,
+                ...adminNotificacion(req)
+            });
+        }
 
         res.json({
             mensaje: 'Cliente desactivado correctamente'

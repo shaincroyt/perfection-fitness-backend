@@ -7225,6 +7225,82 @@ Mobile Header Actions
   min-height: 14px;
 }
 
+body.admin-page .notification-head {
+  gap: 8px;
+}
+
+body.admin-page .notification-mark-all {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--red, #DD0F0D);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+body.admin-page .notification-mark-all:disabled {
+  color: var(--text-3, #9999a8);
+  cursor: default;
+}
+
+body.admin-page .notification-item-body {
+  min-width: 0;
+}
+
+body.admin-page .notification-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.admin-page .notification-read-state {
+  margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--bg, #f4f5f7);
+  color: var(--text-3, #9999a8);
+  font-size: 10px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+body.admin-page .notification-item.is-unread {
+  background: rgba(221, 15, 13, .035);
+}
+
+body.admin-page .notification-item.is-unread .notification-read-state {
+  background: rgba(221, 15, 13, .10);
+  color: var(--red, #DD0F0D);
+}
+
+body.admin-page .notification-read-btn {
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--red, #DD0F0D);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+}
+
+body.admin-page .notification-item.cliente_creado .notification-mark,
+body.admin-page .notification-item.membresia_creada .notification-mark {
+  background: var(--green, #16a34a);
+}
+
+body.admin-page .notification-item.cliente_eliminado .notification-mark,
+body.admin-page .notification-item.membresia_eliminada .notification-mark,
+body.admin-page .notification-item.membresia_vencida .notification-mark {
+  background: var(--red, #DD0F0D);
+}
+
+body.admin-page .notification-item.membresia_por_vencer .notification-mark {
+  background: var(--orange, #f97316);
+}
+
 @keyframes adminSkeleton {
   0% { background-position: 100% 0; }
   100% { background-position: 0 0; }

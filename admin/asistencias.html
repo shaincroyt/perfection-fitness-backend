@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles/admin.css">
 <script src="../assets/js/admin-auth.js"></script>
   <script src="../assets/js/admin-layout.js" defer></script>
+  <script src="../assets/js/admin-notifications.js" defer></script>
 </head>
 <body class="admin-page admin-page-asistencias">
 <div class="shell">
@@ -776,110 +777,7 @@ const matchS = !status || r.estado === status;
 cargarSidebar();
 
 
-  let notificacionesPrevias = new Set();
-  let notificacionesInicializadas = false;
-  let notificationToastTimer = null;
-
-  function notificationId(n) {
-    return [n.tipo, n.dni || '', n.fecha_fin || ''].join('|');
-  }
-
-  function mostrarToastNotificacion(notificacion) {
-    let toast = document.getElementById('notificationToast');
-
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'notificationToast';
-      toast.className = 'notification-toast';
-      document.body.appendChild(toast);
-    }
-
-    toast.innerHTML = `
-      Nueva notificación: ${notificacion.titulo}
-      <span>${notificacion.cliente || ''}</span>
-    `;
-    toast.classList.add('show');
-
-    clearTimeout(notificationToastTimer);
-    notificationToastTimer = setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3600);
-  }
-
-  async function cargarNotificaciones() {
-    const wrap = document.getElementById('notificationWrap');
-    if (!wrap) return;
-
-    try {
-      const res = await fetch('/api/notificaciones');
-      const data = await res.json();
-      const notificaciones = Array.isArray(data) ? data : [];
-      const count = document.getElementById('notifCount');
-      const total = document.getElementById('notificationTotal');
-      const list = document.getElementById('notificationList');
-      const idsActuales = new Set(notificaciones.map(notificationId));
-
-      if (notificacionesInicializadas) {
-        const nueva = notificaciones.find(n => !notificacionesPrevias.has(notificationId(n)));
-        if (nueva) mostrarToastNotificacion(nueva);
-      }
-
-      notificacionesPrevias = idsActuales;
-      notificacionesInicializadas = true;
-
-      count.classList.remove('loading-value');
-      total.classList.remove('loading-value');
-      count.style.display = notificaciones.length > 0 ? 'flex' : 'none';
-      count.textContent = notificaciones.length > 9 ? '9+' : notificaciones.length;
-      total.textContent = notificaciones.length === 1 ? '1 pendiente' : notificaciones.length + ' pendientes';
-
-      if (notificaciones.length === 0) {
-        list.innerHTML = '<div class="notification-empty">No hay notificaciones pendientes</div>';
-        return;
-      }
-
-      list.innerHTML = notificaciones.map(n => `
-        <div class="notification-item ${n.tipo}">
-          <span class="notification-mark"></span>
-          <div>
-            <div class="notification-item-title">${n.titulo}</div>
-            <div class="notification-item-msg">${n.cliente} - ${n.plan}</div>
-            <div class="notification-item-meta">DNI ${n.dni || '-'} - Vence: ${n.fecha_fin}</div>
-          </div>
-        </div>
-      `).join('');
-    } catch (error) {
-      console.error('Error notificaciones:', error);
-      const count = document.getElementById('notifCount');
-      const total = document.getElementById('notificationTotal');
-      const list = document.getElementById('notificationList');
-      if (count) {
-        count.classList.remove('loading-value');
-        count.style.display = 'none';
-      }
-      if (total) {
-        total.classList.remove('loading-value');
-        total.textContent = 'No disponible';
-      }
-      if (list) list.innerHTML = '<div class="notification-empty">Error al cargar notificaciones</div>';
-    }
-  }
-
-  function toggleNotificaciones(event) {
-    event.stopPropagation();
-    document.getElementById('notificationPopover')?.classList.toggle('open');
-  }
-
-  document.addEventListener('click', (event) => {
-    const wrap = document.getElementById('notificationWrap');
-    const popover = document.getElementById('notificationPopover');
-    if (wrap && popover && !wrap.contains(event.target)) {
-      popover.classList.remove('open');
-    }
-  });
-
-  cargarNotificaciones();
-  setInterval(cargarNotificaciones, 30000);
+  // Notificaciones gestionadas por ../assets/js/admin-notifications.js
 </script>
 <script src="../assets/js/perfil.js"></script>
 <script src="../assets/js/logout.js"></script>
