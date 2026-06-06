@@ -6,17 +6,23 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+
+  ssl: {
+    rejectUnauthorized: false
+  },
+
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
 module.exports = pool;
+
 pool.getConnection()
-    .then(conn => {
-        console.log('✅ Conectado a Railway');
-        conn.release();
-    })
-    .catch(err => {
-        console.error('❌ Error Railway:', err);
-    });
+  .then(conn => {
+    console.log('✅ Conectado a Aiven');
+    conn.release();
+  })
+  .catch(err => {
+    console.error('❌ Error Aiven:', err);
+  });
