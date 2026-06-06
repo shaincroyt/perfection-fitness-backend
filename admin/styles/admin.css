@@ -3663,6 +3663,41 @@ body.admin-page-nueva-membresia .success-code{
   font-size:38px;
   color:#DD0F0D;
   letter-spacing:.08em;
+  overflow-wrap:anywhere;
+}
+
+body.admin-page-nueva-membresia .success-code.success-code-list{
+  display:grid;
+  gap:10px;
+  font-family:inherit;
+  font-size:14px;
+  letter-spacing:0;
+  color:var(--text-1);
+  text-align:left;
+}
+
+body.admin-page-nueva-membresia .success-code-item{
+  display:grid;
+  gap:4px;
+  padding:10px 12px;
+  border:1px solid #ececec;
+  border-radius:8px;
+  background:#fff;
+}
+
+body.admin-page-nueva-membresia .success-code-client{
+  color:var(--text-3);
+  font-size:12px;
+  font-weight:800;
+}
+
+body.admin-page-nueva-membresia .success-code-value{
+  color:#DD0F0D;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:24px;
+  letter-spacing:.08em;
+  line-height:1;
+  overflow-wrap:anywhere;
 }
 
 body.admin-page-nueva-membresia #btnAgregarPersona{

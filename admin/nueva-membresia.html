@@ -876,6 +876,56 @@ async function cargarPlanes() {
     return `<span class="plan-pill ${cls}">${plan}</span>`;
   }
 
+  function escapeHtml(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[char]));
+  }
+
+  function codigosDesdeRespuesta(data, personas = []) {
+    if (Array.isArray(data.codigos) && data.codigos.length > 0) {
+      return data.codigos.map((item, index) => {
+        if (typeof item === 'string') {
+          return {
+            cliente: personas[index]?.nombre || data.cliente || `Cliente ${index + 1}`,
+            codigo: item
+          };
+        }
+
+        return {
+          cliente: item.cliente || personas[index]?.nombre || data.cliente || `Cliente ${index + 1}`,
+          codigo: item.codigo
+        };
+      }).filter(item => item.codigo);
+    }
+
+    return [{
+      cliente: data.cliente || personas[0]?.nombre || membresiaPendiente?.nombre || 'Cliente',
+      codigo: data.codigo
+    }].filter(item => item.codigo);
+  }
+
+  function renderCodigosExito(codigos) {
+    const box = document.getElementById('successCode');
+    box.classList.toggle('success-code-list', codigos.length > 1);
+
+    if (codigos.length <= 1) {
+      box.textContent = codigos[0]?.codigo || 'PFS-XXXXXX';
+      return;
+    }
+
+    box.innerHTML = codigos.map(item => `
+      <div class="success-code-item">
+        <span class="success-code-client">${escapeHtml(item.cliente)}</span>
+        <span class="success-code-value">${escapeHtml(item.codigo)}</span>
+      </div>
+    `).join('');
+  }
+
   function cerrarDniExistsModal() {
   document
     .getElementById('dniExistsModal')
@@ -1315,12 +1365,14 @@ async function confirmarMembresia() {
       membresiaCreada = await resMembresia.json();
     }
 
-    const codigos = Array.isArray(membresiaCreada.codigos) && membresiaCreada.codigos.length
-      ? membresiaCreada.codigos
-      : [membresiaCreada.codigo];
-    const codigo = codigos[0];
-    const codigoTexto = codigos.join(' / ');
-    document.getElementById('successCode').textContent = codigoTexto;
+    const personasConfirmadas = membresiaPendiente.personas || [{ nombre: membresiaPendiente.nombre }];
+    const codigos = codigosDesdeRespuesta(membresiaCreada, personasConfirmadas);
+    const codigo = codigos[0]?.codigo || membresiaCreada.codigo;
+    const codigoTexto = codigos
+      .map(item => codigos.length > 1 ? `${item.cliente}: ${item.codigo}` : item.codigo)
+      .join('\n');
+
+    renderCodigosExito(codigos);
     document.getElementById('credCode').textContent = codigo;
     document.getElementById('copyCodeText').textContent = codigoTexto;
     document.getElementById('detCodigo').textContent = codigoTexto;

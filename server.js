@@ -1298,6 +1298,29 @@ function sumarDiasISO(fechaISO, dias) {
     return fecha.toISOString().slice(0, 10);
 }
 
+function fechaSoloISO(valor) {
+    if (!valor) return '';
+
+    if (typeof valor === 'string') {
+        const match = valor.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (match) return match[1];
+    }
+
+    if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+        const y = valor.getUTCFullYear();
+        const m = String(valor.getUTCMonth() + 1).padStart(2, '0');
+        const d = String(valor.getUTCDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    const fecha = new Date(valor);
+    if (!Number.isNaN(fecha.getTime())) {
+        return fecha.toISOString().slice(0, 10);
+    }
+
+    return String(valor).slice(0, 10);
+}
+
 function fechaHoraMysqlUTC(fecha) {
     return fecha.toISOString().slice(0, 19).replace('T', ' ');
 }
@@ -1315,7 +1338,9 @@ function limitesDiaPeruMysqlUTC(fechaISO = fechaPeruISO()) {
 
 function calcularDiasRestantesPeru(fechaFinValue) {
     if (!fechaFinValue) return 0;
-    const fechaFin = String(fechaFinValue).slice(0, 10);
+    const fechaFin = fechaSoloISO(fechaFinValue);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaFin)) return 0;
+
     const hoy = fechaPeruISO();
     const fin = new Date(`${fechaFin}T00:00:00-05:00`);
     const actual = new Date(`${hoy}T00:00:00-05:00`);
@@ -1671,8 +1696,8 @@ async function obtenerMembresiasPorCodigo(codigo) {
             m.id AS membresia_id,
             m.codigo,
             m.meses,
-            m.fecha_inicio,
-            m.fecha_fin,
+            DATE_FORMAT(m.fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+            DATE_FORMAT(m.fecha_fin, '%Y-%m-%d') AS fecha_fin,
             m.estado AS estado_membresia,
             m.promocion,
             m.promocion_id,
@@ -1991,16 +2016,19 @@ app.post('/api/membresias/grupal', async (req, res) => {
             const persona = personas[i];
             let clienteId = persona.cliente_id || null;
             let clienteNuevo = null;
+            let nombreCliente = String(persona.nombre || '').trim();
 
             if (clienteId) {
                 const [[cliente]] = await conn.query(
-                    'SELECT id FROM clientes WHERE id = ?',
+                    'SELECT id, nombre FROM clientes WHERE id = ?',
                     [clienteId]
                 );
 
                 if (!cliente) {
                     throw new Error('Cliente existente no encontrado');
                 }
+
+                nombreCliente = cliente.nombre;
             } else {
                 const nombre = String(persona.nombre || '').trim();
                 const dni = String(persona.dni || '').trim();
@@ -2028,6 +2056,7 @@ app.post('/api/membresias/grupal', async (req, res) => {
 
                 clienteId = clienteCreado.insertId;
                 clienteNuevo = { id: clienteId, nombre, dni };
+                nombreCliente = nombre;
             }
 
             const precioRegistro = i === 0 ? Number(precio_total || 0) : 0;
@@ -2089,6 +2118,7 @@ app.post('/api/membresias/grupal', async (req, res) => {
             membresiasCreadas.push({
                 id: membresiaCreada.insertId,
                 cliente_id: clienteId,
+                cliente: nombreCliente,
                 codigo: codigoPersona,
                 precio_total: precioRegistro
             });
@@ -2098,7 +2128,11 @@ app.post('/api/membresias/grupal', async (req, res) => {
 
         res.json({
             codigo: membresiasCreadas[0]?.codigo || null,
-            codigos: membresiasCreadas.map(item => item.codigo),
+            cliente: membresiasCreadas[0]?.cliente || null,
+            codigos: membresiasCreadas.map(item => ({
+                cliente: item.cliente,
+                codigo: item.codigo
+            })),
             membresias: membresiasCreadas,
             promocion_id: promocionId,
             promocion: promocion_etiqueta || null

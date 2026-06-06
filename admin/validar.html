@@ -461,10 +461,39 @@
     return `${day}/${m}/${y}`;
   }
 
+  function fechaPeruISO(date = new Date()) {
+    const partes = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Lima',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+    return `${partes.year}-${partes.month}-${partes.day}`;
+  }
+
+  function calcularDiasRestantesVisual(fechaFin) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaFin || '')) return 0;
+
+    const fin = new Date(`${fechaFin}T00:00:00-05:00`);
+    const hoy = new Date(`${fechaPeruISO()}T00:00:00-05:00`);
+
+    return Math.ceil((fin - hoy) / (1000 * 60 * 60 * 24));
+  }
+
+  function diasRestantesSeguro(data, fechaFin = '') {
+    const dias = Number(data && data.dias_restantes);
+    return Number.isFinite(dias) ? dias : calcularDiasRestantesVisual(fechaFin);
+  }
+
   function estadoVisualValidacion(data) {
     if (data && data.estado_visual) return data.estado_visual;
 
-    const dias = Number(data && data.dias_restantes);
+    const fechaFin = data && data.fecha_fin ? String(data.fecha_fin).slice(0, 10) : '';
+    const dias = diasRestantesSeguro(data, fechaFin);
     if ((data && data.estado === 'vencida') || dias < 0) return 'vencida';
     if (dias === 0) return 'vence_hoy';
     if (dias === 1) return 'vence_manana';
@@ -518,7 +547,7 @@
         `V\u00e1lido hasta: ${fmtDate(fechaFin)}`,
         `Duraci\u00f3n contratada: ${textoDuracionContratada(data)}`
       ];
-      const dias = Number(data.dias_restantes);
+      const dias = diasRestantesSeguro(data, fechaFin);
 
       if (data.valido && dias >= 0 && dias <= 2) {
         partes.push('El acceso sigue activo hasta la fecha de vencimiento registrada.');
@@ -676,7 +705,7 @@
 
   function mostrarResultadoValidacion(data) {
   const fechaFin = data.fecha_fin ? String(data.fecha_fin).slice(0, 10) : '';
-  const dias = Number(data.dias_restantes);
+  const dias = diasRestantesSeguro(data, fechaFin);
 
   if (data.valido) {
     document.querySelector('.active-status').textContent = textoAcceso(data);
