@@ -1280,6 +1280,49 @@ function calcularDiasRestantes(fechaFinValue) {
     return Math.ceil((fechaFin - hoy) / (1000 * 60 * 60 * 24));
 }
 
+function fechaPeruISO(fecha = new Date()) {
+    const partes = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Lima',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).formatToParts(fecha);
+
+    const valores = Object.fromEntries(partes.map(parte => [parte.type, parte.value]));
+    return `${valores.year}-${valores.month}-${valores.day}`;
+}
+
+function sumarDiasISO(fechaISO, dias) {
+    const fecha = new Date(`${fechaISO}T00:00:00-05:00`);
+    fecha.setUTCDate(fecha.getUTCDate() + dias);
+    return fecha.toISOString().slice(0, 10);
+}
+
+function fechaHoraMysqlUTC(fecha) {
+    return fecha.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function limitesDiaPeruMysqlUTC(fechaISO = fechaPeruISO()) {
+    const inicio = new Date(`${fechaISO}T00:00:00-05:00`);
+    const fin = new Date(inicio);
+    fin.setUTCDate(fin.getUTCDate() + 1);
+
+    return {
+        inicio: fechaHoraMysqlUTC(inicio),
+        fin: fechaHoraMysqlUTC(fin)
+    };
+}
+
+function calcularDiasRestantesPeru(fechaFinValue) {
+    if (!fechaFinValue) return 0;
+    const fechaFin = String(fechaFinValue).slice(0, 10);
+    const hoy = fechaPeruISO();
+    const fin = new Date(`${fechaFin}T00:00:00-05:00`);
+    const actual = new Date(`${hoy}T00:00:00-05:00`);
+
+    return Math.ceil((fin - actual) / (1000 * 60 * 60 * 24));
+}
+
 function normalizarDuracionUnidad(unidad) {
     return ['dias', 'meses', 'usos'].includes(unidad) ? unidad : 'meses';
 }
@@ -1313,12 +1356,85 @@ function calcularFechaFin(fechaInicio, cantidad, unidad) {
     return inicio.toISOString().slice(0, 10);
 }
 
-function estadoVisualMembresia(estado, diasRestantes, unidad = 'meses', usosRestantes = null) {
-    if (normalizarDuracionUnidad(unidad) === 'usos') {
-        if (estado === 'activa' && Number(usosRestantes) > 0) return 'activa';
-        return 'vencida';
+function normalizarAsistencias(valor) {
+    if (valor === null || valor === undefined || valor === '') return null;
+    const numero = Number.parseInt(valor, 10);
+    return Number.isFinite(numero) && numero > 0 ? numero : null;
+}
+
+function esPlanIlimitado(plan) {
+    return Number(plan && plan.es_ilimitado) === 1 || plan?.asistencias_incluidas === null;
+}
+
+async function obtenerPlanParaMembresia(planId, conn = pool) {
+    const [[plan]] = await conn.query(
+        `SELECT
+            id,
+            nombre,
+            COALESCE(duracion_valor, 1) AS duracion_valor,
+            COALESCE(duracion_unidad, 'meses') AS duracion_unidad,
+            asistencias_incluidas,
+            COALESCE(es_ilimitado, 0) AS es_ilimitado
+         FROM planes
+         WHERE id = ?
+         LIMIT 1`,
+        [planId]
+    );
+
+    return plan || null;
+}
+
+function asistenciasDesdePlan(plan, fallback = null) {
+    if (!plan || esPlanIlimitado(plan)) return null;
+
+    return normalizarAsistencias(plan.asistencias_incluidas)
+        ?? normalizarAsistencias(fallback)
+        ?? 1;
+}
+
+function resumenAsistencias(membresia) {
+    const total = membresia.asistencias_totales === null || membresia.asistencias_totales === undefined
+        ? null
+        : Number(membresia.asistencias_totales);
+    const usadas = Math.max(Number(membresia.asistencias_usadas || 0), 0);
+
+    if (!Number.isFinite(total) || total <= 0) {
+        return {
+            ilimitada: true,
+            total: null,
+            usadas,
+            restantes: null,
+            etiqueta_restantes: 'Ilimitadas',
+            etiqueta_usadas: `${usadas}`
+        };
     }
 
+    const restantes = Math.max(total - usadas, 0);
+
+    return {
+        ilimitada: false,
+        total,
+        usadas,
+        restantes,
+        etiqueta_restantes: `${restantes}/${total}`,
+        etiqueta_usadas: `${usadas}/${total}`
+    };
+}
+
+function payloadAsistencias(membresia) {
+    const resumen = resumenAsistencias(membresia);
+
+    return {
+        asistencias_totales: resumen.total,
+        asistencias_usadas: resumen.usadas,
+        asistencias_restantes: resumen.restantes,
+        asistencias_ilimitadas: resumen.ilimitada,
+        asistencias_restantes_texto: resumen.etiqueta_restantes,
+        asistencias_usadas_texto: resumen.etiqueta_usadas
+    };
+}
+
+function estadoVisualMembresia(estado, diasRestantes, unidad = 'meses', usosRestantes = null) {
     if (estado === 'vencida' || diasRestantes < 0) return 'vencida';
     if (diasRestantes === 0) return 'vence_hoy';
     if (diasRestantes === 1) return 'vence_manana';
@@ -1339,8 +1455,8 @@ async function desactivarClienteSiSinMembresiaActiva(clienteId, membresiaId, con
             AND m.estado = 'activa'
             AND m.id != ?
             AND (
-                COALESCE(m.duracion_unidad, 'meses') != 'usos'
-                OR COALESCE(m.usos_restantes, 0) > 0
+                m.asistencias_totales IS NULL
+                OR COALESCE(m.asistencias_usadas, 0) < m.asistencias_totales
             )
          )`,
         [clienteId, membresiaId]
@@ -1349,135 +1465,29 @@ async function desactivarClienteSiSinMembresiaActiva(clienteId, membresiaId, con
 
 async function validarMembresiaYRegistrar(membresia) {
     const unidad = normalizarDuracionUnidad(membresia.duracion_unidad);
-
-    if (unidad === 'usos') {
-        const usosRestantes = Number(membresia.usos_restantes || 0);
-
-        if (membresia.estado_membresia !== 'activa' || usosRestantes <= 0) {
-            await pool.query(
-                `UPDATE membresias
-                 SET estado = 'vencida'
-                 WHERE id = ?`,
-                [membresia.membresia_id]
-            );
-
-            await desactivarClienteSiSinMembresiaActiva(membresia.cliente_id, membresia.membresia_id);
-
-            await pool.query(
-                `INSERT INTO asistencias
-                (cliente_id, membresia_id, codigo_usado, estado, motivo)
-                VALUES (?, ?, ?, 'denegado', 'Membresia consumida')`,
-                [
-                    membresia.cliente_id,
-                    membresia.membresia_id,
-                    membresia.codigo
-                ]
-            );
-
-            return {
-                valido: false,
-                estado: 'vencida',
-                mensaje: 'Membresia consumida',
-                cliente: membresia.cliente,
-                dni: membresia.dni,
-                plan: membresia.plan,
-                plan_nombre: membresia.plan,
-                codigo: membresia.codigo,
-                promocion: membresia.promocion,
-                descuento_porcentaje: extraerDescuentoPorcentaje(membresia.promocion),
-                duracion_unidad: unidad,
-                meses: membresia.meses,
-                usos_totales: membresia.usos_totales,
-                usos_restantes: 0,
-                estado_visual: 'vencida'
-            };
-        }
-
-        const conn = await pool.getConnection();
-
-        try {
-            await conn.beginTransaction();
-
-            const [actualizacion] = await conn.query(
-                `UPDATE membresias
-                 SET usos_restantes = GREATEST(COALESCE(usos_restantes, 0) - 1, 0)
-                 WHERE id = ?
-                 AND estado = 'activa'
-                 AND COALESCE(usos_restantes, 0) > 0`,
-                [membresia.membresia_id]
-            );
-
-            if (actualizacion.affectedRows === 0) {
-                await conn.rollback();
-                return validarMembresiaYRegistrar({
-                    ...membresia,
-                    usos_restantes: 0
-                });
-            }
-
-            const [[actualizada]] = await conn.query(
-                `SELECT usos_restantes
-                 FROM membresias
-                 WHERE id = ?`,
-                [membresia.membresia_id]
-            );
-
-            const usosRestantesFinal = Number(actualizada.usos_restantes || 0);
-            const consumida = usosRestantesFinal <= 0;
-
-            await conn.query(
-                `INSERT INTO asistencias
-                (cliente_id, membresia_id, codigo_usado, estado, motivo)
-                VALUES (?, ?, ?, 'permitido', ?)`,
-                [
-                    membresia.cliente_id,
-                    membresia.membresia_id,
-                    membresia.codigo,
-                    consumida ? 'Ingreso permitido - membresia consumida' : 'Ingreso permitido'
-                ]
-            );
-
-            if (consumida) {
-                await conn.query(
-                    `UPDATE membresias
-                     SET estado = 'vencida'
-                     WHERE id = ?`,
-                    [membresia.membresia_id]
-                );
-
-                await desactivarClienteSiSinMembresiaActiva(membresia.cliente_id, membresia.membresia_id, conn);
-            }
-
-            await conn.commit();
-
-            return {
-                valido: true,
-                estado: consumida ? 'vencida' : 'activa',
-                mensaje: 'Ingreso permitido',
-                mensaje_secundario: consumida ? 'Membresia consumida' : `Usos restantes: ${usosRestantesFinal}`,
-                cliente: membresia.cliente,
-                dni: membresia.dni,
-                plan: membresia.plan,
-                plan_nombre: membresia.plan,
-                codigo: membresia.codigo,
-                promocion: membresia.promocion,
-                descuento_porcentaje: extraerDescuentoPorcentaje(membresia.promocion),
-                duracion_unidad: unidad,
-                meses: membresia.meses,
-                usos_totales: membresia.usos_totales,
-                usos_restantes: usosRestantesFinal,
-                estado_visual: consumida ? 'vencida' : 'activa'
-            };
-        } catch (error) {
-            await conn.rollback();
-            throw error;
-        } finally {
-            conn.release();
-        }
-    }
-
-    const diasRestantes = calcularDiasRestantes(membresia.fecha_fin);
+    const diasRestantes = calcularDiasRestantesPeru(membresia.fecha_fin);
     const estadoVisual = estadoVisualMembresia(membresia.estado_membresia, diasRestantes, unidad);
+    const asistencias = resumenAsistencias(membresia);
+
+    const payloadBase = {
+        cliente: membresia.cliente,
+        dni: membresia.dni,
+        plan: membresia.plan,
+        plan_nombre: membresia.plan,
+        codigo: membresia.codigo,
+        fecha_inicio: membresia.fecha_inicio,
+        fecha_fin: membresia.fecha_fin,
+        promocion: membresia.promocion,
+        promocion_id: membresia.promocion_id,
+        promocion_vinculada_con: membresia.promocion_vinculada_con || null,
+        descuento_porcentaje: extraerDescuentoPorcentaje(membresia.promocion),
+        duracion_unidad: unidad,
+        meses: membresia.meses,
+        dias_restantes: diasRestantes,
+        usos_totales: asistencias.total,
+        usos_restantes: asistencias.restantes,
+        ...payloadAsistencias(membresia)
+    };
 
     if (membresia.estado_membresia !== 'activa' || diasRestantes < 0) {
         await pool.query(
@@ -1491,8 +1501,8 @@ async function validarMembresiaYRegistrar(membresia) {
 
         await pool.query(
             `INSERT INTO asistencias
-            (cliente_id, membresia_id, codigo_usado, estado, motivo)
-            VALUES (?, ?, ?, 'denegado', 'Membresía vencida')`,
+            (cliente_id, membresia_id, codigo_usado, estado, motivo, cuenta_como_uso)
+            VALUES (?, ?, ?, 'denegado', 'Membresia vencida', 0)`,
             [
                 membresia.cliente_id,
                 membresia.membresia_id,
@@ -1501,57 +1511,161 @@ async function validarMembresiaYRegistrar(membresia) {
         );
 
         return {
+            ...payloadBase,
             valido: false,
             estado: 'vencida',
-            mensaje: 'Membresía vencida',
-            cliente: membresia.cliente,
-            dni: membresia.dni,
-            plan: membresia.plan,
-            plan_nombre: membresia.plan,
-            codigo: membresia.codigo,
-            fecha_fin: membresia.fecha_fin,
-            promocion: membresia.promocion,
-            descuento_porcentaje: extraerDescuentoPorcentaje(membresia.promocion),
-            duracion_unidad: unidad,
-            meses: membresia.meses,
-            dias_restantes: diasRestantes,
+            mensaje: 'Membresia vencida',
             estado_visual: 'vencida',
             dias_vencido: Math.abs(diasRestantes)
         };
     }
 
-    await pool.query(
-        `INSERT INTO asistencias
-        (cliente_id, membresia_id, codigo_usado, estado, motivo)
-        VALUES (?, ?, ?, 'permitido', 'Ingreso permitido')`,
-        [
-            membresia.cliente_id,
-            membresia.membresia_id,
-            membresia.codigo
-        ]
-    );
+    if (!asistencias.ilimitada && asistencias.usadas >= asistencias.total) {
+        await pool.query(
+            `INSERT INTO asistencias
+            (cliente_id, membresia_id, codigo_usado, estado, motivo, cuenta_como_uso)
+            VALUES (?, ?, ?, 'denegado', 'Membresia sin asistencias disponibles', 0)`,
+            [
+                membresia.cliente_id,
+                membresia.membresia_id,
+                membresia.codigo
+            ]
+        );
 
-    return {
-        valido: true,
-        estado: 'activa',
-        mensaje: 'Membresía activa',
-        cliente: membresia.cliente,
-        dni: membresia.dni,
-        plan: membresia.plan,
-        plan_nombre: membresia.plan,
-        codigo: membresia.codigo,
-        fecha_inicio: membresia.fecha_inicio,
-        fecha_fin: membresia.fecha_fin,
-        promocion: membresia.promocion,
-        descuento_porcentaje: extraerDescuentoPorcentaje(membresia.promocion),
-        duracion_unidad: unidad,
-        meses: membresia.meses,
-        dias_restantes: diasRestantes,
-        estado_visual: estadoVisual
-    };
+        return {
+            ...payloadBase,
+            valido: false,
+            estado: 'sin_asistencias',
+            mensaje: 'Membresia sin asistencias disponibles',
+            mensaje_secundario: 'La membresia ya no tiene asistencias disponibles.',
+            estado_visual: 'sin_asistencias'
+        };
+    }
+
+    const conn = await pool.getConnection();
+
+    try {
+        await conn.beginTransaction();
+
+        const [[actual]] = await conn.query(
+            `SELECT
+                id AS membresia_id,
+                asistencias_totales,
+                asistencias_usadas
+             FROM membresias
+             WHERE id = ?
+             FOR UPDATE`,
+            [membresia.membresia_id]
+        );
+
+        const asistenciasActuales = resumenAsistencias(actual || {});
+
+        if (!asistenciasActuales.ilimitada && asistenciasActuales.usadas >= asistenciasActuales.total) {
+            await conn.query(
+                `INSERT INTO asistencias
+                (cliente_id, membresia_id, codigo_usado, estado, motivo, cuenta_como_uso)
+                VALUES (?, ?, ?, 'denegado', 'Membresia sin asistencias disponibles', 0)`,
+                [
+                    membresia.cliente_id,
+                    membresia.membresia_id,
+                    membresia.codigo
+                ]
+            );
+
+            await conn.commit();
+
+            return {
+                ...payloadBase,
+                ...payloadAsistencias(actual || {}),
+                valido: false,
+                estado: 'sin_asistencias',
+                mensaje: 'Membresia sin asistencias disponibles',
+                mensaje_secundario: 'La membresia ya no tiene asistencias disponibles.',
+                estado_visual: 'sin_asistencias'
+            };
+        }
+
+        const limites = limitesDiaPeruMysqlUTC();
+        const [[asistenciaHoy]] = await conn.query(
+            `SELECT id
+             FROM asistencias
+             WHERE membresia_id = ?
+             AND estado = 'permitido'
+             AND cuenta_como_uso = 1
+             AND fecha_hora >= ?
+             AND fecha_hora < ?
+             LIMIT 1`,
+            [membresia.membresia_id, limites.inicio, limites.fin]
+        );
+
+        const cuentaComoUso = asistenciaHoy ? 0 : 1;
+        let actualizada = {
+            asistencias_totales: actual?.asistencias_totales ?? null,
+            asistencias_usadas: actual?.asistencias_usadas ?? 0
+        };
+
+        if (cuentaComoUso === 1 && !asistenciasActuales.ilimitada) {
+            await conn.query(
+                `UPDATE membresias
+                 SET asistencias_usadas = LEAST(COALESCE(asistencias_usadas, 0) + 1, asistencias_totales),
+                     usos_totales = asistencias_totales,
+                     usos_restantes = GREATEST(asistencias_totales - LEAST(COALESCE(asistencias_usadas, 0) + 1, asistencias_totales), 0)
+                 WHERE id = ?`,
+                [membresia.membresia_id]
+            );
+
+            [[actualizada]] = await conn.query(
+                `SELECT asistencias_totales, asistencias_usadas
+                 FROM membresias
+                 WHERE id = ?`,
+                [membresia.membresia_id]
+            );
+        }
+
+        await conn.query(
+            `INSERT INTO asistencias
+            (cliente_id, membresia_id, codigo_usado, estado, motivo, cuenta_como_uso)
+            VALUES (?, ?, ?, 'permitido', ?, ?)`,
+            [
+                membresia.cliente_id,
+                membresia.membresia_id,
+                membresia.codigo,
+                cuentaComoUso
+                    ? 'Ingreso permitido'
+                    : 'Este cliente ya registro asistencia hoy. No se desconto otra asistencia.',
+                cuentaComoUso
+            ]
+        );
+
+        await conn.commit();
+
+        const payloadFinal = payloadAsistencias(actualizada);
+
+        return {
+            ...payloadBase,
+            ...payloadFinal,
+            usos_totales: payloadFinal.asistencias_totales,
+            usos_restantes: payloadFinal.asistencias_restantes,
+            valido: true,
+            estado: 'activa',
+            mensaje: cuentaComoUso
+                ? 'Membresia activa'
+                : 'Este cliente ya registro asistencia hoy.',
+            mensaje_secundario: cuentaComoUso
+                ? 'Ingreso permitido'
+                : 'No se desconto otra asistencia.',
+            cuenta_como_uso: cuentaComoUso,
+            estado_visual: estadoVisual
+        };
+    } catch (error) {
+        await conn.rollback();
+        throw error;
+    } finally {
+        conn.release();
+    }
 }
-
 async function obtenerMembresiasPorCodigo(codigo) {
+    const hoyPeru = fechaPeruISO();
     const [rows] = await pool.query(`
         SELECT
             m.id AS membresia_id,
@@ -1561,20 +1675,30 @@ async function obtenerMembresiasPorCodigo(codigo) {
             m.fecha_fin,
             m.estado AS estado_membresia,
             m.promocion,
+            m.promocion_id,
             COALESCE(m.duracion_unidad, 'meses') AS duracion_unidad,
             m.usos_totales,
             m.usos_restantes,
-            DATEDIFF(DATE(m.fecha_fin), CURDATE()) AS dias_restantes,
+            m.asistencias_totales,
+            COALESCE(m.asistencias_usadas, 0) AS asistencias_usadas,
+            DATEDIFF(DATE(m.fecha_fin), ?) AS dias_restantes,
             CASE
-                WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' AND m.estado = 'activa' AND COALESCE(m.usos_restantes, 0) > 0 THEN 'activa'
-                WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' THEN 'vencida'
-                WHEN m.estado = 'vencida' OR DATEDIFF(DATE(m.fecha_fin), CURDATE()) < 0 THEN 'vencida'
-                WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 0 THEN 'vence_hoy'
-                WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 1 THEN 'vence_manana'
-                WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 3 THEN 'vence_3_dias'
+                WHEN m.estado = 'vencida' OR DATEDIFF(DATE(m.fecha_fin), ?) < 0 THEN 'vencida'
+                WHEN m.asistencias_totales IS NOT NULL AND COALESCE(m.asistencias_usadas, 0) >= m.asistencias_totales THEN 'sin_asistencias'
+                WHEN DATEDIFF(DATE(m.fecha_fin), ?) = 0 THEN 'vence_hoy'
+                WHEN DATEDIFF(DATE(m.fecha_fin), ?) = 1 THEN 'vence_manana'
+                WHEN DATEDIFF(DATE(m.fecha_fin), ?) = 3 THEN 'vence_3_dias'
                 WHEN m.estado = 'activa' THEN 'activa'
                 ELSE 'inactiva'
             END AS estado_visual,
+            (
+                SELECT GROUP_CONCAT(c2.nombre ORDER BY m2.id SEPARATOR ', ')
+                FROM membresias m2
+                INNER JOIN clientes c2 ON c2.id = m2.cliente_id
+                WHERE m2.promocion_id = m.promocion_id
+                AND m.promocion_id IS NOT NULL
+                AND m2.id != m.id
+            ) AS promocion_vinculada_con,
             c.id AS cliente_id,
             c.nombre AS cliente,
             c.dni,
@@ -1585,7 +1709,7 @@ async function obtenerMembresiasPorCodigo(codigo) {
         INNER JOIN planes p ON m.plan_id = p.id
         WHERE m.codigo = ?
         ORDER BY m.id ASC
-    `, [codigo]);
+    `, [hoyPeru, hoyPeru, hoyPeru, hoyPeru, hoyPeru, codigo]);
 
     return rows;
 }
@@ -1605,6 +1729,9 @@ app.get('/api/membresias', async (req, res) => {
                 COALESCE(m.duracion_unidad, 'meses') AS duracion_unidad,
                 m.usos_totales,
                 m.usos_restantes,
+                m.asistencias_totales,
+                COALESCE(m.asistencias_usadas, 0) AS asistencias_usadas,
+                m.promocion_id,
                 m.precio_total,
                 m.promocion,
                 m.fecha_inicio,
@@ -1613,6 +1740,7 @@ app.get('/api/membresias', async (req, res) => {
                 DATEDIFF(DATE(m.fecha_fin), CURDATE()) AS dias_restantes,
                 CASE
                     WHEN m.estado = 'vencida' OR DATEDIFF(DATE(m.fecha_fin), CURDATE()) < 0 THEN 'vencida'
+                    WHEN m.asistencias_totales IS NOT NULL AND COALESCE(m.asistencias_usadas, 0) >= m.asistencias_totales THEN 'sin_asistencias'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 0 THEN 'vence_hoy'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 1 THEN 'vence_manana'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 3 THEN 'vence_3_dias'
@@ -1651,16 +1779,19 @@ app.post('/api/membresias', async (req, res) => {
             origen
         } = req.body;
 
-        const unidad = normalizarDuracionUnidad(duracion_unidad);
+        const plan = await obtenerPlanParaMembresia(plan_id);
+        if (!plan) {
+            return res.status(400).json({ error: 'Plan no valido' });
+        }
+
+        const unidad = normalizarDuracionUnidad(duracion_unidad || plan.duracion_unidad);
         const cantidad = normalizarDuracionValor(meses);
         const mesesGuardados = mesesCompatibles(cantidad, unidad);
         const fechaFinFinal = fecha_fin || calcularFechaFin(fecha_inicio, cantidad, unidad);
-        const usosTotalesFinal = unidad === 'usos'
-            ? normalizarDuracionValor(usos_totales ?? cantidad)
-            : null;
-        const usosRestantesFinal = unidad === 'usos'
-            ? normalizarDuracionValor(usos_restantes ?? usosTotalesFinal)
-            : null;
+        const asistenciasTotalesFinal = asistenciasDesdePlan(plan, usos_totales ?? cantidad);
+        const asistenciasUsadasFinal = 0;
+        const usosTotalesFinal = asistenciasTotalesFinal;
+        const usosRestantesFinal = asistenciasTotalesFinal;
 
         const codigo = await generarCodigoUnico();
 
@@ -1684,6 +1815,9 @@ if (membresiaExistente.length > 0) {
              duracion_unidad = ?,
              usos_totales = ?,
              usos_restantes = ?,
+             asistencias_totales = ?,
+             asistencias_usadas = ?,
+             promocion_id = NULL,
              estado = 'activa',
              origen = ?
          WHERE id = ?`,
@@ -1698,6 +1832,8 @@ if (membresiaExistente.length > 0) {
             unidad,
             usosTotalesFinal,
             usosRestantesFinal,
+            asistenciasTotalesFinal,
+            asistenciasUsadasFinal,
             origen || 'presencial',
             membresia.id
         ]
@@ -1731,8 +1867,8 @@ if (membresiaExistente.length > 0) {
 
         const [result] = await pool.query(
             `INSERT INTO membresias
-            (cliente_id, plan_id, codigo, meses, precio_total, promocion, fecha_inicio, fecha_fin, duracion_unidad, usos_totales, usos_restantes, estado, origen)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?)`,
+            (cliente_id, plan_id, codigo, meses, precio_total, promocion, fecha_inicio, fecha_fin, duracion_unidad, usos_totales, usos_restantes, asistencias_totales, asistencias_usadas, estado, origen)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?)`,
             [
                 cliente_id,
                 plan_id,
@@ -1745,6 +1881,8 @@ if (membresiaExistente.length > 0) {
                 unidad,
                 usosTotalesFinal,
                 usosRestantesFinal,
+                asistenciasTotalesFinal,
+                asistenciasUsadasFinal,
                 origen || 'presencial'
             ]
         );
@@ -1823,18 +1961,30 @@ app.post('/api/membresias/grupal', async (req, res) => {
 
         await conn.beginTransaction();
 
-        const unidad = normalizarDuracionUnidad(duracion_unidad);
+        const plan = await obtenerPlanParaMembresia(plan_id, conn);
+        if (!plan) {
+            throw new Error('Plan no valido');
+        }
+
+        const unidad = normalizarDuracionUnidad(duracion_unidad || plan.duracion_unidad);
         const cantidad = normalizarDuracionValor(meses);
         const mesesGuardados = mesesCompatibles(cantidad, unidad);
         const fechaFinFinal = fecha_fin || calcularFechaFin(fecha_inicio, cantidad, unidad);
-        const usosTotalesFinal = unidad === 'usos'
-            ? normalizarDuracionValor(usos_totales ?? cantidad)
-            : null;
-        const usosRestantesFinal = unidad === 'usos'
-            ? normalizarDuracionValor(usos_restantes ?? usosTotalesFinal)
-            : null;
+        const asistenciasTotalesFinal = asistenciasDesdePlan(plan, usos_totales ?? cantidad);
+        const asistenciasUsadasFinal = 0;
+        const usosTotalesFinal = asistenciasTotalesFinal;
+        const usosRestantesFinal = asistenciasTotalesFinal;
 
-        const codigo = await generarCodigoUnico(conn);
+        let promocionId = null;
+        if (promocion_etiqueta) {
+            const [promocionCreada] = await conn.query(
+                `INSERT INTO promociones (tipo)
+                 VALUES (?)`,
+                [promocion_etiqueta]
+            );
+            promocionId = promocionCreada.insertId;
+        }
+
         const membresiasCreadas = [];
 
         for (let i = 0; i < personas.length; i++) {
@@ -1881,15 +2031,16 @@ app.post('/api/membresias/grupal', async (req, res) => {
             }
 
             const precioRegistro = i === 0 ? Number(precio_total || 0) : 0;
+            const codigoPersona = await generarCodigoUnico(conn);
 
             const [membresiaCreada] = await conn.query(
                 `INSERT INTO membresias
-                (cliente_id, plan_id, codigo, meses, precio_total, promocion, fecha_inicio, fecha_fin, duracion_unidad, usos_totales, usos_restantes, estado, origen)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?)`,
+                (cliente_id, plan_id, codigo, meses, precio_total, promocion, fecha_inicio, fecha_fin, duracion_unidad, usos_totales, usos_restantes, asistencias_totales, asistencias_usadas, promocion_id, estado, origen)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?)`,
                 [
                     clienteId,
                     plan_id,
-                    codigo,
+                    codigoPersona,
                     mesesGuardados,
                     precioRegistro,
                     promocion_etiqueta || null,
@@ -1898,6 +2049,9 @@ app.post('/api/membresias/grupal', async (req, res) => {
                     unidad,
                     usosTotalesFinal,
                     usosRestantesFinal,
+                    asistenciasTotalesFinal,
+                    asistenciasUsadasFinal,
+                    promocionId,
                     origen || 'presencial'
                 ]
             );
@@ -1935,6 +2089,7 @@ app.post('/api/membresias/grupal', async (req, res) => {
             membresiasCreadas.push({
                 id: membresiaCreada.insertId,
                 cliente_id: clienteId,
+                codigo: codigoPersona,
                 precio_total: precioRegistro
             });
         }
@@ -1942,8 +2097,10 @@ app.post('/api/membresias/grupal', async (req, res) => {
         await conn.commit();
 
         res.json({
-            codigo,
+            codigo: membresiasCreadas[0]?.codigo || null,
+            codigos: membresiasCreadas.map(item => item.codigo),
             membresias: membresiasCreadas,
+            promocion_id: promocionId,
             promocion: promocion_etiqueta || null
         });
 
@@ -1967,13 +2124,24 @@ function obtenerDatosPlan(body) {
     const tipo = body.tipo ? String(body.tipo).trim() : 'mensual';
     const duracion_valor = normalizarDuracionValor(body.duracion_valor);
     const duracion_unidad = normalizarDuracionUnidad(body.duracion_unidad);
+    const es_ilimitado = body.es_ilimitado === true
+        || body.es_ilimitado === 'true'
+        || body.es_ilimitado === 1
+        || body.es_ilimitado === '1';
+    const asistencias_incluidas = es_ilimitado
+        ? null
+        : normalizarAsistencias(body.asistencias_incluidas ?? body.usos_totales ?? body.limite_usos);
 
-    return { nombre, precio, descripcion, estado, tipo, duracion_valor, duracion_unidad };
+    return { nombre, precio, descripcion, estado, tipo, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado };
 }
 
 function validarDatosPlan(datos) {
     if (!datos.nombre || datos.precio === '' || Number.isNaN(Number(datos.precio))) {
         return 'Nombre y precio son obligatorios';
+    }
+
+    if (!datos.es_ilimitado && !datos.asistencias_incluidas) {
+        return 'Asistencias incluidas es obligatorio para planes no ilimitados';
     }
 
     return null;
@@ -1991,7 +2159,9 @@ app.get('/api/planes', async (req, res) => {
                 descripcion,
                 estado,
                 COALESCE(duracion_valor, 1) AS duracion_valor,
-                COALESCE(duracion_unidad, 'meses') AS duracion_unidad
+                COALESCE(duracion_unidad, 'meses') AS duracion_unidad,
+                asistencias_incluidas,
+                COALESCE(es_ilimitado, 0) AS es_ilimitado
             FROM planes
             WHERE estado = 'activo'
             ORDER BY id ASC
@@ -2043,6 +2213,11 @@ app.get('/api/validar/:codigo', async (req, res) => {
                     duracion_unidad: r.duracion_unidad,
                     usos_totales: r.usos_totales,
                     usos_restantes: r.usos_restantes,
+                    asistencias_totales: r.asistencias_totales,
+                    asistencias_usadas: r.asistencias_usadas,
+                    asistencias_restantes: r.asistencias_totales === null ? null : Math.max(Number(r.asistencias_totales) - Number(r.asistencias_usadas || 0), 0),
+                    asistencias_ilimitadas: r.asistencias_totales === null,
+                    promocion_vinculada_con: r.promocion_vinculada_con,
                     dias_restantes: r.dias_restantes,
                     estado_visual: r.estado_visual,
                     promocion: r.promocion
@@ -2229,6 +2404,7 @@ app.get('/api/asistencias', async (req, res) => {
                 a.codigo_usado,
                 a.estado,
                 a.motivo,
+                a.cuenta_como_uso,
                 a.fecha_hora,
                 c.nombre AS cliente,
                 c.dni,
@@ -2259,6 +2435,7 @@ app.get('/api/asistencias/:id', async (req, res) => {
                 a.codigo_usado,
                 a.estado,
                 a.motivo,
+                a.cuenta_como_uso,
                 a.fecha_hora,
                 a.membresia_id,
                 c.nombre AS cliente,
@@ -2289,33 +2466,58 @@ app.get('/api/asistencias/:id', async (req, res) => {
 });
 
 app.delete('/api/asistencias/:id', async (req, res) => {
+    const conn = await pool.getConnection();
+
     try {
         const { id } = req.params;
-        const [rows] = await pool.query(
-            'SELECT id FROM asistencias WHERE id = ? LIMIT 1',
+        await conn.beginTransaction();
+
+        const [rows] = await conn.query(
+            'SELECT id, membresia_id, cuenta_como_uso FROM asistencias WHERE id = ? LIMIT 1',
             [id]
         );
 
         if (rows.length === 0) {
+            await conn.rollback();
             return res.status(404).json({
                 error: 'Asistencia no encontrada'
             });
         }
 
-        await pool.query(
+        const asistencia = rows[0];
+
+        if (Number(asistencia.cuenta_como_uso) === 1 && asistencia.membresia_id) {
+            await conn.query(
+                `UPDATE membresias
+                 SET asistencias_usadas = GREATEST(COALESCE(asistencias_usadas, 0) - 1, 0),
+                     usos_restantes = CASE
+                        WHEN asistencias_totales IS NULL THEN NULL
+                        ELSE LEAST(COALESCE(usos_restantes, 0) + 1, asistencias_totales)
+                     END
+                 WHERE id = ?`,
+                [asistencia.membresia_id]
+            );
+        }
+
+        await conn.query(
             'DELETE FROM asistencias WHERE id = ?',
             [id]
         );
+
+        await conn.commit();
 
         return res.json({
             mensaje: 'Asistencia eliminada correctamente'
         });
 
     } catch (error) {
+        await conn.rollback();
         console.error(error);
         return res.status(500).json({
             error: 'Error al eliminar asistencia'
         });
+    } finally {
+        conn.release();
     }
 });
 
@@ -2357,6 +2559,9 @@ app.get('/api/exportar/membresias', async (req, res) => {
                 COALESCE(m.duracion_unidad, 'meses') AS duracion_unidad,
                 m.usos_totales,
                 m.usos_restantes,
+                m.asistencias_totales,
+                COALESCE(m.asistencias_usadas, 0) AS asistencias_usadas,
+                m.promocion_id,
                 m.precio_total,
                 m.promocion,
                 m.fecha_inicio,
@@ -2389,6 +2594,7 @@ app.get('/api/exportar/asistencias', async (req, res) => {
                 a.codigo_usado,
                 a.estado,
                 a.motivo,
+                a.cuenta_como_uso,
                 a.fecha_hora
             FROM asistencias a
             LEFT JOIN clientes c ON a.cliente_id = c.id
@@ -2417,14 +2623,6 @@ async function actualizarMembresiasVencidas() {
     `);
 
     await pool.query(`
-        UPDATE membresias
-        SET estado = 'vencida'
-        WHERE estado = 'activa'
-        AND COALESCE(duracion_unidad, 'meses') = 'usos'
-        AND COALESCE(usos_restantes, 0) <= 0
-    `);
-
-    await pool.query(`
         UPDATE clientes c
         SET c.estado = 'inactivo'
         WHERE NOT EXISTS (
@@ -2433,8 +2631,8 @@ async function actualizarMembresiasVencidas() {
             WHERE m.cliente_id = c.id
             AND m.estado = 'activa'
             AND (
-                COALESCE(m.duracion_unidad, 'meses') != 'usos'
-                OR COALESCE(m.usos_restantes, 0) > 0
+                m.asistencias_totales IS NULL
+                OR COALESCE(m.asistencias_usadas, 0) < m.asistencias_totales
             )
         )
     `);
@@ -2462,7 +2660,7 @@ app.get('/api/dashboard', async (req, res) => {
   [[porVencer]]
 ] = await Promise.all([
   pool.query(`SELECT COUNT(*) AS total FROM clientes WHERE estado='activo'`),
-  pool.query(`SELECT COUNT(*) AS total FROM membresias WHERE estado='activa'`),
+  pool.query(`SELECT COUNT(*) AS total FROM membresias WHERE estado='activa' AND (asistencias_totales IS NULL OR COALESCE(asistencias_usadas, 0) < asistencias_totales)`),
   pool.query(`SELECT COUNT(*) AS total FROM membresias WHERE estado='activa' AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)`)
 ]);
 
@@ -2532,9 +2730,8 @@ app.get('/api/dashboard', async (req, res) => {
                 m.estado,
                 DATEDIFF(DATE(m.fecha_fin), CURDATE()) AS dias_restantes,
                 CASE
-                    WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' AND m.estado = 'activa' AND COALESCE(m.usos_restantes, 0) > 0 THEN 'activa'
-                    WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' THEN 'vencida'
                     WHEN m.estado = 'vencida' OR DATEDIFF(DATE(m.fecha_fin), CURDATE()) < 0 THEN 'vencida'
+                    WHEN m.asistencias_totales IS NOT NULL AND COALESCE(m.asistencias_usadas, 0) >= m.asistencias_totales THEN 'sin_asistencias'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 0 THEN 'vence_hoy'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 1 THEN 'vence_manana'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 3 THEN 'vence_3_dias'
@@ -2566,12 +2763,13 @@ app.get('/api/dashboard', async (req, res) => {
                 COALESCE(m.duracion_unidad, 'meses') AS duracion_unidad,
                 m.usos_totales,
                 m.usos_restantes,
+                m.asistencias_totales,
+                COALESCE(m.asistencias_usadas, 0) AS asistencias_usadas,
                 DATEDIFF(DATE(m.fecha_fin), CURDATE()) AS dias_restantes,
                 CASE
                     WHEN m.id IS NULL THEN 'inactiva'
-                    WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' AND m.estado = 'activa' AND COALESCE(m.usos_restantes, 0) > 0 THEN 'activa'
-                    WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' THEN 'vencida'
                     WHEN m.estado = 'vencida' OR DATEDIFF(DATE(m.fecha_fin), CURDATE()) < 0 THEN 'vencida'
+                    WHEN m.asistencias_totales IS NOT NULL AND COALESCE(m.asistencias_usadas, 0) >= m.asistencias_totales THEN 'sin_asistencias'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 0 THEN 'vence_hoy'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 1 THEN 'vence_manana'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 3 THEN 'vence_3_dias'
@@ -2747,6 +2945,9 @@ app.get('/api/membresias', async (req, res) => {
                 COALESCE(m.duracion_unidad, 'meses') AS duracion_unidad,
                 m.usos_totales,
                 m.usos_restantes,
+                m.asistencias_totales,
+                COALESCE(m.asistencias_usadas, 0) AS asistencias_usadas,
+                m.promocion_id,
                 m.precio_total,
                 m.promocion,
                 m.fecha_inicio,
@@ -2754,9 +2955,8 @@ app.get('/api/membresias', async (req, res) => {
                 m.estado,
                 DATEDIFF(DATE(m.fecha_fin), CURDATE()) AS dias_restantes,
                 CASE
-                    WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' AND m.estado = 'activa' AND COALESCE(m.usos_restantes, 0) > 0 THEN 'activa'
-                    WHEN COALESCE(m.duracion_unidad, 'meses') = 'usos' THEN 'vencida'
                     WHEN m.estado = 'vencida' OR DATEDIFF(DATE(m.fecha_fin), CURDATE()) < 0 THEN 'vencida'
+                    WHEN m.asistencias_totales IS NOT NULL AND COALESCE(m.asistencias_usadas, 0) >= m.asistencias_totales THEN 'sin_asistencias'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 0 THEN 'vence_hoy'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 1 THEN 'vence_manana'
                     WHEN DATEDIFF(DATE(m.fecha_fin), CURDATE()) = 3 THEN 'vence_3_dias'
@@ -2911,8 +3111,8 @@ app.get('/api/sidebar', async (req, res) => {
             FROM membresias
             WHERE estado = 'activa'
             AND (
-                COALESCE(duracion_unidad, 'meses') != 'usos'
-                OR COALESCE(usos_restantes, 0) > 0
+                asistencias_totales IS NULL
+                OR COALESCE(asistencias_usadas, 0) < asistencias_totales
             )
         `);
 
@@ -2949,8 +3149,8 @@ async function sincronizarEstadosClientes() {
             WHERE m.cliente_id = c.id
             AND m.estado = 'activa'
             AND (
-                COALESCE(m.duracion_unidad, 'meses') != 'usos'
-                OR COALESCE(m.usos_restantes, 0) > 0
+                m.asistencias_totales IS NULL
+                OR COALESCE(m.asistencias_usadas, 0) < m.asistencias_totales
             )
         )
     `);
@@ -2964,8 +3164,8 @@ async function sincronizarEstadosClientes() {
             WHERE m.cliente_id = c.id
             AND m.estado = 'activa'
             AND (
-                COALESCE(m.duracion_unidad, 'meses') != 'usos'
-                OR COALESCE(m.usos_restantes, 0) > 0
+                m.asistencias_totales IS NULL
+                OR COALESCE(m.asistencias_usadas, 0) < m.asistencias_totales
             )
         )
     `);
@@ -2983,7 +3183,9 @@ app.get('/api/planes/todos', async (req, res) => {
                 descripcion,
                 estado,
                 COALESCE(duracion_valor, 1) AS duracion_valor,
-                COALESCE(duracion_unidad, 'meses') AS duracion_unidad
+                COALESCE(duracion_unidad, 'meses') AS duracion_unidad,
+                asistencias_incluidas,
+                COALESCE(es_ilimitado, 0) AS es_ilimitado
             FROM planes
             ORDER BY id ASC
         `);
@@ -3008,8 +3210,8 @@ app.post('/api/planes', async (req, res) => {
         }
 
         const [result] = await pool.query(
-            `INSERT INTO planes (nombre, precio_mensual, tipo, descripcion, estado, duracion_valor, duracion_unidad)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO planes (nombre, precio_mensual, tipo, descripcion, estado, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 datos.nombre,
                 datos.precio,
@@ -3017,7 +3219,9 @@ app.post('/api/planes', async (req, res) => {
                 datos.descripcion,
                 datos.estado,
                 datos.duracion_valor,
-                datos.duracion_unidad
+                datos.duracion_unidad,
+                datos.asistencias_incluidas,
+                datos.es_ilimitado ? 1 : 0
             ]
         );
 
@@ -3046,7 +3250,7 @@ app.put('/api/planes/:id', async (req, res) => {
 
         await pool.query(
             `UPDATE planes
-             SET nombre = ?, precio_mensual = ?, descripcion = ?, estado = ?, duracion_valor = ?, duracion_unidad = ?
+             SET nombre = ?, precio_mensual = ?, descripcion = ?, estado = ?, duracion_valor = ?, duracion_unidad = ?, asistencias_incluidas = ?, es_ilimitado = ?
              WHERE id = ?`,
             [
                 datos.nombre,
@@ -3055,6 +3259,8 @@ app.put('/api/planes/:id', async (req, res) => {
                 datos.estado,
                 datos.duracion_valor,
                 datos.duracion_unidad,
+                datos.asistencias_incluidas,
+                datos.es_ilimitado ? 1 : 0,
                 id
             ]
         );

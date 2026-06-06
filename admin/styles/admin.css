@@ -4930,6 +4930,26 @@ body.admin-page-validar .validation-panel:last-child {
   border-right: none;
 }
 
+body.admin-page-validar .usage-summary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+body.admin-page-validar .usage-summary strong {
+  color: var(--text-1);
+}
+
+body.admin-page-validar .usage-note {
+  color: var(--red);
+  font-weight: 700;
+}
+
 body.admin-page-validar .plan-panel {
   border: 1px solid #e5e7eb;
   border-radius: 16px;
@@ -6102,6 +6122,36 @@ body.admin-page-planes .form-select {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
+}
+
+body.admin-page-planes .form-hint {
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+body.admin-page-planes .admin-checkbox-row {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body.admin-page-planes .admin-checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--red);
+}
+
+body.admin-page-planes .form-group.is-disabled {
+  opacity: .62;
 }
   
     body.admin-page-planes .notification-wrap { position: relative; }
@@ -7525,4 +7575,55 @@ body[class*="admin-page-"] .sidebar-user.admin-session-box .admin-logout-btn {
   grid-row: 2;
   width: 100%;
   margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  html,
+  body.admin-page-nueva-membresia {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body.admin-page-nueva-membresia .content-grid,
+  body.admin-page-nueva-membresia .form-grid,
+  body.admin-page-nueva-membresia .group-controls,
+  body.admin-page-nueva-membresia .payment-options,
+  body.admin-page-nueva-membresia .form-footer,
+  body.admin-page-nueva-membresia .copy-row {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  body.admin-page-nueva-membresia .main,
+  body.admin-page-nueva-membresia .card,
+  body.admin-page-nueva-membresia .preview-card,
+  body.admin-page-nueva-membresia .mem-credential,
+  body.admin-page-nueva-membresia .mem-details {
+    max-width: 100%;
+  }
+
+  body.admin-page-nueva-membresia .form-input,
+  body.admin-page-nueva-membresia .form-select,
+  body.admin-page-nueva-membresia .btn,
+  body.admin-page-nueva-membresia .client-tab,
+  body.admin-page-nueva-membresia .payment-opt,
+  body.admin-page-nueva-membresia #btnAgregarPersona,
+  body.admin-page-nueva-membresia #btnConfirmarMembresia {
+    width: 100%;
+  }
+
+  body.admin-page-nueva-membresia .form-footer {
+    display: grid;
+  }
+
+  body.admin-page-nueva-membresia .mem-detail-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    align-items: start;
+  }
+
+  body.admin-page-nueva-membresia .mem-detail-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 }
