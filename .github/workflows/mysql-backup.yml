@@ -1,0 +1,42 @@
+name: MySQL Backup
+
+on:
+  schedule:
+    # 03:00 America/Lima todos los dias.
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create MySQL backup
+        run: npm run backup
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_SSL_REJECT_UNAUTHORIZED: ${{ secrets.DB_SSL_REJECT_UNAUTHORIZED }}
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: perfection-mysql-backup
+          path: backups/*.sql
+          if-no-files-found: error
+          retention-days: 14

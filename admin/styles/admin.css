@@ -56,8 +56,13 @@
 10. Modales
 ============================== */
 
-.sidebar-user.admin-session-box {
+.sidebar-user {
   flex-wrap: wrap;
+}
+
+.sidebar-user > .user-avatar + div {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .admin-logout-btn {
@@ -6914,8 +6919,13 @@ body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.a
 Modal Fixes
 ============================== */
 
-body.admin-page .sidebar-user.admin-session-box {
+body.admin-page .sidebar-user {
   flex-wrap: wrap;
+}
+
+body.admin-page .sidebar-user > .user-avatar + div {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 body.admin-page .admin-logout-btn {
@@ -7342,7 +7352,7 @@ body.admin-page .notification-item.membresia_por_vencer .notification-mark {
 }
 
 .admin-list-state {
-  padding: 28px 18px;
+  padding: 35px 18px;
   text-align: center;
   color: var(--text-3);
   font-size: 13px;
@@ -7366,3 +7376,29 @@ body.admin-page .notification-item.membresia_por_vencer .notification-mark {
 .admin-card-skeleton .sk-price { width: 64%; height: 34px; margin-bottom: 20px; }
 .admin-card-skeleton .sk-line { width: 88%; height: 13px; margin-bottom: 10px; }
 .admin-card-skeleton .sk-actions { width: 100%; height: 38px; margin-top: 22px; }
+
+body[class*="admin-page-"] .sidebar-user.admin-session-box {
+  display: grid !important;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 10px;
+}
+
+body[class*="admin-page-"] .sidebar-user.admin-session-box .user-avatar {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+body[class*="admin-page-"] .sidebar-user.admin-session-box > div:not(.user-avatar) {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+body[class*="admin-page-"] .sidebar-user.admin-session-box .admin-logout-btn {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  margin-top: 2px;
+}
