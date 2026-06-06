@@ -1,15 +1,19 @@
 (function () {
   const API_URL = '/api';
+  const BASE_ROLES = [
+    { id: 'recepcion', codigo: 'recepcion', nombre: 'Recepcion', descripcion: 'Gestiona ingresos y atencion al cliente.', estado: 'activo', sistema: true, usuarios: 0, permisos: 0 },
+    { id: 'admin', codigo: 'admin', nombre: 'Administrador', descripcion: 'Acceso total al sistema.', estado: 'activo', sistema: true, usuarios: 0, permisos: 0 }
+  ];
+
   const state = {
     currentUser: null,
     usuarios: [],
     permisos: [],
     permisosAgrupados: {},
     permisosRol: new Set(),
-    roles: [
-      { id: 'recepcion', codigo: 'recepcion', nombre: 'Recepcion' },
-      { id: 'admin', codigo: 'admin', nombre: 'Admin' }
-    ]
+    roles: BASE_ROLES,
+    selectedRole: 'recepcion',
+    permissionQuery: ''
   };
 
   const $ = (id) => document.getElementById(id);
@@ -29,7 +33,11 @@
   }
 
   function roleLabel(role) {
-    return role === 'admin' ? 'Admin' : 'Recepcion';
+    const found = state.roles.find(item => (item.codigo || item.id) === role);
+    if (found) return found.nombre;
+    if (role === 'admin') return 'Administrador';
+    if (role === 'recepcion') return 'Recepcion';
+    return role || 'Recepcion';
   }
 
   function hasPermission(codigo) {
@@ -39,7 +47,6 @@
 
   function formatDate(value) {
     if (!value) return 'No registrado';
-
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return String(value);
 
@@ -87,37 +94,37 @@
   }
 
   async function loadMe() {
-    const res = await fetch(`${API_URL}/admin/me`, {
-      credentials: 'include'
-    });
+    const res = await fetch(`${API_URL}/admin/me`, { credentials: 'include' });
 
     if (res.status === 401) {
       window.location.href = '/admin/login.html';
       return null;
     }
 
-    if (!res.ok) {
-      throw new Error('No se pudo cargar la cuenta');
-    }
+    if (!res.ok) throw new Error('No se pudo cargar la cuenta');
 
-    const user = await res.json();
-    state.currentUser = user;
-    updateAccount(user);
+    state.currentUser = await res.json();
+    updateAccount(state.currentUser);
+
+    if (hasPermission('roles.ver') || hasPermission('usuarios.ver')) {
+      await loadRoles();
+      updateAccount(state.currentUser);
+    }
 
     const usersSection = $('usuariosAdminSection');
     if (usersSection) {
-      usersSection.hidden = !hasPermission('usuarios.ver') && !hasPermission('roles.asignar_permisos');
+      usersSection.hidden = !hasPermission('usuarios.ver') && !hasPermission('roles.ver');
     }
 
     if (hasPermission('usuarios.ver')) {
       await loadUsers();
     }
 
-    if (hasPermission('roles.asignar_permisos')) {
-      await loadRolePermissionsModule();
+    if (hasPermission('roles.ver')) {
+      await loadRolesModule();
     }
 
-    return user;
+    return state.currentUser;
   }
 
   async function handlePasswordSubmit(event) {
@@ -157,7 +164,6 @@
           confirmar_password: confirmarPassword
         })
       });
-
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Error al actualizar contrasena');
 
@@ -178,11 +184,8 @@
     }
 
     try {
-      const res = await fetch(`${API_URL}/admin/usuarios`, {
-        credentials: 'include'
-      });
+      const res = await fetch(`${API_URL}/admin/usuarios`, { credentials: 'include' });
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) throw new Error(data.error || 'Error al cargar usuarios');
 
       state.usuarios = data.usuarios || [];
@@ -266,11 +269,12 @@
         body: JSON.stringify({ estado })
       });
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) throw new Error(data.error || 'Error al cambiar estado');
 
       showMessage('adminUser', 'success', 'Estado actualizado correctamente');
       await loadUsers();
+      await loadRoles();
+      renderRoles();
     } catch (error) {
       showMessage('adminUser', 'error', error.message || 'Error al cambiar estado');
     }
@@ -328,12 +332,13 @@
         body: JSON.stringify(body)
       });
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) throw new Error(data.error || 'Error al guardar usuario');
 
       resetUserForm();
       showMessage('adminUser', 'success', id ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
       await loadUsers();
+      await loadRoles();
+      renderRoles();
     } catch (error) {
       showMessage('adminUser', 'error', error.message || 'Error al guardar usuario');
     } finally {
@@ -342,29 +347,10 @@
     }
   }
 
-  function bindUserTable() {
-    const tbody = $('adminUsersTableBody');
-    if (!tbody) return;
-
-    tbody.addEventListener('click', (event) => {
-      const button = event.target.closest('button[data-action]');
-      if (!button) return;
-
-      if (button.dataset.action === 'edit') {
-        editUser(button.dataset.id);
-      }
-
-      if (button.dataset.action === 'toggle') {
-        toggleUserState(button.dataset.id, button.dataset.estado);
-      }
-    });
-  }
-
   async function loadRoles() {
     try {
       const res = await fetch(`${API_URL}/admin/roles`, { credentials: 'include' });
       const data = await res.json().catch(() => ({}));
-
       if (res.ok && Array.isArray(data.roles)) {
         state.roles = data.roles;
       }
@@ -377,8 +363,9 @@
 
   function renderRoleOptions() {
     const userRoleSelect = $('adminUserRol');
-    const permissionsRoleSelect = $('rolePermissionsSelect');
-    const options = state.roles.map(role => {
+    const basedOnSelect = $('roleBasedOn');
+    const activeRoles = state.roles.filter(role => (role.estado || 'activo') === 'activo');
+    const options = activeRoles.map(role => {
       const codigo = role.codigo || role.id;
       return `<option value="${escapeHtml(codigo)}">${escapeHtml(role.nombre || roleLabel(codigo))}</option>`;
     }).join('');
@@ -386,24 +373,230 @@
     if (userRoleSelect) {
       const current = userRoleSelect.value || 'recepcion';
       userRoleSelect.innerHTML = options;
-      userRoleSelect.value = state.roles.some(role => (role.codigo || role.id) === current) ? current : 'recepcion';
+      userRoleSelect.value = activeRoles.some(role => (role.codigo || role.id) === current) ? current : 'recepcion';
     }
 
-    if (permissionsRoleSelect) {
-      const current = permissionsRoleSelect.value || 'recepcion';
-      permissionsRoleSelect.innerHTML = options;
-      permissionsRoleSelect.value = state.roles.some(role => (role.codigo || role.id) === current) ? current : 'recepcion';
+    if (basedOnSelect) {
+      const current = basedOnSelect.value || 'vacio';
+      const roleOptions = activeRoles
+        .map(role => `<option value="${escapeHtml(role.codigo || role.id)}">${escapeHtml(role.nombre || roleLabel(role.codigo || role.id))}</option>`)
+        .join('');
+      basedOnSelect.innerHTML = `
+        <option value="vacio">Vacio</option>
+        <option value="supervisor">Supervisor</option>
+        ${roleOptions}
+      `;
+      basedOnSelect.value = Array.from(basedOnSelect.options).some(option => option.value === current) ? current : 'vacio';
     }
   }
 
   async function loadPermissionsCatalog() {
     const res = await fetch(`${API_URL}/admin/permisos`, { credentials: 'include' });
     const data = await res.json().catch(() => ({}));
-
     if (!res.ok) throw new Error(data.error || 'Error al cargar permisos');
 
     state.permisos = data.permisos || [];
     state.permisosAgrupados = data.categorias || {};
+  }
+
+  async function loadRolesModule() {
+    const section = $('rolesSystemSection');
+    if (section) section.hidden = false;
+
+    if (hasPermission('roles.asignar_permisos')) {
+      await loadPermissionsCatalog();
+    }
+    renderRoles();
+    window.AdminAuth?.applyPermissions?.(document);
+  }
+
+  function renderRoles() {
+    const grid = $('rolesGrid');
+    if (!grid) return;
+
+    if (!state.roles.length) {
+      grid.innerHTML = '<div class="admin-users-empty">No hay roles registrados.</div>';
+      return;
+    }
+
+    grid.innerHTML = state.roles.map(role => {
+      const codigo = role.codigo || role.id;
+      const isAdmin = codigo === 'admin';
+      const isBase = role.sistema || codigo === 'recepcion';
+      const estado = role.estado || 'activo';
+
+      return `
+        <article class="role-card ${estado !== 'activo' ? 'is-inactive' : ''}" data-role="${escapeHtml(codigo)}">
+          <div class="role-card-top">
+            <div>
+              <div class="role-card-title">${escapeHtml(role.nombre || roleLabel(codigo))}</div>
+              <div class="role-card-description">${escapeHtml(role.descripcion || 'Rol administrativo personalizado.')}</div>
+            </div>
+            <span class="role-status ${estado !== 'activo' ? 'inactive' : ''}">${estado === 'activo' ? 'Activo' : 'Inactivo'}</span>
+          </div>
+          <div class="role-card-metrics">
+            <span>${Number(role.usuarios || 0)} usuarios</span>
+            <span>${Number(role.permisos || 0)} permisos asignados</span>
+          </div>
+          <div class="role-card-actions">
+            <button type="button" class="table-action-btn" data-role-action="edit" data-role="${escapeHtml(codigo)}" data-permission="roles.editar" ${isAdmin ? 'disabled' : ''}>Editar</button>
+            <button type="button" class="table-action-btn" data-role-action="duplicate" data-role="${escapeHtml(codigo)}" data-permission="roles.crear">Duplicar</button>
+            <button type="button" class="table-action-btn" data-role-action="permissions" data-role="${escapeHtml(codigo)}" data-permission="roles.asignar_permisos">Permisos</button>
+            <button type="button" class="table-action-btn ${estado === 'activo' ? 'danger' : ''}" data-role-action="toggle" data-role="${escapeHtml(codigo)}" data-next="${estado === 'activo' ? 'inactivo' : 'activo'}" data-permission="roles.eliminar" ${isBase ? 'disabled' : ''}>${estado === 'activo' ? 'Desactivar' : 'Activar'}</button>
+            <button type="button" class="table-action-btn danger" data-role-action="delete" data-role="${escapeHtml(codigo)}" data-permission="roles.eliminar" ${isBase ? 'disabled' : ''}>Eliminar</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    window.AdminAuth?.applyPermissions?.(grid);
+  }
+
+  function openRoleModal(role = null, duplicate = false) {
+    const modal = $('roleModal');
+    if (!modal) return;
+
+    $('roleForm').reset();
+    $('roleCodigo').value = duplicate ? '' : (role?.codigo || '');
+    $('roleNombre').value = duplicate ? `${role?.nombre || roleLabel(role?.codigo)} copia` : (role?.nombre || '');
+    $('roleDescripcion').value = role?.descripcion || '';
+    $('roleBasedOnGroup').hidden = Boolean(role && !duplicate);
+    $('roleBasedOn').value = duplicate ? (role?.codigo || 'recepcion') : 'vacio';
+    $('roleModalTitle').textContent = role && !duplicate ? 'Editar rol' : duplicate ? 'Duplicar rol' : 'Crear rol';
+    $('roleSubmitBtn').textContent = role && !duplicate ? 'Guardar rol' : duplicate ? 'Crear copia' : 'Crear rol';
+    modal.hidden = false;
+    modal.classList.add('open');
+    $('roleNombre').focus();
+  }
+
+  function closeRoleModal() {
+    const modal = $('roleModal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.hidden = true;
+  }
+
+  async function handleRoleSubmit(event) {
+    event.preventDefault();
+
+    const codigo = $('roleCodigo').value;
+    const nombre = $('roleNombre').value.trim();
+    const descripcion = $('roleDescripcion').value.trim();
+    const basadoEn = $('roleBasedOn').value;
+
+    if (!nombre) {
+      showMessage('role', 'error', 'Nombre del rol obligatorio');
+      return;
+    }
+
+    const submit = $('roleSubmitBtn');
+    submit.disabled = true;
+    submit.textContent = 'Guardando...';
+
+    try {
+      const res = await fetch(codigo ? `${API_URL}/admin/roles/${encodeURIComponent(codigo)}` : `${API_URL}/admin/roles`, {
+        method: codigo ? 'PUT' : 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, descripcion, basado_en: basadoEn })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error al guardar rol');
+
+      closeRoleModal();
+      showMessage('role', 'success', codigo ? 'Rol actualizado correctamente' : 'Rol creado correctamente');
+      await loadRoles();
+      renderRoles();
+    } catch (error) {
+      showMessage('role', 'error', error.message || 'Error al guardar rol');
+    } finally {
+      submit.disabled = false;
+      submit.textContent = codigo ? 'Guardar rol' : 'Crear rol';
+    }
+  }
+
+  async function duplicateRole(codigo) {
+    const role = state.roles.find(item => (item.codigo || item.id) === codigo);
+    if (!role) return;
+    openRoleModal(role, true);
+  }
+
+  async function toggleRole(codigo, estado) {
+    const role = state.roles.find(item => (item.codigo || item.id) === codigo);
+    if (!role) return;
+
+    if (state.permisos.length === 0) {
+      await loadPermissionsCatalog();
+    }
+
+    const ok = window.confirm(`${estado === 'activo' ? 'Activar' : 'Desactivar'} el rol ${role.nombre}?`);
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`${API_URL}/admin/roles/${encodeURIComponent(codigo)}/estado`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error al cambiar estado');
+
+      showMessage('role', 'success', 'Estado del rol actualizado');
+      await loadRoles();
+      renderRoles();
+    } catch (error) {
+      showMessage('role', 'error', error.message || 'Error al cambiar estado');
+    }
+  }
+
+  async function deleteRole(codigo) {
+    const role = state.roles.find(item => (item.codigo || item.id) === codigo);
+    if (!role) return;
+
+    const ok = window.confirm(`Eliminar el rol ${role.nombre}?`);
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`${API_URL}/admin/roles/${encodeURIComponent(codigo)}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar rol');
+
+      showMessage('role', 'success', 'Rol eliminado correctamente');
+      await loadRoles();
+      renderRoles();
+    } catch (error) {
+      showMessage('role', 'error', error.message === 'Este rol tiene usuarios asignados.'
+        ? 'Este rol tiene usuarios asignados. Reasigna esos usuarios a otro rol antes de eliminarlo.'
+        : error.message || 'Error al eliminar rol');
+    }
+  }
+
+  async function openPermissionsModal(codigo) {
+    const role = state.roles.find(item => (item.codigo || item.id) === codigo);
+    if (!role) return;
+
+    state.selectedRole = codigo;
+    state.permissionQuery = '';
+    $('permissionSearch').value = '';
+    $('permissionsModalTitle').textContent = role.nombre || roleLabel(codigo);
+    $('permissionsModalSubtitle').textContent = role.descripcion || 'Selecciona permisos para este rol.';
+
+    const modal = $('permissionsModal');
+    modal.hidden = false;
+    modal.classList.add('open');
+
+    await loadRolePermissions(codigo);
+  }
+
+  function closePermissionsModal() {
+    const modal = $('permissionsModal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.hidden = true;
   }
 
   async function loadRolePermissions(role) {
@@ -411,28 +604,48 @@
       credentials: 'include'
     });
     const data = await res.json().catch(() => ({}));
-
     if (!res.ok) throw new Error(data.error || 'Error al cargar permisos del rol');
 
     state.permisosRol = new Set(data.permisos || []);
     renderPermissionsGrid(role);
   }
 
+  function filteredGroupedPermissions() {
+    const q = state.permissionQuery.trim().toLowerCase();
+    const grouped = Object.entries(state.permisosAgrupados);
+    if (!q) return grouped;
+
+    return grouped
+      .map(([categoria, permisos]) => [
+        categoria,
+        (permisos || []).filter(permiso =>
+          permiso.codigo.toLowerCase().includes(q) ||
+          permiso.nombre.toLowerCase().includes(q) ||
+          String(permiso.descripcion || '').toLowerCase().includes(q)
+        )
+      ])
+      .filter(([, permisos]) => permisos.length > 0);
+  }
+
   function renderPermissionsGrid(role) {
     const grid = $('permissionsGrid');
     if (!grid) return;
 
-    const groupedEntries = Object.entries(state.permisosAgrupados);
+    const groupedEntries = filteredGroupedPermissions();
+    const adminRole = role === 'admin';
+
     if (groupedEntries.length === 0) {
-      grid.innerHTML = '<div class="admin-users-empty">No hay permisos registrados.</div>';
+      grid.innerHTML = '<div class="admin-users-empty">Sin permisos para esta busqueda.</div>';
+      renderRoleSummary();
       return;
     }
 
-    const adminRole = role === 'admin';
-
     grid.innerHTML = groupedEntries.map(([categoria, permisos]) => `
-      <div class="permission-category">
-        <div class="permission-category-title">${escapeHtml(categoria)}</div>
+      <details class="permission-category" open>
+        <summary class="permission-category-title">
+          <span>${escapeHtml(categoria)}</span>
+          <span>${permisos.length}</span>
+        </summary>
         <div class="permission-list">
           ${(permisos || []).map(permiso => {
             const checked = adminRole || state.permisosRol.has(permiso.codigo);
@@ -447,42 +660,53 @@
             `;
           }).join('')}
         </div>
-      </div>
+      </details>
     `).join('');
+
+    grid.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      input.addEventListener('change', () => {
+        if (input.checked) state.permisosRol.add(input.value);
+        else state.permisosRol.delete(input.value);
+        renderRoleSummary();
+      });
+    });
 
     const saveBtn = $('saveRolePermissions');
     if (saveBtn) {
       saveBtn.disabled = adminRole;
       saveBtn.textContent = adminRole ? 'Admin conserva todos los permisos' : 'Guardar permisos';
     }
+
+    renderRoleSummary();
   }
 
-  async function loadRolePermissionsModule() {
-    const panel = $('rolePermissionsPanel');
-    if (panel) panel.hidden = false;
+  function renderRoleSummary() {
+    const role = state.roles.find(item => (item.codigo || item.id) === state.selectedRole);
+    const selected = state.selectedRole === 'admin'
+      ? new Set(state.permisos.map(permiso => permiso.codigo))
+      : state.permisosRol;
+    const allowed = state.permisos.filter(permiso => selected.has(permiso.codigo));
+    const denied = state.permisos.filter(permiso => !selected.has(permiso.codigo));
 
-    await loadRoles();
-    await loadPermissionsCatalog();
-    await loadRolePermissions($('rolePermissionsSelect')?.value || 'recepcion');
-    window.AdminAuth?.applyPermissions?.(document);
-  }
+    setText('roleSummaryTitle', role?.nombre || 'Resumen');
+    setText('roleSummaryCount', `${allowed.length} permisos`);
+    setText('permissionCount', `${allowed.length} permisos seleccionados`);
 
-  async function handleRoleChange() {
-    try {
-      await loadRolePermissions($('rolePermissionsSelect').value);
-    } catch (error) {
-      showMessage('rolePermissions', 'error', error.message || 'Error al cargar permisos');
+    const canList = $('roleCanList');
+    const cannotList = $('roleCannotList');
+    if (canList) {
+      canList.innerHTML = allowed.slice(0, 5).map(permiso => `<span>✓ ${escapeHtml(permiso.nombre)}</span>`).join('') || '<span>Sin permisos asignados</span>';
+    }
+    if (cannotList) {
+      cannotList.innerHTML = denied.slice(0, 5).map(permiso => `<span>× ${escapeHtml(permiso.nombre)}</span>`).join('') || '<span>Acceso total</span>';
     }
   }
 
   async function saveRolePermissions() {
-    const select = $('rolePermissionsSelect');
-    const grid = $('permissionsGrid');
-    if (!select || !grid) return;
-
-    const role = select.value;
-    const permisos = Array.from(grid.querySelectorAll('input[type="checkbox"]:checked'))
-      .map(input => input.value);
+    const role = state.selectedRole;
+    const permisos = role === 'admin'
+      ? state.permisos.map(permiso => permiso.codigo)
+      : Array.from(state.permisosRol);
     const btn = $('saveRolePermissions');
 
     btn.disabled = true;
@@ -496,18 +720,52 @@
         body: JSON.stringify({ permisos })
       });
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) throw new Error(data.error || 'Error al guardar permisos');
 
       state.permisosRol = new Set(data.permisos || permisos);
       showMessage('rolePermissions', 'success', 'Permisos guardados correctamente');
-      renderPermissionsGrid(role);
+      await loadRoles();
+      renderRoles();
+      closePermissionsModal();
     } catch (error) {
       showMessage('rolePermissions', 'error', error.message || 'Error al guardar permisos');
     } finally {
       btn.disabled = role === 'admin';
       btn.textContent = role === 'admin' ? 'Admin conserva todos los permisos' : 'Guardar permisos';
     }
+  }
+
+  function bindUserTable() {
+    const tbody = $('adminUsersTableBody');
+    if (!tbody) return;
+
+    tbody.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+
+      if (button.dataset.action === 'edit') editUser(button.dataset.id);
+      if (button.dataset.action === 'toggle') toggleUserState(button.dataset.id, button.dataset.estado);
+    });
+  }
+
+  function bindRoleCards() {
+    const grid = $('rolesGrid');
+    if (!grid) return;
+
+    grid.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-role-action]');
+      if (!button) return;
+
+      const codigo = button.dataset.role;
+      const role = state.roles.find(item => (item.codigo || item.id) === codigo);
+      const action = button.dataset.roleAction;
+
+      if (action === 'edit') openRoleModal(role);
+      if (action === 'duplicate') duplicateRole(codigo);
+      if (action === 'permissions') openPermissionsModal(codigo);
+      if (action === 'toggle') toggleRole(codigo, button.dataset.next);
+      if (action === 'delete') deleteRole(codigo);
+    });
   }
 
   function bindForms() {
@@ -520,17 +778,24 @@
     const cancel = $('adminUserCancel');
     if (cancel) cancel.addEventListener('click', resetUserForm);
 
-    const rolePermissionsSelect = $('rolePermissionsSelect');
-    if (rolePermissionsSelect) rolePermissionsSelect.addEventListener('change', handleRoleChange);
-
-    const savePermissions = $('saveRolePermissions');
-    if (savePermissions) savePermissions.addEventListener('click', saveRolePermissions);
+    $('createRoleBtn')?.addEventListener('click', () => openRoleModal());
+    $('roleForm')?.addEventListener('submit', handleRoleSubmit);
+    $('roleModalClose')?.addEventListener('click', closeRoleModal);
+    $('roleCancelBtn')?.addEventListener('click', closeRoleModal);
+    $('permissionsModalClose')?.addEventListener('click', closePermissionsModal);
+    $('permissionsCancelBtn')?.addEventListener('click', closePermissionsModal);
+    $('saveRolePermissions')?.addEventListener('click', saveRolePermissions);
+    $('permissionSearch')?.addEventListener('input', (event) => {
+      state.permissionQuery = event.target.value;
+      renderPermissionsGrid(state.selectedRole);
+    });
   }
 
   async function init() {
     setHeaderDate();
     bindForms();
     bindUserTable();
+    bindRoleCards();
 
     try {
       await loadMe();

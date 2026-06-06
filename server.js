@@ -47,6 +47,7 @@ app.use(session({
 
 const ROLES_ADMIN = new Set(['admin', 'recepcion']);
 const ESTADOS_ADMIN = new Set(['activo', 'inactivo']);
+const ROLES_SISTEMA = new Set(['admin', 'recepcion']);
 const PERMISOS_BASE = [
     { codigo: 'clientes.ver', nombre: 'Ver clientes', categoria: 'Clientes', descripcion: 'Permite listar y consultar clientes' },
     { codigo: 'clientes.crear', nombre: 'Crear clientes', categoria: 'Clientes', descripcion: 'Permite registrar clientes' },
@@ -141,6 +142,32 @@ async function obtenerUsuarioSesion(req) {
     return rows[0] || null;
 }
 
+async function rolSesionActivo(rol) {
+    try {
+        const registro = await obtenerRolAdmin(rol);
+        return !registro || registro.estado === 'activo';
+    } catch (error) {
+        if (tablaRolesNoExiste(error)) {
+            return true;
+        }
+        throw error;
+    }
+}
+
+async function rolAsignable(rol) {
+    const codigo = normalizarCodigoRol(rol);
+
+    try {
+        const registro = await obtenerRolAdmin(codigo);
+        return Boolean(registro && registro.estado === 'activo');
+    } catch (error) {
+        if (tablaRolesNoExiste(error)) {
+            return ROLES_ADMIN.has(codigo);
+        }
+        throw error;
+    }
+}
+
 async function requireAdminSession(req, res, next) {
     try {
         const admin = await obtenerUsuarioSesion(req);
@@ -149,6 +176,12 @@ async function requireAdminSession(req, res, next) {
             await destruirSesion(req);
             res.clearCookie('connect.sid');
             return responderSesionInvalida(req, res);
+        }
+
+        if (!await rolSesionActivo(admin.rol || 'recepcion')) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return responderSesionInvalida(req, res, 'Rol desactivado');
         }
 
         if (!admin.session_id || admin.session_id !== req.sessionID) {
@@ -423,6 +456,110 @@ function normalizarCodigoRol(rol) {
     return limpiarTexto(rol || 'recepcion').toLowerCase();
 }
 
+function generarCodigoRol(nombre) {
+    return limpiarTexto(nombre)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 45) || 'rol';
+}
+
+function tablaRolesNoExiste(error) {
+    return error && (error.code === 'ER_NO_SUCH_TABLE' || error.code === 'ER_BAD_FIELD_ERROR');
+}
+
+async function obtenerRolAdmin(codigo, conn = pool) {
+    const [rows] = await conn.query(
+        `SELECT codigo, nombre, descripcion, estado, sistema
+         FROM roles_admin
+         WHERE codigo = ?
+         LIMIT 1`,
+        [normalizarCodigoRol(codigo)]
+    );
+
+    return rows[0] || null;
+}
+
+async function generarCodigoRolUnico(nombre, conn = pool, excluir = null) {
+    const base = generarCodigoRol(nombre);
+    let codigo = base;
+    let contador = 2;
+
+    while (true) {
+        const params = [codigo];
+        let filtro = '';
+        if (excluir) {
+            filtro = 'AND codigo <> ?';
+            params.push(excluir);
+        }
+
+        const [[row]] = await conn.query(
+            `SELECT COUNT(*) AS total
+             FROM roles_admin
+             WHERE codigo = ?
+             ${filtro}`,
+            params
+        );
+
+        if (Number(row.total || 0) === 0) {
+            return codigo;
+        }
+
+        codigo = `${base}_${contador}`;
+        contador += 1;
+    }
+}
+
+async function asignarPermisosARol(conn, rol, permisos) {
+    const codigos = Array.from(new Set((permisos || []).map(limpiarTexto).filter(Boolean)));
+    await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ?', [rol]);
+
+    if (codigos.length === 0) {
+        return [];
+    }
+
+    const [permisosValidos] = await conn.query(
+        `SELECT id, codigo
+         FROM permisos_admin
+         WHERE codigo IN (?)`,
+        [codigos]
+    );
+
+    if (permisosValidos.length > 0) {
+        await conn.query(
+            `INSERT INTO roles_permisos (rol_codigo, permiso_id)
+             VALUES ${permisosValidos.map(() => '(?, ?)').join(', ')}`,
+            permisosValidos.flatMap(permiso => [rol, permiso.id])
+        );
+    }
+
+    return permisosValidos.map(permiso => permiso.codigo);
+}
+
+async function permisosBaseParaNuevoRol(basadoEn, conn = pool) {
+    const base = normalizarCodigoRol(basadoEn || 'vacio');
+
+    if (!base || base === 'vacio') {
+        return [];
+    }
+
+    if (base === 'supervisor') {
+        return Array.from(new Set([
+            ...PERMISOS_RECEPCION_DEFAULT,
+            'clientes.eliminar',
+            'membresias.eliminar',
+            'asistencias.eliminar',
+            'exportar.clientes',
+            'exportar.membresias',
+            'exportar.asistencias'
+        ]));
+    }
+
+    return obtenerCodigosPermisosRol(base, conn);
+}
+
 async function crearNotificacionAuditoriaUsuario(req, {
     tipo,
     titulo,
@@ -593,6 +730,13 @@ app.post('/api/login', async (req, res) => {
             });
         }
 
+        if (!await rolSesionActivo(admin.rol || 'recepcion')) {
+            return res.status(401).json({
+                ok: false,
+                error: 'Rol desactivado'
+            });
+        }
+
         const passwordOk = await bcrypt.compare(
             String(password),
             admin.password_hash
@@ -682,7 +826,7 @@ app.get('/api/verificar-sesion', async (req, res) => {
     try {
         const admin = await obtenerUsuarioSesion(req);
 
-        if (!admin || admin.estado !== 'activo' || !admin.session_id || admin.session_id !== req.sessionID) {
+        if (!admin || admin.estado !== 'activo' || !admin.session_id || admin.session_id !== req.sessionID || !await rolSesionActivo(admin.rol || 'recepcion')) {
             await destruirSesion(req);
             res.clearCookie('connect.sid');
             return res.status(401).json({
@@ -714,7 +858,7 @@ app.get('/api/auth/session', async (req, res) => {
     try {
         const admin = await obtenerUsuarioSesion(req);
 
-        if (!admin || admin.estado !== 'activo' || !admin.session_id || admin.session_id !== req.sessionID) {
+        if (!admin || admin.estado !== 'activo' || !admin.session_id || admin.session_id !== req.sessionID || !await rolSesionActivo(admin.rol || 'recepcion')) {
             await destruirSesion(req);
             res.clearCookie('connect.sid');
             return res.status(401).json({
@@ -767,6 +911,12 @@ app.get('/api/auth/heartbeat', async (req, res) => {
             await destruirSesion(req);
             res.clearCookie('connect.sid');
             return res.status(401).json({ valid: false, reason: 'session_replaced' });
+        }
+
+        if (!await rolSesionActivo(admin.rol || 'recepcion')) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.status(401).json({ valid: false, reason: 'role_disabled' });
         }
 
         req.session.adminRol = admin.rol || 'recepcion';
@@ -918,6 +1068,45 @@ app.get('/api/admin/permisos', requirePermission('roles.asignar_permisos'), asyn
 
 app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => {
     try {
+        try {
+            const [rows] = await pool.query(`
+                SELECT
+                    r.codigo,
+                    r.nombre,
+                    r.descripcion,
+                    r.estado,
+                    r.sistema,
+                    r.fecha_creacion,
+                    COUNT(DISTINCT u.id) AS usuarios,
+                    COUNT(DISTINCT rp.permiso_id) AS permisos
+                FROM roles_admin r
+                LEFT JOIN usuarios_admin u ON u.rol = r.codigo
+                LEFT JOIN roles_permisos rp ON rp.rol_codigo = r.codigo
+                GROUP BY r.codigo, r.nombre, r.descripcion, r.estado, r.sistema, r.fecha_creacion
+                ORDER BY r.sistema DESC, r.nombre ASC
+            `);
+
+            return res.json({
+                ok: true,
+                roles: rows.map(row => ({
+                    id: row.codigo,
+                    codigo: row.codigo,
+                    nombre: row.nombre,
+                    descripcion: row.descripcion || '',
+                    estado: row.estado || 'activo',
+                    sistema: Number(row.sistema || 0) === 1,
+                    usuarios: Number(row.usuarios || 0),
+                    permisos: row.codigo === 'admin' ? TODOS_LOS_PERMISOS.length : Number(row.permisos || 0),
+                    editable: row.codigo !== 'admin',
+                    eliminable: Number(row.sistema || 0) !== 1 && Number(row.usuarios || 0) === 0
+                }))
+            });
+        } catch (error) {
+            if (!tablaRolesNoExiste(error)) {
+                throw error;
+            }
+        }
+
         const [rows] = await pool.query(`
             SELECT rol AS codigo, COUNT(*) AS usuarios
             FROM usuarios_admin
@@ -926,17 +1115,25 @@ app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => 
         `);
 
         const roles = new Map([
-            ['admin', { id: 'admin', codigo: 'admin', nombre: 'Admin', usuarios: 0 }],
-            ['recepcion', { id: 'recepcion', codigo: 'recepcion', nombre: 'Recepcion', usuarios: 0 }]
+            ['admin', { id: 'admin', codigo: 'admin', nombre: 'Administrador', descripcion: 'Acceso total al sistema.', estado: 'activo', sistema: true, usuarios: 0, permisos: TODOS_LOS_PERMISOS.length, editable: false, eliminable: false }],
+            ['recepcion', { id: 'recepcion', codigo: 'recepcion', nombre: 'Recepcion', descripcion: 'Gestiona ingresos y atencion al cliente.', estado: 'activo', sistema: true, usuarios: 0, permisos: PERMISOS_RECEPCION_DEFAULT.length, editable: true, eliminable: false }]
         ]);
 
         rows.forEach(row => {
             const codigo = normalizarCodigoRol(row.codigo);
+            const existente = roles.get(codigo) || {};
             roles.set(codigo, {
+                ...existente,
                 id: codigo,
                 codigo,
-                nombre: roleLabelBackend(codigo),
-                usuarios: Number(row.usuarios || 0)
+                nombre: existente.nombre || roleLabelBackend(codigo),
+                descripcion: existente.descripcion || '',
+                estado: existente.estado || 'activo',
+                sistema: existente.sistema || ROLES_SISTEMA.has(codigo),
+                usuarios: Number(row.usuarios || 0),
+                permisos: existente.permisos || 0,
+                editable: codigo !== 'admin',
+                eliminable: !ROLES_SISTEMA.has(codigo) && Number(row.usuarios || 0) === 0
             });
         });
 
@@ -950,6 +1147,292 @@ app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => 
             ok: false,
             error: 'Error al listar roles'
         });
+    }
+});
+
+app.post('/api/admin/roles', requirePermission('roles.crear'), async (req, res) => {
+    const conn = await pool.getConnection();
+
+    try {
+        const nombre = limpiarTexto(req.body.nombre);
+        const descripcion = limpiarTexto(req.body.descripcion);
+        const basadoEn = normalizarCodigoRol(req.body.basado_en || req.body.basadoEn || 'vacio');
+
+        if (!nombre) {
+            return res.status(400).json({ ok: false, error: 'Nombre del rol obligatorio' });
+        }
+
+        await conn.beginTransaction();
+
+        const codigo = await generarCodigoRolUnico(nombre, conn);
+        await conn.query(
+            `INSERT INTO roles_admin (codigo, nombre, descripcion, estado, sistema)
+             VALUES (?, ?, ?, 'activo', 0)`,
+            [codigo, nombre, descripcion || null]
+        );
+
+        const permisos = await permisosBaseParaNuevoRol(basadoEn, conn);
+        const permisosAsignados = await asignarPermisosARol(conn, codigo, permisos);
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'rol_creado',
+            titulo: 'Rol administrativo creado',
+            mensaje: `${req.session.adminNombre} creo el rol ${nombre}.`,
+            entidad_id: 0,
+            evento_key: `${codigo}-${Date.now()}`
+        });
+
+        await conn.commit();
+
+        return res.status(201).json({
+            ok: true,
+            rol: {
+                id: codigo,
+                codigo,
+                nombre,
+                descripcion,
+                estado: 'activo',
+                sistema: false,
+                usuarios: 0,
+                permisos: permisosAsignados.length
+            }
+        });
+    } catch (error) {
+        await conn.rollback();
+        console.error(error);
+        return res.status(tablaRolesNoExiste(error) ? 400 : 500).json({
+            ok: false,
+            error: tablaRolesNoExiste(error)
+                ? 'Ejecuta la migracion permisos-roles-admin.sql antes de crear roles'
+                : 'Error al crear rol'
+        });
+    } finally {
+        conn.release();
+    }
+});
+
+app.post('/api/admin/roles/:id/duplicar', requirePermission('roles.crear'), async (req, res) => {
+    const conn = await pool.getConnection();
+
+    try {
+        const origenCodigo = normalizarCodigoRol(req.params.id);
+        const origen = await obtenerRolAdmin(origenCodigo, conn);
+
+        if (!origen && !validarRol(origenCodigo)) {
+            return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
+        }
+
+        const nombreBase = limpiarTexto(req.body.nombre) || `${origen?.nombre || roleLabelBackend(origenCodigo)} copia`;
+        const descripcion = limpiarTexto(req.body.descripcion) || origen?.descripcion || '';
+
+        await conn.beginTransaction();
+
+        const codigo = await generarCodigoRolUnico(nombreBase, conn);
+        await conn.query(
+            `INSERT INTO roles_admin (codigo, nombre, descripcion, estado, sistema)
+             VALUES (?, ?, ?, 'activo', 0)`,
+            [codigo, nombreBase, descripcion || null]
+        );
+
+        const permisos = await obtenerCodigosPermisosRol(origenCodigo, conn);
+        const permisosAsignados = await asignarPermisosARol(conn, codigo, permisos);
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'rol_duplicado',
+            titulo: 'Rol administrativo duplicado',
+            mensaje: `${req.session.adminNombre} duplico el rol ${origen?.nombre || origenCodigo}.`,
+            entidad_id: 0,
+            evento_key: `${codigo}-${Date.now()}`
+        });
+
+        await conn.commit();
+
+        return res.status(201).json({
+            ok: true,
+            rol: {
+                id: codigo,
+                codigo,
+                nombre: nombreBase,
+                descripcion,
+                estado: 'activo',
+                sistema: false,
+                usuarios: 0,
+                permisos: permisosAsignados.length
+            }
+        });
+    } catch (error) {
+        await conn.rollback();
+        console.error(error);
+        return res.status(500).json({ ok: false, error: 'Error al duplicar rol' });
+    } finally {
+        conn.release();
+    }
+});
+
+app.put('/api/admin/roles/:id', requirePermission('roles.editar'), async (req, res) => {
+    try {
+        const codigo = normalizarCodigoRol(req.params.id);
+        const nombre = limpiarTexto(req.body.nombre);
+        const descripcion = limpiarTexto(req.body.descripcion);
+
+        if (!validarRol(codigo) || !nombre) {
+            return res.status(400).json({ ok: false, error: 'Rol no valido' });
+        }
+
+        const rol = await obtenerRolAdmin(codigo);
+        if (!rol) {
+            return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
+        }
+
+        await pool.query(
+            `UPDATE roles_admin
+             SET nombre = ?, descripcion = ?
+             WHERE codigo = ?`,
+            [nombre, descripcion || null, codigo]
+        );
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'rol_editado',
+            titulo: 'Rol administrativo editado',
+            mensaje: `${req.session.adminNombre} edito el rol ${nombre}.`,
+            entidad_id: 0,
+            evento_key: `${codigo}-${Date.now()}`
+        });
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ ok: false, error: 'Error al editar rol' });
+    }
+});
+
+app.patch('/api/admin/roles/:id/estado', requirePermission('roles.eliminar'), async (req, res) => {
+    try {
+        const codigo = normalizarCodigoRol(req.params.id);
+        const estado = limpiarTexto(req.body.estado);
+
+        if (!validarRol(codigo) || !validarEstado(estado)) {
+            return res.status(400).json({ ok: false, error: 'Estado no valido' });
+        }
+
+        if (ROLES_SISTEMA.has(codigo) && estado !== 'activo') {
+            return res.status(400).json({ ok: false, error: 'No puedes desactivar roles base del sistema' });
+        }
+
+        if (estado !== 'activo') {
+            const permisos = await obtenerCodigosPermisosRol(codigo);
+            const tieneControlTotal = TODOS_LOS_PERMISOS.every(permiso => permisos.includes(permiso));
+
+            if (tieneControlTotal) {
+                const [[row]] = await pool.query(
+                    `SELECT COUNT(*) AS total
+                     FROM roles_admin r
+                     WHERE r.codigo <> ?
+                       AND r.estado = 'activo'
+                       AND NOT EXISTS (
+                         SELECT 1
+                         FROM permisos_admin p
+                         WHERE NOT EXISTS (
+                           SELECT 1
+                           FROM roles_permisos rp
+                           WHERE rp.rol_codigo = r.codigo
+                             AND rp.permiso_id = p.id
+                         )
+                       )`,
+                    [codigo]
+                );
+
+                if (Number(row.total || 0) === 0) {
+                    return res.status(400).json({ ok: false, error: 'No puedes desactivar el ultimo rol con control total' });
+                }
+            }
+        }
+
+        const [result] = await pool.query(
+            `UPDATE roles_admin
+             SET estado = ?
+             WHERE codigo = ?`,
+            [estado, codigo]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
+        }
+
+        if (estado !== 'activo') {
+            await pool.query(
+                `UPDATE usuarios_admin
+                 SET session_id = NULL
+                 WHERE rol = ?`,
+                [codigo]
+            );
+        }
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: estado === 'activo' ? 'rol_activado' : 'rol_desactivado',
+            titulo: estado === 'activo' ? 'Rol activado' : 'Rol desactivado',
+            mensaje: `${req.session.adminNombre} ${estado === 'activo' ? 'activo' : 'desactivo'} el rol ${codigo}.`,
+            entidad_id: 0,
+            evento_key: `${codigo}-${estado}-${Date.now()}`
+        });
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ ok: false, error: 'Error al cambiar estado del rol' });
+    }
+});
+
+app.delete('/api/admin/roles/:id', requirePermission('roles.eliminar'), async (req, res) => {
+    const conn = await pool.getConnection();
+
+    try {
+        const codigo = normalizarCodigoRol(req.params.id);
+
+        if (ROLES_SISTEMA.has(codigo)) {
+            return res.status(400).json({ ok: false, error: 'No puedes eliminar roles base del sistema' });
+        }
+
+        const [[usuarios]] = await conn.query(
+            `SELECT COUNT(*) AS total
+             FROM usuarios_admin
+             WHERE rol = ?`,
+            [codigo]
+        );
+
+        if (Number(usuarios.total || 0) > 0) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Este rol tiene usuarios asignados.',
+                requiere_reasignacion: true
+            });
+        }
+
+        await conn.beginTransaction();
+        await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ?', [codigo]);
+        const [result] = await conn.query('DELETE FROM roles_admin WHERE codigo = ? AND sistema = 0', [codigo]);
+
+        if (result.affectedRows === 0) {
+            await conn.rollback();
+            return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
+        }
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'rol_eliminado',
+            titulo: 'Rol administrativo eliminado',
+            mensaje: `${req.session.adminNombre} elimino el rol ${codigo}.`,
+            entidad_id: 0,
+            evento_key: `${codigo}-${Date.now()}`
+        });
+
+        await conn.commit();
+        return res.json({ ok: true });
+    } catch (error) {
+        await conn.rollback();
+        console.error(error);
+        return res.status(500).json({ ok: false, error: 'Error al eliminar rol' });
+    } finally {
+        conn.release();
     }
 });
 
@@ -1265,6 +1748,10 @@ app.post('/api/admin/usuarios', requirePermission('usuarios.crear'), async (req,
             return res.status(400).json({ ok: false, error: 'Rol no valido' });
         }
 
+        if (!await rolAsignable(rol)) {
+            return res.status(400).json({ ok: false, error: 'Rol no disponible o inactivo' });
+        }
+
         if (!validarEstado(estado)) {
             return res.status(400).json({ ok: false, error: 'Estado no valido' });
         }
@@ -1326,6 +1813,10 @@ app.put('/api/admin/usuarios/:id', requirePermission('usuarios.editar'), async (
 
         if (!validarRol(rol)) {
             return res.status(400).json({ ok: false, error: 'Rol no valido' });
+        }
+
+        if (!await rolAsignable(rol)) {
+            return res.status(400).json({ ok: false, error: 'Rol no disponible o inactivo' });
         }
 
         if (!validarEstado(estado)) {

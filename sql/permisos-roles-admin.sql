@@ -12,6 +12,18 @@ CREATE TABLE IF NOT EXISTS permisos_admin (
   UNIQUE KEY uq_permisos_admin_codigo (codigo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS roles_admin (
+  codigo VARCHAR(50) NOT NULL,
+  nombre VARCHAR(120) NOT NULL,
+  descripcion VARCHAR(255) NULL,
+  estado ENUM('activo','inactivo') NOT NULL DEFAULT 'activo',
+  sistema TINYINT(1) NOT NULL DEFAULT 0,
+  fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (codigo),
+  KEY idx_roles_admin_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS roles_permisos (
   rol_codigo VARCHAR(50) NOT NULL,
   permiso_id INT NOT NULL,
@@ -21,6 +33,27 @@ CREATE TABLE IF NOT EXISTS roles_permisos (
     FOREIGN KEY (permiso_id) REFERENCES permisos_admin (id)
     ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO roles_admin (codigo, nombre, descripcion, estado, sistema) VALUES
+('admin', 'Administrador', 'Acceso total al sistema y configuracion del gimnasio.', 'activo', 1),
+('recepcion', 'Recepcion', 'Gestiona ingresos, clientes y atencion al cliente.', 'activo', 1)
+ON DUPLICATE KEY UPDATE
+  nombre = VALUES(nombre),
+  descripcion = VALUES(descripcion),
+  estado = 'activo',
+  sistema = 1;
+
+INSERT IGNORE INTO roles_admin (codigo, nombre, descripcion, estado, sistema)
+SELECT
+  LOWER(TRIM(rol)) AS codigo,
+  TRIM(rol) AS nombre,
+  'Rol administrativo existente migrado automaticamente.',
+  'activo',
+  0
+FROM usuarios_admin
+WHERE rol IS NOT NULL
+  AND TRIM(rol) <> ''
+  AND LOWER(TRIM(rol)) NOT IN ('admin', 'recepcion');
 
 INSERT INTO permisos_admin (codigo, nombre, categoria, descripcion) VALUES
 ('clientes.ver', 'Ver clientes', 'Clientes', 'Permite listar y consultar clientes'),

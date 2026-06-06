@@ -227,29 +227,23 @@
         <div class="message success" id="adminUserSuccess">Usuario guardado correctamente</div>
         <div class="message error" id="adminUserError">Error al guardar usuario</div>
 
-        <div class="role-permissions-panel" id="rolePermissionsPanel" data-permission="roles.asignar_permisos" hidden>
-          <div class="role-permissions-head">
+        <section class="roles-system-section" id="rolesSystemSection" data-permission="roles.ver" hidden>
+          <div class="roles-system-header">
             <div>
-              <div class="role-permissions-title">Permisos por rol</div>
-              <div class="role-permissions-subtitle">Selecciona que puede hacer cada rol administrativo.</div>
+              <div class="roles-eyebrow">Roles del sistema</div>
+              <div class="roles-title">Roles y permisos</div>
+              <div class="roles-subtitle">Define que puede hacer cada tipo de usuario dentro del gimnasio.</div>
             </div>
-            <div class="role-permissions-select-wrap">
-              <label class="form-label" for="rolePermissionsSelect">Rol</label>
-              <select class="form-input" id="rolePermissionsSelect">
-                <option value="recepcion">Recepcion</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
+            <button class="btn btn-primary" type="button" id="createRoleBtn" data-permission="roles.crear">Crear rol</button>
           </div>
-          <div class="permissions-grid" id="permissionsGrid">
-            <div class="admin-users-empty">Cargando permisos...</div>
+          <div class="roles-card-grid" id="rolesGrid">
+            <div class="admin-users-empty">Cargando roles...</div>
           </div>
-          <div class="admin-user-actions">
-            <button class="btn btn-primary" type="button" id="saveRolePermissions">Guardar permisos</button>
-          </div>
+          <div class="message success" id="roleSuccess">Rol guardado correctamente</div>
+          <div class="message error" id="roleError">Error al guardar rol</div>
           <div class="message success" id="rolePermissionsSuccess">Permisos guardados correctamente</div>
           <div class="message error" id="rolePermissionsError">Error al guardar permisos</div>
-        </div>
+        </section>
 
         <div class="admin-users-table-wrap">
           <table class="admin-users-table">
@@ -274,6 +268,79 @@
       </div>
     </section>
   </main>
+</div>
+
+<div class="modal-overlay config-modal-overlay" id="roleModal" hidden>
+  <div class="config-modal">
+    <div class="config-modal-header">
+      <div>
+        <div class="config-modal-title" id="roleModalTitle">Crear rol</div>
+        <div class="config-modal-subtitle">Configura un cargo personalizado para tu equipo.</div>
+      </div>
+      <button class="modal-close" type="button" id="roleModalClose">&times;</button>
+    </div>
+    <form id="roleForm" class="config-modal-body">
+      <input type="hidden" id="roleCodigo" />
+      <div class="form-group">
+        <label class="form-label" for="roleNombre">Nombre del rol</label>
+        <input class="form-input" id="roleNombre" autocomplete="off" placeholder="Supervisor de sede" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="roleDescripcion">Descripcion</label>
+        <input class="form-input" id="roleDescripcion" autocomplete="off" placeholder="Gestiona caja, recepcion y reportes diarios" />
+      </div>
+      <div class="form-group" id="roleBasedOnGroup">
+        <label class="form-label" for="roleBasedOn">Crear basado en</label>
+        <select class="form-input" id="roleBasedOn">
+          <option value="vacio">Vacio</option>
+          <option value="recepcion">Recepcion</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+      <div class="config-modal-actions">
+        <button class="btn btn-secondary" type="button" id="roleCancelBtn">Cancelar</button>
+        <button class="btn btn-primary" type="submit" id="roleSubmitBtn">Crear rol</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay config-modal-overlay permissions-modal-overlay" id="permissionsModal" hidden>
+  <div class="config-modal permissions-modal">
+    <div class="config-modal-header">
+      <div>
+        <div class="config-modal-title" id="permissionsModalTitle">Permisos</div>
+        <div class="config-modal-subtitle" id="permissionsModalSubtitle">Selecciona permisos para este rol.</div>
+      </div>
+      <button class="modal-close" type="button" id="permissionsModalClose">&times;</button>
+    </div>
+    <div class="permissions-toolbar">
+      <input class="form-input" id="permissionSearch" placeholder="Buscar permisos..." autocomplete="off" />
+      <div class="permission-count" id="permissionCount">0 permisos</div>
+    </div>
+    <div class="permissions-layout">
+      <div class="permissions-grid" id="permissionsGrid">
+        <div class="admin-users-empty">Cargando permisos...</div>
+      </div>
+      <aside class="role-summary-panel">
+        <div class="role-summary-title" id="roleSummaryTitle">Resumen</div>
+        <div class="role-summary-count" id="roleSummaryCount">0 permisos</div>
+        <div class="role-summary-section">
+          <div class="role-summary-label">Puede</div>
+          <div id="roleCanList" class="role-summary-list"></div>
+        </div>
+        <div class="role-summary-section">
+          <div class="role-summary-label">No puede</div>
+          <div id="roleCannotList" class="role-summary-list muted"></div>
+        </div>
+      </aside>
+    </div>
+    <div class="config-modal-actions">
+      <button class="btn btn-secondary" type="button" id="permissionsCancelBtn">Cancelar</button>
+      <button class="btn btn-primary" type="button" id="saveRolePermissions">Guardar permisos</button>
+    </div>
+  </div>
 </div>
 
 <script src="../assets/js/configuracion.js"></script>
