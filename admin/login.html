@@ -107,11 +107,24 @@ const API_BASE = '/api';
 async function cargarEstadoSistema() {
   try {
     const res = await fetch(`${API_BASE}/verificar-sesion`, {
-      credentials: 'include'
+      credentials: 'include',
+      cache: 'no-store'
     });
 
-    if (!res.ok) {
+    if (res.status === 401) {
+      systemBadge.classList.remove('system-inactive');
+      systemStatusText.textContent = 'Sistema activo';
+      return;
+    }
+
+    if (res.status >= 500) {
       throw new Error('Servidor no disponible');
+    }
+
+    if (!res.ok) {
+      systemBadge.classList.remove('system-inactive');
+      systemStatusText.textContent = 'Sistema activo';
+      return;
     }
 
     systemBadge.classList.remove('system-inactive');
