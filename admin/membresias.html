@@ -123,10 +123,10 @@
           </div>
         </div>
       </div>
-      <button class="header-btn" title="Exportar" onclick="exportarMembresias()">
+      <button class="header-btn" title="Exportar" onclick="exportarMembresias()" data-permission="exportar.membresias">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
       </button>
-      <button class="btn btn-primary" id="btnCrearMembresia" onclick="openModal()">
+      <button class="btn btn-primary" id="btnCrearMembresia" onclick="openModal()" data-permission="membresias.crear">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Crear Membresía
       </button>
@@ -742,12 +742,14 @@ function actualizarCards() {
   <div class="actions-cell">
 
     <button class="btn btn-primary"
+  data-permission="membresias.renovar"
   onclick="renovarMembresia(${m.cliente_id})">
   Renovar
 </button>
 
     <button
       class="icon-btn danger"
+      data-permission="membresias.eliminar"
       title="Eliminar membresía"
       onclick="eliminarMembresia(${m.id})">
 
@@ -781,6 +783,7 @@ function actualizarCards() {
     : `Mostrando <strong>${start + 1}–${Math.min(start + PER_PAGE, total)}</strong> de <strong>${total}</strong> membresías`;
 
   renderPagination();
+  window.AdminAuth?.applyPermissions?.(document);
 }
 
   function renderPagination() {

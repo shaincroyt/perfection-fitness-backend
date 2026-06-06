@@ -77,6 +77,11 @@
     const wrap = document.getElementById('notificationWrap');
     if (!wrap) return;
 
+    if (window.AdminAuth && window.AdminAuth.getSession && window.AdminAuth.getSession() && !window.AdminAuth.hasPermission('notificaciones.ver')) {
+      wrap.hidden = true;
+      return;
+    }
+
     ensureNotificationActions();
 
     try {

@@ -227,6 +227,30 @@
         <div class="message success" id="adminUserSuccess">Usuario guardado correctamente</div>
         <div class="message error" id="adminUserError">Error al guardar usuario</div>
 
+        <div class="role-permissions-panel" id="rolePermissionsPanel" data-permission="roles.asignar_permisos" hidden>
+          <div class="role-permissions-head">
+            <div>
+              <div class="role-permissions-title">Permisos por rol</div>
+              <div class="role-permissions-subtitle">Selecciona que puede hacer cada rol administrativo.</div>
+            </div>
+            <div class="role-permissions-select-wrap">
+              <label class="form-label" for="rolePermissionsSelect">Rol</label>
+              <select class="form-input" id="rolePermissionsSelect">
+                <option value="recepcion">Recepcion</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <div class="permissions-grid" id="permissionsGrid">
+            <div class="admin-users-empty">Cargando permisos...</div>
+          </div>
+          <div class="admin-user-actions">
+            <button class="btn btn-primary" type="button" id="saveRolePermissions">Guardar permisos</button>
+          </div>
+          <div class="message success" id="rolePermissionsSuccess">Permisos guardados correctamente</div>
+          <div class="message error" id="rolePermissionsError">Error al guardar permisos</div>
+        </div>
+
         <div class="admin-users-table-wrap">
           <table class="admin-users-table">
             <thead>

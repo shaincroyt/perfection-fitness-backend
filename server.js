@@ -47,6 +47,56 @@ app.use(session({
 
 const ROLES_ADMIN = new Set(['admin', 'recepcion']);
 const ESTADOS_ADMIN = new Set(['activo', 'inactivo']);
+const PERMISOS_BASE = [
+    { codigo: 'clientes.ver', nombre: 'Ver clientes', categoria: 'Clientes', descripcion: 'Permite listar y consultar clientes' },
+    { codigo: 'clientes.crear', nombre: 'Crear clientes', categoria: 'Clientes', descripcion: 'Permite registrar clientes' },
+    { codigo: 'clientes.editar', nombre: 'Editar clientes', categoria: 'Clientes', descripcion: 'Permite actualizar clientes' },
+    { codigo: 'clientes.eliminar', nombre: 'Eliminar clientes', categoria: 'Clientes', descripcion: 'Permite eliminar o desactivar clientes' },
+    { codigo: 'membresias.ver', nombre: 'Ver membresias', categoria: 'Membresias', descripcion: 'Permite listar membresias' },
+    { codigo: 'membresias.crear', nombre: 'Crear membresias', categoria: 'Membresias', descripcion: 'Permite crear membresias' },
+    { codigo: 'membresias.editar', nombre: 'Editar membresias', categoria: 'Membresias', descripcion: 'Permite actualizar membresias' },
+    { codigo: 'membresias.eliminar', nombre: 'Eliminar membresias', categoria: 'Membresias', descripcion: 'Permite eliminar membresias' },
+    { codigo: 'membresias.renovar', nombre: 'Renovar membresias', categoria: 'Membresias', descripcion: 'Permite renovar membresias' },
+    { codigo: 'planes.ver', nombre: 'Ver planes', categoria: 'Planes', descripcion: 'Permite listar planes' },
+    { codigo: 'planes.crear', nombre: 'Crear planes', categoria: 'Planes', descripcion: 'Permite crear planes' },
+    { codigo: 'planes.editar', nombre: 'Editar planes', categoria: 'Planes', descripcion: 'Permite actualizar planes' },
+    { codigo: 'planes.eliminar', nombre: 'Eliminar planes', categoria: 'Planes', descripcion: 'Permite eliminar o desactivar planes' },
+    { codigo: 'asistencias.ver', nombre: 'Ver asistencias', categoria: 'Asistencias', descripcion: 'Permite listar asistencias' },
+    { codigo: 'asistencias.eliminar', nombre: 'Eliminar asistencias', categoria: 'Asistencias', descripcion: 'Permite eliminar asistencias' },
+    { codigo: 'validacion.usar', nombre: 'Usar validacion', categoria: 'Validacion', descripcion: 'Permite validar ingresos' },
+    { codigo: 'dashboard.ver', nombre: 'Ver dashboard', categoria: 'Dashboard', descripcion: 'Permite acceder al dashboard' },
+    { codigo: 'configuracion.ver', nombre: 'Ver configuracion', categoria: 'Configuracion', descripcion: 'Permite acceder a configuracion' },
+    { codigo: 'usuarios.ver', nombre: 'Ver usuarios', categoria: 'Usuarios', descripcion: 'Permite listar usuarios administrativos' },
+    { codigo: 'usuarios.crear', nombre: 'Crear usuarios', categoria: 'Usuarios', descripcion: 'Permite crear usuarios administrativos' },
+    { codigo: 'usuarios.editar', nombre: 'Editar usuarios', categoria: 'Usuarios', descripcion: 'Permite actualizar usuarios administrativos' },
+    { codigo: 'usuarios.desactivar', nombre: 'Desactivar usuarios', categoria: 'Usuarios', descripcion: 'Permite activar o desactivar usuarios administrativos' },
+    { codigo: 'roles.ver', nombre: 'Ver roles', categoria: 'Roles', descripcion: 'Permite consultar roles administrativos' },
+    { codigo: 'roles.crear', nombre: 'Crear roles', categoria: 'Roles', descripcion: 'Permite crear roles administrativos' },
+    { codigo: 'roles.editar', nombre: 'Editar roles', categoria: 'Roles', descripcion: 'Permite editar roles administrativos' },
+    { codigo: 'roles.eliminar', nombre: 'Eliminar roles', categoria: 'Roles', descripcion: 'Permite eliminar o desactivar roles administrativos' },
+    { codigo: 'roles.asignar_permisos', nombre: 'Asignar permisos', categoria: 'Roles', descripcion: 'Permite administrar permisos de roles' },
+    { codigo: 'exportar.clientes', nombre: 'Exportar clientes', categoria: 'Exportaciones', descripcion: 'Permite exportar clientes' },
+    { codigo: 'exportar.membresias', nombre: 'Exportar membresias', categoria: 'Exportaciones', descripcion: 'Permite exportar membresias' },
+    { codigo: 'exportar.asistencias', nombre: 'Exportar asistencias', categoria: 'Exportaciones', descripcion: 'Permite exportar asistencias' },
+    { codigo: 'notificaciones.ver', nombre: 'Ver notificaciones', categoria: 'Notificaciones', descripcion: 'Permite ver notificaciones' },
+    { codigo: 'notificaciones.marcar_leida', nombre: 'Marcar notificacion como leida', categoria: 'Notificaciones', descripcion: 'Permite marcar notificaciones como leidas' },
+    { codigo: 'notificaciones.eliminar', nombre: 'Eliminar notificaciones', categoria: 'Notificaciones', descripcion: 'Permite eliminar notificaciones' }
+];
+const TODOS_LOS_PERMISOS = PERMISOS_BASE.map(permiso => permiso.codigo);
+const PERMISOS_RECEPCION_DEFAULT = [
+    'dashboard.ver',
+    'clientes.ver',
+    'clientes.crear',
+    'clientes.editar',
+    'membresias.ver',
+    'membresias.crear',
+    'membresias.renovar',
+    'planes.ver',
+    'asistencias.ver',
+    'validacion.usar',
+    'notificaciones.ver',
+    'notificaciones.marcar_leida'
+];
 
 function responderSesionInvalida(req, res, mensaje = 'Sesion no activa') {
     if (req.originalUrl.startsWith('/admin')) {
@@ -136,9 +186,121 @@ function requireRole(rol) {
 
         return res.status(403).json({
             ok: false,
-            error: 'Forbidden'
+            error: 'No tienes permisos para realizar esta accion'
         });
     };
+}
+
+function esAdminTotal(admin) {
+    return Boolean(admin && (Number(admin.id) === 1 || admin.rol === 'admin'));
+}
+
+function permisosFallbackPorRol(rol) {
+    return rol === 'admin' ? TODOS_LOS_PERMISOS : PERMISOS_RECEPCION_DEFAULT;
+}
+
+async function obtenerCodigosPermisosRol(rol, conn = pool) {
+    rol = normalizarCodigoRol(rol);
+
+    if (rol === 'admin') {
+        return TODOS_LOS_PERMISOS;
+    }
+
+    try {
+        const [rows] = await conn.query(
+            `SELECT p.codigo
+             FROM roles_permisos rp
+             INNER JOIN permisos_admin p ON p.id = rp.permiso_id
+             WHERE rp.rol_codigo = ?
+             ORDER BY p.categoria ASC, p.codigo ASC`,
+            [rol]
+        );
+
+        return rows.map(row => row.codigo);
+    } catch (error) {
+        if (error && (error.code === 'ER_NO_SUCH_TABLE' || error.code === 'ER_BAD_FIELD_ERROR')) {
+            return permisosFallbackPorRol(rol);
+        }
+
+        throw error;
+    }
+}
+
+async function obtenerCodigosPermisosUsuario(admin, conn = pool) {
+    if (esAdminTotal(admin)) {
+        return TODOS_LOS_PERMISOS;
+    }
+
+    return obtenerCodigosPermisosRol(admin && admin.rol ? admin.rol : 'recepcion', conn);
+}
+
+async function tienePermiso(admin, codigo) {
+    if (esAdminTotal(admin)) {
+        return true;
+    }
+
+    const permisos = await obtenerCodigosPermisosUsuario(admin);
+    return permisos.includes(codigo);
+}
+
+function requirePermission(codigo) {
+    return async (req, res, next) => {
+        try {
+            const permitido = await tienePermiso(req.adminUser, codigo);
+
+            if (permitido) {
+                return next();
+            }
+
+            return res.status(403).json({
+                ok: false,
+                error: 'No tienes permisos para realizar esta accion'
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                ok: false,
+                error: 'Error al validar permisos'
+            });
+        }
+    };
+}
+
+function agruparPermisos(permisos) {
+    return permisos.reduce((grupos, permiso) => {
+        const categoria = permiso.categoria || 'General';
+        if (!grupos[categoria]) {
+            grupos[categoria] = [];
+        }
+        grupos[categoria].push(permiso);
+        return grupos;
+    }, {});
+}
+
+async function obtenerPermisosVersionRol(rol) {
+    rol = normalizarCodigoRol(rol);
+
+    if (rol === 'admin') {
+        return TODOS_LOS_PERMISOS.length;
+    }
+
+    try {
+        const [[row]] = await pool.query(
+            `SELECT COALESCE(CRC32(COALESCE(GROUP_CONCAT(p.codigo ORDER BY p.codigo SEPARATOR ','), '')), 0) AS version
+             FROM roles_permisos rp
+             INNER JOIN permisos_admin p ON p.id = rp.permiso_id
+             WHERE rp.rol_codigo = ?`,
+            [rol]
+        );
+
+        return Number(row.version || 0);
+    } catch (error) {
+        if (error && (error.code === 'ER_NO_SUCH_TABLE' || error.code === 'ER_BAD_FIELD_ERROR')) {
+            return 0;
+        }
+
+        throw error;
+    }
 }
 
 function getSessionAdmin(req) {
@@ -248,14 +410,25 @@ function adminNotificacion(req) {
 }
 
 function nombreRol(rol) {
-    return rol === 'admin' ? 'admin' : 'recepcion';
+    return rol === 'admin' ? 'admin' : (rol || 'recepcion');
+}
+
+function roleLabelBackend(rol) {
+    if (rol === 'admin') return 'Admin';
+    if (rol === 'recepcion') return 'Recepcion';
+    return String(rol || 'recepcion');
+}
+
+function normalizarCodigoRol(rol) {
+    return limpiarTexto(rol || 'recepcion').toLowerCase();
 }
 
 async function crearNotificacionAuditoriaUsuario(req, {
     tipo,
     titulo,
     mensaje,
-    entidad_id
+    entidad_id,
+    evento_key = null
 }) {
     await crearNotificacion({
         tipo,
@@ -264,7 +437,7 @@ async function crearNotificacionAuditoriaUsuario(req, {
         entidad: 'usuario_admin',
         entidad_id,
         ...adminNotificacion(req),
-        evento_key: null
+        evento_key
     });
 }
 
@@ -551,12 +724,15 @@ app.get('/api/auth/session', async (req, res) => {
         }
 
         req.session.adminRol = admin.rol || 'recepcion';
+        const permisos = await obtenerCodigosPermisosUsuario(admin);
 
         const adminSesion = {
             id: admin.id,
             nombre: admin.nombre,
             usuario: admin.usuario,
-            rol: admin.rol || 'recepcion'
+            rol: admin.rol || 'recepcion',
+            rol_id: admin.rol || 'recepcion',
+            permisos
         };
 
         return res.json({
@@ -569,6 +745,42 @@ app.get('/api/auth/session', async (req, res) => {
         return res.status(500).json({
             ok: false,
             error: 'Error al validar sesion'
+        });
+    }
+});
+
+app.get('/api/auth/heartbeat', async (req, res) => {
+    try {
+        const admin = await obtenerUsuarioSesion(req);
+
+        if (!admin) {
+            return res.status(401).json({ valid: false, reason: 'session_missing' });
+        }
+
+        if (admin.estado !== 'activo') {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.status(401).json({ valid: false, reason: 'user_disabled' });
+        }
+
+        if (!admin.session_id || admin.session_id !== req.sessionID) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.status(401).json({ valid: false, reason: 'session_replaced' });
+        }
+
+        req.session.adminRol = admin.rol || 'recepcion';
+
+        return res.json({
+            valid: true,
+            session_id: req.sessionID,
+            permissions_version: await obtenerPermisosVersionRol(admin.rol || 'recepcion')
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            valid: false,
+            reason: 'server_error'
         });
     }
 });
@@ -655,17 +867,197 @@ app.get('/api/admin/perfil', async (req, res) => {
 
 app.get('/api/admin/me', async (req, res) => {
     const admin = req.adminUser;
+    const permisos = await obtenerCodigosPermisosUsuario(admin);
 
     return res.json({
         id: admin.id,
         nombre: admin.nombre,
         usuario: admin.usuario,
         rol: admin.rol || 'recepcion',
+        rol_id: admin.rol || 'recepcion',
+        permisos,
         estado: admin.estado,
         ultimo_login: admin.ultimo_login,
         fecha_creacion: admin.fecha_creacion,
         sesion_iniciada: req.session.loginAt || null
     });
+});
+
+app.get('/api/admin/permisos', requirePermission('roles.asignar_permisos'), async (req, res) => {
+    try {
+        let permisos = PERMISOS_BASE;
+
+        try {
+            const [rows] = await pool.query(
+                `SELECT id, codigo, nombre, categoria, descripcion
+                 FROM permisos_admin
+                 ORDER BY categoria ASC, id ASC`
+            );
+            if (rows.length > 0) {
+                permisos = rows;
+            }
+        } catch (error) {
+            if (!error || (error.code !== 'ER_NO_SUCH_TABLE' && error.code !== 'ER_BAD_FIELD_ERROR')) {
+                throw error;
+            }
+        }
+
+        return res.json({
+            ok: true,
+            permisos,
+            categorias: agruparPermisos(permisos)
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al listar permisos'
+        });
+    }
+});
+
+app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT rol AS codigo, COUNT(*) AS usuarios
+            FROM usuarios_admin
+            GROUP BY rol
+            ORDER BY rol ASC
+        `);
+
+        const roles = new Map([
+            ['admin', { id: 'admin', codigo: 'admin', nombre: 'Admin', usuarios: 0 }],
+            ['recepcion', { id: 'recepcion', codigo: 'recepcion', nombre: 'Recepcion', usuarios: 0 }]
+        ]);
+
+        rows.forEach(row => {
+            const codigo = normalizarCodigoRol(row.codigo);
+            roles.set(codigo, {
+                id: codigo,
+                codigo,
+                nombre: roleLabelBackend(codigo),
+                usuarios: Number(row.usuarios || 0)
+            });
+        });
+
+        return res.json({
+            ok: true,
+            roles: Array.from(roles.values())
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al listar roles'
+        });
+    }
+});
+
+app.get('/api/admin/roles/:id/permisos', requirePermission('roles.asignar_permisos'), async (req, res) => {
+    try {
+        const rol = normalizarCodigoRol(req.params.id);
+        if (!validarRol(rol)) {
+            return res.status(400).json({ ok: false, error: 'Rol no valido' });
+        }
+
+        return res.json({
+            ok: true,
+            rol,
+            permisos: await obtenerCodigosPermisosRol(rol)
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al obtener permisos del rol'
+        });
+    }
+});
+
+app.put('/api/admin/roles/:id/permisos', requirePermission('roles.asignar_permisos'), async (req, res) => {
+    const conn = await pool.getConnection();
+
+    try {
+        const rol = normalizarCodigoRol(req.params.id);
+        const permisos = Array.isArray(req.body.permisos)
+            ? Array.from(new Set(req.body.permisos.map(limpiarTexto).filter(Boolean)))
+            : [];
+
+        if (!validarRol(rol)) {
+            return res.status(400).json({ ok: false, error: 'Rol no valido' });
+        }
+
+        if (rol === 'admin') {
+            return res.status(400).json({
+                ok: false,
+                error: 'No se pueden modificar permisos del rol admin'
+            });
+        }
+
+        await conn.beginTransaction();
+
+        const [permisosValidos] = await conn.query(
+            `SELECT id, codigo
+             FROM permisos_admin
+             WHERE codigo IN (?)`,
+            [permisos.length > 0 ? permisos : ['__sin_permisos__']]
+        );
+
+        const codigosValidos = new Set(permisosValidos.map(permiso => permiso.codigo));
+        const codigosInvalidos = permisos.filter(codigo => !codigosValidos.has(codigo));
+
+        if (codigosInvalidos.length > 0) {
+            await conn.rollback();
+            return res.status(400).json({
+                ok: false,
+                error: `Permisos no validos: ${codigosInvalidos.join(', ')}`
+            });
+        }
+
+        const permisosAntes = await obtenerCodigosPermisosRol(rol, conn);
+
+        await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ?', [rol]);
+
+        if (permisosValidos.length > 0) {
+            await conn.query(
+                `INSERT INTO roles_permisos (rol_codigo, permiso_id)
+                 VALUES ${permisosValidos.map(() => '(?, ?)').join(', ')}`,
+                permisosValidos.flatMap(permiso => [rol, permiso.id])
+            );
+        }
+
+        const anteriores = new Set(permisosAntes);
+        const nuevos = new Set(permisos);
+        const agregados = permisos.filter(codigo => !anteriores.has(codigo));
+        const quitados = permisosAntes.filter(codigo => !nuevos.has(codigo));
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'rol_permisos_actualizados',
+            titulo: 'Permisos de rol actualizados',
+            mensaje: `${req.session.adminNombre} actualizo permisos de ${nombreRol(rol)}. Agregados: ${agregados.length}. Quitados: ${quitados.length}.`,
+            entidad_id: 0,
+            evento_key: `${rol}-${Date.now()}`
+        });
+
+        await conn.commit();
+
+        return res.json({
+            ok: true,
+            rol,
+            permisos,
+            agregados,
+            quitados
+        });
+    } catch (error) {
+        await conn.rollback();
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al actualizar permisos del rol'
+        });
+    } finally {
+        conn.release();
+    }
 });
 
 async function cambiarPasswordPropia(req, res) {
@@ -771,7 +1163,7 @@ function limpiarTexto(valor) {
 }
 
 function validarRol(rol) {
-    return ROLES_ADMIN.has(rol);
+    return /^[a-z0-9_.-]{2,50}$/i.test(String(rol || ''));
 }
 
 function validarEstado(estado) {
@@ -815,7 +1207,7 @@ async function quedariaSinAdminActivo(id, nuevoRol, nuevoEstado) {
     return Number(row.total || 0) === 0;
 }
 
-app.get('/api/admin/usuarios', requireRole('admin'), async (req, res) => {
+app.get('/api/admin/usuarios', requirePermission('usuarios.ver'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -844,13 +1236,13 @@ app.get('/api/admin/usuarios', requireRole('admin'), async (req, res) => {
     }
 });
 
-app.post('/api/admin/usuarios', requireRole('admin'), async (req, res) => {
+app.post('/api/admin/usuarios', requirePermission('usuarios.crear'), async (req, res) => {
     try {
         const nombre = limpiarTexto(req.body.nombre) || 'Usuario administrativo';
         const usuario = limpiarTexto(req.body.usuario);
         const password = String(req.body.password || '');
         const confirmarPassword = String(req.body.confirmar_password || req.body.confirmarPassword || '');
-        const rol = limpiarTexto(req.body.rol) || 'recepcion';
+        const rol = normalizarCodigoRol(req.body.rol);
         const estado = limpiarTexto(req.body.estado) || 'activo';
 
         if (!usuario) {
@@ -914,12 +1306,12 @@ app.post('/api/admin/usuarios', requireRole('admin'), async (req, res) => {
     }
 });
 
-app.put('/api/admin/usuarios/:id', requireRole('admin'), async (req, res) => {
+app.put('/api/admin/usuarios/:id', requirePermission('usuarios.editar'), async (req, res) => {
     try {
         const id = Number(req.params.id);
         const nombre = limpiarTexto(req.body.nombre);
         const usuario = limpiarTexto(req.body.usuario);
-        const rol = limpiarTexto(req.body.rol);
+        const rol = normalizarCodigoRol(req.body.rol);
         const estado = limpiarTexto(req.body.estado);
         const password = req.body.password ? String(req.body.password) : '';
         const confirmarPassword = String(req.body.confirmar_password || req.body.confirmarPassword || '');
@@ -1017,7 +1409,7 @@ app.put('/api/admin/usuarios/:id', requireRole('admin'), async (req, res) => {
     }
 });
 
-app.patch('/api/admin/usuarios/:id/estado', requireRole('admin'), async (req, res) => {
+app.patch('/api/admin/usuarios/:id/estado', requirePermission('usuarios.desactivar'), async (req, res) => {
     try {
         const id = Number(req.params.id);
         const estado = limpiarTexto(req.body.estado);
@@ -1096,7 +1488,7 @@ app.use('/assets', express.static(adminAssetsDir));
 app.use(express.static(publicDir));
 
 // GET CLIENTES
-app.get('/api/clientes', async (req, res) => {
+app.get('/api/clientes', requirePermission('clientes.ver'), async (req, res) => {
     try {
         //await sincronizarEstadosClientes();
         const [rows] = await pool.query(`
@@ -1133,7 +1525,7 @@ app.get('/api/clientes', async (req, res) => {
     }
 });
 
-app.post('/api/clientes', async (req, res) => {
+app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) => {
     try {
         const { nombre, dni, telefono, correo, estado } = req.body;
 
@@ -1184,7 +1576,7 @@ app.post('/api/clientes', async (req, res) => {
     }
 });
 
-app.put('/api/clientes/:id', async (req, res) => {
+app.put('/api/clientes/:id', requirePermission('clientes.editar'), async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, dni, telefono, correo, estado } = req.body;
@@ -1219,7 +1611,7 @@ app.put('/api/clientes/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/clientes/:id', async (req, res) => {
+app.delete('/api/clientes/:id', requirePermission('clientes.eliminar'), async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -1739,7 +2131,7 @@ async function obtenerMembresiasPorCodigo(codigo) {
     return rows;
 }
 
-app.get('/api/membresias', async (req, res) => {
+app.get('/api/membresias', requirePermission('membresias.ver'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT 
@@ -1788,7 +2180,7 @@ app.get('/api/membresias', async (req, res) => {
     }
 });
 
-app.post('/api/membresias', async (req, res) => {
+app.post('/api/membresias', requirePermission('membresias.crear'), async (req, res) => {
     try {
         const {
             cliente_id,
@@ -1943,7 +2335,7 @@ if (membresiaExistente.length > 0) {
     }
 });
 
-app.post('/api/membresias/grupal', async (req, res) => {
+app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async (req, res) => {
     const conn = await pool.getConnection();
 
     try {
@@ -2181,7 +2573,7 @@ function validarDatosPlan(datos) {
     return null;
 }
 
-app.get('/api/planes', async (req, res) => {
+app.get('/api/planes', requirePermission('planes.ver'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -2211,7 +2603,7 @@ app.get('/api/planes', async (req, res) => {
     }
 });
 
-app.get('/api/validar/:codigo', async (req, res) => {
+app.get('/api/validar/:codigo', requirePermission('validacion.usar'), async (req, res) => {
     try {
         const { codigo } = req.params;
         const rows = await obtenerMembresiasPorCodigo(codigo);
@@ -2269,7 +2661,7 @@ app.get('/api/validar/:codigo', async (req, res) => {
     }
 });
 
-app.post('/api/validar', async (req, res) => {
+app.post('/api/validar', requirePermission('validacion.usar'), async (req, res) => {
     try {
         const { codigo, membresia_id } = req.body;
 
@@ -2300,7 +2692,7 @@ app.post('/api/validar', async (req, res) => {
     }
 });
 
-app.get('/api/validar-legacy/:codigo', async (req, res) => {
+app.get('/api/validar-legacy/:codigo', requirePermission('validacion.usar'), async (req, res) => {
     try {
         const { codigo } = req.params;
 
@@ -2430,7 +2822,7 @@ app.get('/api/validar-legacy/:codigo', async (req, res) => {
     }
 });
 
-app.get('/api/asistencias', async (req, res) => {
+app.get('/api/asistencias', requirePermission('asistencias.ver'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -2460,7 +2852,7 @@ app.get('/api/asistencias', async (req, res) => {
     }
 });
 
-app.get('/api/asistencias/:id', async (req, res) => {
+app.get('/api/asistencias/:id', requirePermission('asistencias.ver'), async (req, res) => {
     try {
         const { id } = req.params;
         const [rows] = await pool.query(`
@@ -2499,7 +2891,7 @@ app.get('/api/asistencias/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/asistencias/:id', async (req, res) => {
+app.delete('/api/asistencias/:id', requirePermission('asistencias.eliminar'), async (req, res) => {
     const conn = await pool.getConnection();
 
     try {
@@ -2555,7 +2947,7 @@ app.delete('/api/asistencias/:id', async (req, res) => {
     }
 });
 
-app.get('/api/exportar/clientes', async (req, res) => {
+app.get('/api/exportar/clientes', requirePermission('exportar.clientes'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -2580,7 +2972,7 @@ app.get('/api/exportar/clientes', async (req, res) => {
     }
 });
 
-app.get('/api/exportar/membresias', async (req, res) => {
+app.get('/api/exportar/membresias', requirePermission('exportar.membresias'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -2617,7 +3009,7 @@ app.get('/api/exportar/membresias', async (req, res) => {
     }
 });
 
-app.get('/api/exportar/asistencias', async (req, res) => {
+app.get('/api/exportar/asistencias', requirePermission('exportar.asistencias'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -2682,7 +3074,7 @@ function calcularPorcentajeComparacion(actual, anterior) {
 }
 
 
-app.get('/api/dashboard', async (req, res) => {
+app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) => {
     console.time('dashboard');
     try {
         //await actualizarMembresiasVencidas();
@@ -2857,7 +3249,7 @@ app.get('/api/dashboard', async (req, res) => {
     }
 });
 
-app.get('/api/notificaciones', async (req, res) => {
+app.get('/api/notificaciones', requirePermission('notificaciones.ver'), async (req, res) => {
     try {
         await sincronizarNotificacionesVencimiento();
 
@@ -2897,7 +3289,7 @@ app.get('/api/notificaciones', async (req, res) => {
     }
 });
 
-app.put('/api/notificaciones/:id/leida', async (req, res) => {
+app.put('/api/notificaciones/:id/leida', requirePermission('notificaciones.marcar_leida'), async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -2923,7 +3315,7 @@ app.put('/api/notificaciones/:id/leida', async (req, res) => {
     }
 });
 
-app.put('/api/notificaciones/leidas', async (req, res) => {
+app.put('/api/notificaciones/leidas', requirePermission('notificaciones.marcar_leida'), async (req, res) => {
     try {
         await pool.query(`
             UPDATE notificaciones
@@ -2940,7 +3332,7 @@ app.put('/api/notificaciones/leidas', async (req, res) => {
     }
 });
 
-app.delete('/api/notificaciones/:id', async (req, res) => {
+app.delete('/api/notificaciones/:id', requirePermission('notificaciones.eliminar'), async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -2964,7 +3356,7 @@ app.delete('/api/notificaciones/:id', async (req, res) => {
     }
 });
 
-app.get('/api/membresias', async (req, res) => {
+app.get('/api/membresias', requirePermission('membresias.ver'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -3013,7 +3405,7 @@ app.get('/api/membresias', async (req, res) => {
     }
 });
 
-app.delete('/api/membresias/:id', async (req, res) => {
+app.delete('/api/membresias/:id', requirePermission('membresias.eliminar'), async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -3085,7 +3477,7 @@ app.delete('/api/membresias/:id', async (req, res) => {
     }
 });
 
-app.put('/api/clientes/:id/desactivar', async (req, res) => {
+app.put('/api/clientes/:id/desactivar', requirePermission('clientes.eliminar'), async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -3205,7 +3597,7 @@ async function sincronizarEstadosClientes() {
     `);
 }
 
-app.get('/api/planes/todos', async (req, res) => {
+app.get('/api/planes/todos', requirePermission('planes.ver'), async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT
@@ -3234,7 +3626,7 @@ app.get('/api/planes/todos', async (req, res) => {
     }
 });
 
-app.post('/api/planes', async (req, res) => {
+app.post('/api/planes', requirePermission('planes.crear'), async (req, res) => {
     try {
         const datos = obtenerDatosPlan(req.body);
         const errorValidacion = validarDatosPlan(datos);
@@ -3272,7 +3664,7 @@ app.post('/api/planes', async (req, res) => {
     }
 });
 
-app.put('/api/planes/:id', async (req, res) => {
+app.put('/api/planes/:id', requirePermission('planes.editar'), async (req, res) => {
     try {
         const { id } = req.params;
         const datos = obtenerDatosPlan(req.body);
@@ -3311,7 +3703,7 @@ app.put('/api/planes/:id', async (req, res) => {
     }
 });
 
-app.put('/api/planes/:id/desactivar', async (req, res) => {
+app.put('/api/planes/:id/desactivar', requirePermission('planes.eliminar'), async (req, res) => {
     try {
         const { id } = req.params;
 

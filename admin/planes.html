@@ -123,7 +123,7 @@
           </div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="abrirModalPlan()">
+      <button class="btn btn-primary" onclick="abrirModalPlan()" data-permission="planes.crear">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nuevo Plan
       </button>
@@ -357,15 +357,16 @@ async function cargarPlanes() {
       </div>
 
       <div class="plan-actions">
-        <button class="btn btn-outline plan-action" onclick="editarPlan(${plan.id})">
+        <button class="btn btn-outline plan-action" onclick="editarPlan(${plan.id})" data-permission="planes.editar">
           Editar Plan
         </button>
-        <button class="btn btn-danger plan-action" onclick="abrirModalDesactivarPlan(${plan.id})" ${plan.estado === 'inactivo' ? 'disabled' : ''}>
+        <button class="btn btn-danger plan-action" onclick="abrirModalDesactivarPlan(${plan.id})" data-permission="planes.eliminar" ${plan.estado === 'inactivo' ? 'disabled' : ''}>
           ${plan.estado === 'inactivo' ? 'Inactivo' : 'Desactivar'}
         </button>
       </div>
     </div>
   `).join('');
+    window.AdminAuth?.applyPermissions?.(document);
   } catch (error) {
     console.error('Error cargando planes:', error);
     grid.innerHTML = '<div class="admin-list-state error">Error al cargar planes.</div>';

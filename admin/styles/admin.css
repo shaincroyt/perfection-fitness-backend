@@ -6708,6 +6708,92 @@ body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.a
       border-radius: 10px;
     }
 
+    body.admin-page-configuracion .role-permissions-panel {
+      margin-top: 24px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    body.admin-page-configuracion .role-permissions-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    body.admin-page-configuracion .role-permissions-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-1);
+    }
+
+    body.admin-page-configuracion .role-permissions-subtitle {
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    body.admin-page-configuracion .role-permissions-select-wrap {
+      min-width: 220px;
+    }
+
+    body.admin-page-configuracion .permissions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    body.admin-page-configuracion .permission-category {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      overflow: hidden;
+    }
+
+    body.admin-page-configuracion .permission-category-title {
+      padding: 11px 13px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-1);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    body.admin-page-configuracion .permission-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 11px 13px;
+      border-bottom: 1px solid rgba(229,231,235,.7);
+      cursor: pointer;
+    }
+
+    body.admin-page-configuracion .permission-option:last-child {
+      border-bottom: none;
+    }
+
+    body.admin-page-configuracion .permission-option input {
+      margin-top: 2px;
+      accent-color: var(--red);
+    }
+
+    body.admin-page-configuracion .permission-option strong {
+      display: block;
+      font-size: 13px;
+      color: var(--text-1);
+    }
+
+    body.admin-page-configuracion .permission-option small {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
     body.admin-page-configuracion .admin-users-table {
       width: 100%;
       min-width: 860px;
@@ -6787,6 +6873,9 @@ body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.a
       body.admin-page-configuracion .admin-user-form-grid { grid-template-columns: 1fr; }
       body.admin-page-configuracion .admin-user-actions { flex-direction: column; align-items: stretch; }
       body.admin-page-configuracion .admin-user-actions .btn { width: 100%; }
+      body.admin-page-configuracion .role-permissions-head { align-items: stretch; flex-direction: column; }
+      body.admin-page-configuracion .role-permissions-select-wrap { min-width: 0; }
+      body.admin-page-configuracion .permissions-grid { grid-template-columns: 1fr; }
     }
 
 /* ==============================

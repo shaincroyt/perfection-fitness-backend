@@ -2,7 +2,14 @@
   const API_URL = '/api';
   const state = {
     currentUser: null,
-    usuarios: []
+    usuarios: [],
+    permisos: [],
+    permisosAgrupados: {},
+    permisosRol: new Set(),
+    roles: [
+      { id: 'recepcion', codigo: 'recepcion', nombre: 'Recepcion' },
+      { id: 'admin', codigo: 'admin', nombre: 'Admin' }
+    ]
   };
 
   const $ = (id) => document.getElementById(id);
@@ -23,6 +30,11 @@
 
   function roleLabel(role) {
     return role === 'admin' ? 'Admin' : 'Recepcion';
+  }
+
+  function hasPermission(codigo) {
+    if (state.currentUser?.rol === 'admin') return true;
+    return Array.isArray(state.currentUser?.permisos) && state.currentUser.permisos.includes(codigo);
   }
 
   function formatDate(value) {
@@ -94,11 +106,15 @@
 
     const usersSection = $('usuariosAdminSection');
     if (usersSection) {
-      usersSection.hidden = user.rol !== 'admin';
+      usersSection.hidden = !hasPermission('usuarios.ver') && !hasPermission('roles.asignar_permisos');
     }
 
-    if (user.rol === 'admin') {
+    if (hasPermission('usuarios.ver')) {
       await loadUsers();
+    }
+
+    if (hasPermission('roles.asignar_permisos')) {
+      await loadRolePermissionsModule();
     }
 
     return user;
@@ -202,13 +218,14 @@
           <td>${escapeHtml(formatDate(user.fecha_creacion))}</td>
           <td>
             <div class="admin-users-actions">
-              <button type="button" class="table-action-btn" data-action="edit" data-id="${user.id}">Editar</button>
-              <button type="button" class="table-action-btn ${user.estado === 'activo' ? 'danger' : ''}" data-action="toggle" data-id="${user.id}" data-estado="${nextEstado}" ${isSelf && nextEstado === 'inactivo' ? 'disabled' : ''}>${toggleText}</button>
+              <button type="button" class="table-action-btn" data-action="edit" data-id="${user.id}" data-permission="usuarios.editar">Editar</button>
+              <button type="button" class="table-action-btn ${user.estado === 'activo' ? 'danger' : ''}" data-action="toggle" data-id="${user.id}" data-estado="${nextEstado}" data-permission="usuarios.desactivar" ${isSelf && nextEstado === 'inactivo' ? 'disabled' : ''}>${toggleText}</button>
             </div>
           </td>
         </tr>
       `;
     }).join('');
+    window.AdminAuth?.applyPermissions?.(tbody);
   }
 
   function resetUserForm() {
@@ -343,6 +360,156 @@
     });
   }
 
+  async function loadRoles() {
+    try {
+      const res = await fetch(`${API_URL}/admin/roles`, { credentials: 'include' });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && Array.isArray(data.roles)) {
+        state.roles = data.roles;
+      }
+    } catch (error) {
+      console.warn('No se pudieron cargar roles:', error);
+    }
+
+    renderRoleOptions();
+  }
+
+  function renderRoleOptions() {
+    const userRoleSelect = $('adminUserRol');
+    const permissionsRoleSelect = $('rolePermissionsSelect');
+    const options = state.roles.map(role => {
+      const codigo = role.codigo || role.id;
+      return `<option value="${escapeHtml(codigo)}">${escapeHtml(role.nombre || roleLabel(codigo))}</option>`;
+    }).join('');
+
+    if (userRoleSelect) {
+      const current = userRoleSelect.value || 'recepcion';
+      userRoleSelect.innerHTML = options;
+      userRoleSelect.value = state.roles.some(role => (role.codigo || role.id) === current) ? current : 'recepcion';
+    }
+
+    if (permissionsRoleSelect) {
+      const current = permissionsRoleSelect.value || 'recepcion';
+      permissionsRoleSelect.innerHTML = options;
+      permissionsRoleSelect.value = state.roles.some(role => (role.codigo || role.id) === current) ? current : 'recepcion';
+    }
+  }
+
+  async function loadPermissionsCatalog() {
+    const res = await fetch(`${API_URL}/admin/permisos`, { credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) throw new Error(data.error || 'Error al cargar permisos');
+
+    state.permisos = data.permisos || [];
+    state.permisosAgrupados = data.categorias || {};
+  }
+
+  async function loadRolePermissions(role) {
+    const res = await fetch(`${API_URL}/admin/roles/${encodeURIComponent(role)}/permisos`, {
+      credentials: 'include'
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) throw new Error(data.error || 'Error al cargar permisos del rol');
+
+    state.permisosRol = new Set(data.permisos || []);
+    renderPermissionsGrid(role);
+  }
+
+  function renderPermissionsGrid(role) {
+    const grid = $('permissionsGrid');
+    if (!grid) return;
+
+    const groupedEntries = Object.entries(state.permisosAgrupados);
+    if (groupedEntries.length === 0) {
+      grid.innerHTML = '<div class="admin-users-empty">No hay permisos registrados.</div>';
+      return;
+    }
+
+    const adminRole = role === 'admin';
+
+    grid.innerHTML = groupedEntries.map(([categoria, permisos]) => `
+      <div class="permission-category">
+        <div class="permission-category-title">${escapeHtml(categoria)}</div>
+        <div class="permission-list">
+          ${(permisos || []).map(permiso => {
+            const checked = adminRole || state.permisosRol.has(permiso.codigo);
+            return `
+              <label class="permission-option">
+                <input type="checkbox" value="${escapeHtml(permiso.codigo)}" ${checked ? 'checked' : ''} ${adminRole ? 'disabled' : ''}>
+                <span>
+                  <strong>${escapeHtml(permiso.nombre)}</strong>
+                  <small>${escapeHtml(permiso.codigo)}</small>
+                </span>
+              </label>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    const saveBtn = $('saveRolePermissions');
+    if (saveBtn) {
+      saveBtn.disabled = adminRole;
+      saveBtn.textContent = adminRole ? 'Admin conserva todos los permisos' : 'Guardar permisos';
+    }
+  }
+
+  async function loadRolePermissionsModule() {
+    const panel = $('rolePermissionsPanel');
+    if (panel) panel.hidden = false;
+
+    await loadRoles();
+    await loadPermissionsCatalog();
+    await loadRolePermissions($('rolePermissionsSelect')?.value || 'recepcion');
+    window.AdminAuth?.applyPermissions?.(document);
+  }
+
+  async function handleRoleChange() {
+    try {
+      await loadRolePermissions($('rolePermissionsSelect').value);
+    } catch (error) {
+      showMessage('rolePermissions', 'error', error.message || 'Error al cargar permisos');
+    }
+  }
+
+  async function saveRolePermissions() {
+    const select = $('rolePermissionsSelect');
+    const grid = $('permissionsGrid');
+    if (!select || !grid) return;
+
+    const role = select.value;
+    const permisos = Array.from(grid.querySelectorAll('input[type="checkbox"]:checked'))
+      .map(input => input.value);
+    const btn = $('saveRolePermissions');
+
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      const res = await fetch(`${API_URL}/admin/roles/${encodeURIComponent(role)}/permisos`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ permisos })
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) throw new Error(data.error || 'Error al guardar permisos');
+
+      state.permisosRol = new Set(data.permisos || permisos);
+      showMessage('rolePermissions', 'success', 'Permisos guardados correctamente');
+      renderPermissionsGrid(role);
+    } catch (error) {
+      showMessage('rolePermissions', 'error', error.message || 'Error al guardar permisos');
+    } finally {
+      btn.disabled = role === 'admin';
+      btn.textContent = role === 'admin' ? 'Admin conserva todos los permisos' : 'Guardar permisos';
+    }
+  }
+
   function bindForms() {
     const passwordForm = $('passwordForm');
     if (passwordForm) passwordForm.addEventListener('submit', handlePasswordSubmit);
@@ -352,6 +519,12 @@
 
     const cancel = $('adminUserCancel');
     if (cancel) cancel.addEventListener('click', resetUserForm);
+
+    const rolePermissionsSelect = $('rolePermissionsSelect');
+    if (rolePermissionsSelect) rolePermissionsSelect.addEventListener('change', handleRoleChange);
+
+    const savePermissions = $('saveRolePermissions');
+    if (savePermissions) savePermissions.addEventListener('click', saveRolePermissions);
   }
 
   async function init() {
