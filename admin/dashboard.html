@@ -39,7 +39,7 @@
         <div class="nav-item" onclick="window.location.href='clientes.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
           Clientes
-          <span class="nav-badge" id="clientesBadge">0</span>
+          <span class="nav-badge loading-value" id="clientesBadge">--</span>
         </div>
 
         <div class="nav-item" onclick="window.location.href='membresias.html'">
@@ -110,12 +110,12 @@
         <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
         <span class="notif-dot"></span>
-      <span class="notif-count" id="notifCount">0</span>
+      <span class="notif-count loading-value" id="notifCount">--</span>
         </button>
         <div class="notification-popover" id="notificationPopover">
           <div class="notification-head">
             <div class="notification-title">Notificaciones</div>
-            <div class="notification-total" id="notificationTotal">0 pendientes</div>
+            <div class="notification-total loading-value" id="notificationTotal">--</div>
           </div>
           <div class="notification-list" id="notificationList">
             <div class="notification-empty">Cargando notificaciones...</div>
@@ -139,8 +139,8 @@
         </div>
         <div>
           <div class="stat-label">Clientes Activos</div>
-          <div class="stat-value" id="statClientesActivos">0</div>
-          <div class="stat-sub" id="subClientesMes">+0 este mes</div>
+          <div class="stat-value loading-value" id="statClientesActivos">--</div>
+          <div class="stat-sub loading-value" id="subClientesMes">--</div>
         </div>
       </div>
  
@@ -153,8 +153,8 @@
         </div>
         <div>
           <div class="stat-label">Membresías Activas</div>
-          <div class="stat-value" id="statMembresiasActivas">0</div>
-          <div class="stat-sub" id="subTotalClientes">de 0 clientes</div>
+          <div class="stat-value loading-value" id="statMembresiasActivas">--</div>
+          <div class="stat-sub loading-value" id="subTotalClientes">--</div>
         </div>
       </div>
  
@@ -167,8 +167,8 @@
         </div>
         <div>
           <div class="stat-label">Por Vencer (7 días)</div>
-          <div class="stat-value" id="statPorVencer">0</div>
-          <div class="stat-sub" id="subRenovacion">requieren renovación</div>
+          <div class="stat-value loading-value" id="statPorVencer">--</div>
+          <div class="stat-sub loading-value" id="subRenovacion">--</div>
         </div>
       </div>
  
@@ -181,7 +181,7 @@
         </div>
         <div>
           <div class="stat-label">Ingresos del Mes</div>
-          <div class="stat-value" id="statIngresosMes">S/0</div>
+          <div class="stat-value loading-value" id="statIngresosMes">--</div>
         </div>
       </div>
     </div>
@@ -203,7 +203,11 @@
             </tr>
           </thead>
           <tbody id="vencimientosBody">
-            
+            <tr>
+              <td colspan="4" class="admin-loading-cell">
+                <span class="admin-loading-inline"><span class="admin-mini-spinner"></span>Cargando vencimientos...</span>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -216,7 +220,9 @@
         <a href="clientes.html" class="section-link">Ver todos →</a>
       </div>
       <div class="clients-grid" id="ultimosClientesGrid">
-        
+        <div class="admin-list-state">
+          <span class="admin-loading-inline"><span class="admin-mini-spinner"></span>Cargando clientes...</span>
+        </div>
       </div>
     </section>
  
@@ -318,41 +324,58 @@
     delta.style.display = 'inline-block';
   }
 
+  function setLoaded(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('loading-value');
+    el.textContent = value;
+  }
+
+  function setDashboardError() {
+    ['statClientesActivos', 'statMembresiasActivas', 'statPorVencer', 'statIngresosMes'].forEach(id => {
+      setLoaded(id, '--');
+    });
+    ['subClientesMes', 'subTotalClientes', 'subRenovacion'].forEach(id => {
+      setLoaded(id, 'No disponible');
+    });
+  }
+
   async function cargarDashboard() {
     try {
       const res = await fetch(`${API_URL}/dashboard`);
       const data = await res.json();
 
-      document.getElementById('statClientesActivos').textContent =
-        data.clientes_activos;
+      setLoaded('statClientesActivos', data.clientes_activos);
 
-      document.getElementById('statMembresiasActivas').textContent =
-        data.membresias_activas;
+      setLoaded('statMembresiasActivas', data.membresias_activas);
 
-      document.getElementById('statPorVencer').textContent =
-        data.por_vencer;
+      setLoaded('statPorVencer', data.por_vencer);
 
-      document.getElementById('statIngresosMes').textContent =
-        `S/${Number(data.ingresos_mes).toFixed(2)}`;
+      setLoaded('statIngresosMes', `S/${Number(data.ingresos_mes).toFixed(2)}`);
 
       actualizarDelta('deltaClientes', data.porcentaje_clientes_mes);
       actualizarDelta('deltaMembresias', data.porcentaje_membresias_mes);
       actualizarDelta('deltaIngresos', data.porcentaje_ingresos_mes);
 
-        document.getElementById('subClientesMes').textContent =
-  `+${data.clientes_mes} este mes`;
+      setLoaded('subClientesMes', `+${data.clientes_mes} este mes`);
 
-document.getElementById('subTotalClientes').textContent =
-  `de ${data.total_clientes} clientes`;
+      setLoaded('subTotalClientes', `de ${data.total_clientes} clientes`);
 
-document.getElementById('subRenovacion').textContent =
+      setLoaded('subRenovacion',
   data.por_vencer === 1
     ? 'requiere renovación'
-    : 'requieren renovación';
+    : 'requieren renovación');
 
       const vencimientosBody = document.getElementById('vencimientosBody');
 
-      vencimientosBody.innerHTML = data.vencimientos.map(item => `
+      if (!Array.isArray(data.vencimientos) || data.vencimientos.length === 0) {
+        vencimientosBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="admin-empty-cell">No hay vencimientos proximos.</td>
+          </tr>
+        `;
+      } else {
+        vencimientosBody.innerHTML = data.vencimientos.map(item => `
         <tr>
           <td>
             <div class="avatar-cell">
@@ -368,10 +391,14 @@ document.getElementById('subRenovacion').textContent =
           <td>${estadoVisualBadge(item)}</td>
         </tr>
       `).join('');
+      }
 
       const clientesGrid = document.getElementById('ultimosClientesGrid');
 
-      clientesGrid.innerHTML = data.ultimos_clientes.map(cliente => `
+      if (!Array.isArray(data.ultimos_clientes) || data.ultimos_clientes.length === 0) {
+        clientesGrid.innerHTML = '<div class="admin-list-state">No hay clientes recientes.</div>';
+      } else {
+        clientesGrid.innerHTML = data.ultimos_clientes.map(cliente => `
         <div class="client-card">
           <div class="client-avatar">${initials(cliente.nombre)}</div>
           <div>
@@ -387,9 +414,18 @@ document.getElementById('subRenovacion').textContent =
           </div>
         </div>
       `).join('');
+      }
 
     } catch (error) {
       console.error('Error cargando dashboard:', error);
+      setDashboardError();
+      document.getElementById('vencimientosBody').innerHTML = `
+        <tr>
+          <td colspan="4" class="admin-error-cell">Error al cargar vencimientos.</td>
+        </tr>
+      `;
+      document.getElementById('ultimosClientesGrid').innerHTML =
+        '<div class="admin-list-state error">Error al cargar clientes recientes.</div>';
     }
   }
 
@@ -414,15 +450,22 @@ document.getElementById('subRenovacion').textContent =
     const membresias = document.getElementById('membresiasBadge');
 
     if (clientes) {
+      clientes.classList.remove('loading-value');
       clientes.textContent = data.clientes;
     }
 
     if (membresias) {
+      membresias.classList.remove('loading-value');
       membresias.textContent = data.membresias;
     }
 
   } catch (error) {
     console.error('Error sidebar:', error);
+    const clientes = document.getElementById('clientesBadge');
+    if (clientes) {
+      clientes.classList.remove('loading-value');
+      clientes.textContent = '--';
+    }
   }
 }
 
@@ -480,6 +523,8 @@ cargarSidebar();
       notificacionesPrevias = idsActuales;
       notificacionesInicializadas = true;
 
+      count.classList.remove('loading-value');
+      total.classList.remove('loading-value');
       count.style.display = notificaciones.length > 0 ? 'flex' : 'none';
       count.textContent = notificaciones.length > 9 ? '9+' : notificaciones.length;
       total.textContent = notificaciones.length === 1 ? '1 pendiente' : notificaciones.length + ' pendientes';
@@ -501,6 +546,18 @@ cargarSidebar();
       `).join('');
     } catch (error) {
       console.error('Error notificaciones:', error);
+      const count = document.getElementById('notifCount');
+      const total = document.getElementById('notificationTotal');
+      const list = document.getElementById('notificationList');
+      if (count) {
+        count.classList.remove('loading-value');
+        count.style.display = 'none';
+      }
+      if (total) {
+        total.classList.remove('loading-value');
+        total.textContent = 'No disponible';
+      }
+      if (list) list.innerHTML = '<div class="notification-empty">Error al cargar notificaciones</div>';
     }
   }
 

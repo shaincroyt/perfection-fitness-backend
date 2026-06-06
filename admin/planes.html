@@ -39,7 +39,7 @@
         <div class="nav-item" onclick="window.location.href='clientes.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
           Clientes
-          <span class="nav-badge" id="clientesBadge">0</span>
+          <span class="nav-badge loading-value" id="clientesBadge">--</span>
         </div>
 
         <div class="nav-item" onclick="window.location.href='membresias.html'">
@@ -110,12 +110,12 @@
         <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
         <span class="notif-dot"></span>
-      <span class="notif-count" id="notifCount">0</span>
+      <span class="notif-count loading-value" id="notifCount">--</span>
         </button>
         <div class="notification-popover" id="notificationPopover">
           <div class="notification-head">
             <div class="notification-title">Notificaciones</div>
-            <div class="notification-total" id="notificationTotal">0 pendientes</div>
+            <div class="notification-total loading-value" id="notificationTotal">--</div>
           </div>
           <div class="notification-list" id="notificationList">
             <div class="notification-empty">Cargando notificaciones...</div>
@@ -141,7 +141,26 @@
     </div>
 
     <!-- PLAN CARDS GRID -->
-    <div class="plans-grid" id="planesGrid"></div>
+    <div class="plans-grid" id="planesGrid">
+      <div class="plan-card admin-card-skeleton">
+        <span class="loading-value sk-title">--</span>
+        <span class="loading-value sk-price">--</span>
+        <span class="loading-value sk-line">--</span>
+        <span class="loading-value sk-actions">--</span>
+      </div>
+      <div class="plan-card admin-card-skeleton">
+        <span class="loading-value sk-title">--</span>
+        <span class="loading-value sk-price">--</span>
+        <span class="loading-value sk-line">--</span>
+        <span class="loading-value sk-actions">--</span>
+      </div>
+      <div class="plan-card admin-card-skeleton">
+        <span class="loading-value sk-title">--</span>
+        <span class="loading-value sk-price">--</span>
+        <span class="loading-value sk-line">--</span>
+        <span class="loading-value sk-actions">--</span>
+      </div>
+    </div>
 
   </main>
 </div>
@@ -250,12 +269,41 @@ function textoDuracion(plan) {
 }
 
 async function cargarPlanes() {
-  const res = await fetch(`${API_URL}/planes/todos`);
-  planes = await res.json();
-
   const grid = document.getElementById('planesGrid');
+  grid.innerHTML = `
+    <div class="plan-card admin-card-skeleton">
+      <span class="loading-value sk-title">--</span>
+      <span class="loading-value sk-price">--</span>
+      <span class="loading-value sk-line">--</span>
+      <span class="loading-value sk-actions">--</span>
+    </div>
+    <div class="plan-card admin-card-skeleton">
+      <span class="loading-value sk-title">--</span>
+      <span class="loading-value sk-price">--</span>
+      <span class="loading-value sk-line">--</span>
+      <span class="loading-value sk-actions">--</span>
+    </div>
+    <div class="plan-card admin-card-skeleton">
+      <span class="loading-value sk-title">--</span>
+      <span class="loading-value sk-price">--</span>
+      <span class="loading-value sk-line">--</span>
+      <span class="loading-value sk-actions">--</span>
+    </div>
+  `;
 
-  grid.innerHTML = planes.map(plan => `
+  try {
+    const res = await fetch(`${API_URL}/planes/todos`);
+    if (!res.ok) {
+      throw new Error('Error al obtener planes');
+    }
+    planes = await res.json();
+
+    if (!Array.isArray(planes) || planes.length === 0) {
+      grid.innerHTML = '<div class="admin-list-state">No hay planes registrados.</div>';
+      return;
+    }
+
+    grid.innerHTML = planes.map(plan => `
     <div class="plan-card ${plan.estado === 'inactivo' ? 'inactive' : ''}">
       <div class="plan-header">
         <div class="plan-name">${plan.nombre}</div>
@@ -287,6 +335,10 @@ async function cargarPlanes() {
       </div>
     </div>
   `).join('');
+  } catch (error) {
+    console.error('Error cargando planes:', error);
+    grid.innerHTML = '<div class="admin-list-state error">Error al cargar planes.</div>';
+  }
 }
 
 function abrirModalPlan() {
@@ -408,10 +460,16 @@ async function cargarSidebar() {
     const clientes = document.getElementById('clientesBadge');
 
     if (clientes) {
+      clientes.classList.remove('loading-value');
       clientes.textContent = data.clientes;
     }
   } catch (error) {
     console.error('Error sidebar:', error);
+    const clientes = document.getElementById('clientesBadge');
+    if (clientes) {
+      clientes.classList.remove('loading-value');
+      clientes.textContent = '--';
+    }
   }
 }
 
@@ -470,6 +528,8 @@ cargarSidebar();
       notificacionesPrevias = idsActuales;
       notificacionesInicializadas = true;
 
+      count.classList.remove('loading-value');
+      total.classList.remove('loading-value');
       count.style.display = notificaciones.length > 0 ? 'flex' : 'none';
       count.textContent = notificaciones.length > 9 ? '9+' : notificaciones.length;
       total.textContent = notificaciones.length === 1 ? '1 pendiente' : notificaciones.length + ' pendientes';
@@ -491,6 +551,18 @@ cargarSidebar();
       `).join('');
     } catch (error) {
       console.error('Error notificaciones:', error);
+      const count = document.getElementById('notifCount');
+      const total = document.getElementById('notificationTotal');
+      const list = document.getElementById('notificationList');
+      if (count) {
+        count.classList.remove('loading-value');
+        count.style.display = 'none';
+      }
+      if (total) {
+        total.classList.remove('loading-value');
+        total.textContent = 'No disponible';
+      }
+      if (list) list.innerHTML = '<div class="notification-empty">Error al cargar notificaciones</div>';
     }
   }
 

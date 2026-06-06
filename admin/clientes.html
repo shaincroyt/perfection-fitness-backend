@@ -39,7 +39,7 @@
         <div class="nav-item active" onclick="window.location.href='clientes.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
           Clientes
-          <span class="nav-badge" id="clientesBadge">0</span>
+          <span class="nav-badge loading-value" id="clientesBadge">--</span>
         </div>
 
         <div class="nav-item" onclick="window.location.href='membresias.html'">
@@ -110,12 +110,12 @@
         <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
         <span class="notif-dot"></span>
-      <span class="notif-count" id="notifCount">0</span>
+      <span class="notif-count loading-value" id="notifCount">--</span>
         </button>
         <div class="notification-popover" id="notificationPopover">
           <div class="notification-head">
             <div class="notification-title">Notificaciones</div>
-            <div class="notification-total" id="notificationTotal">0 pendientes</div>
+            <div class="notification-total loading-value" id="notificationTotal">--</div>
           </div>
           <div class="notification-list" id="notificationList">
             <div class="notification-empty">Cargando notificaciones...</div>
@@ -145,7 +145,7 @@
         </div>
         <div>
           <div class="stat-label">Total Clientes</div>
-          <div class="stat-value">0</div>
+          <div class="stat-value loading-value">--</div>
         </div>
       </div>
       <div class="stat-card c-green">
@@ -156,7 +156,7 @@
         </div>
         <div>
           <div class="stat-label">Activos</div>
-          <div class="stat-value">0</div>
+          <div class="stat-value loading-value">--</div>
         </div>
       </div>
       <div class="stat-card c-orange">
@@ -167,7 +167,7 @@
         </div>
         <div>
           <div class="stat-label">Pendientes</div>
-          <div class="stat-value">0</div>
+          <div class="stat-value loading-value">--</div>
         </div>
       </div>
       <div class="stat-card c-gray">
@@ -178,7 +178,7 @@
         </div>
         <div>
           <div class="stat-label">Inactivos</div>
-          <div class="stat-value">0</div>
+          <div class="stat-value loading-value">--</div>
         </div>
       </div>
     </div>
@@ -468,10 +468,20 @@ const res = await fetch(url, {
 
   async function cargarClientes() {
     const tbody = document.getElementById('tableBody');
+    const info = document.getElementById('tableInfo');
+    const empty = document.getElementById('emptyState');
+    const pag = document.getElementById('pagination');
+    document.querySelectorAll('.stat-value').forEach(value => {
+      value.classList.add('loading-value');
+      value.textContent = '--';
+    });
+    if (info) info.textContent = 'Cargando datos...';
+    if (empty) empty.style.display = 'none';
+    if (pag) pag.innerHTML = '';
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align:center;color:var(--text-3);padding:30px;">
-          Cargando clientes...
+        <td colspan="7" class="admin-loading-cell">
+          <span class="admin-loading-inline"><span class="admin-mini-spinner"></span>Cargando clientes...</span>
         </td>
       </tr>
     `;
@@ -491,6 +501,7 @@ const res = await fetch(url, {
       const badge = document.getElementById('clientesBadge');
 
 if (badge) {
+  badge.classList.remove('loading-value');
   badge.textContent = clients.length;
 }
 
@@ -500,11 +511,21 @@ if (badge) {
       console.error(error);
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" style="text-align:center;color:#dc2626;padding:30px;">
+          <td colspan="7" class="admin-error-cell">
             Error al cargar clientes
           </td>
         </tr>
       `;
+      document.querySelectorAll('.stat-value').forEach(value => {
+        value.classList.remove('loading-value');
+        value.textContent = '--';
+      });
+      if (info) info.textContent = 'No se pudieron cargar los datos.';
+      const badge = document.getElementById('clientesBadge');
+      if (badge) {
+        badge.classList.remove('loading-value');
+        badge.textContent = '--';
+      }
     }
   }
 
@@ -519,6 +540,7 @@ if (badge) {
     ).length;
 
     const values = document.querySelectorAll('.stat-value');
+    values.forEach(value => value.classList.remove('loading-value'));
     if (values[0]) values[0].textContent = total;
     if (values[1]) values[1].textContent = activos;
     if (values[2]) values[2].textContent = pendientes;
@@ -861,6 +883,8 @@ window.darMembresia = function(clienteId) {
       notificacionesPrevias = idsActuales;
       notificacionesInicializadas = true;
 
+      count.classList.remove('loading-value');
+      total.classList.remove('loading-value');
       count.style.display = notificaciones.length > 0 ? 'flex' : 'none';
       count.textContent = notificaciones.length > 9 ? '9+' : notificaciones.length;
       total.textContent = notificaciones.length === 1 ? '1 pendiente' : notificaciones.length + ' pendientes';
@@ -882,6 +906,18 @@ window.darMembresia = function(clienteId) {
       `).join('');
     } catch (error) {
       console.error('Error notificaciones:', error);
+      const count = document.getElementById('notifCount');
+      const total = document.getElementById('notificationTotal');
+      const list = document.getElementById('notificationList');
+      if (count) {
+        count.classList.remove('loading-value');
+        count.style.display = 'none';
+      }
+      if (total) {
+        total.classList.remove('loading-value');
+        total.textContent = 'No disponible';
+      }
+      if (list) list.innerHTML = '<div class="notification-empty">Error al cargar notificaciones</div>';
     }
   }
 
