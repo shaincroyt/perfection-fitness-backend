@@ -45,26 +45,108 @@ app.use(session({
     }
 }));
 
-function requireAdminSession(req, res, next) {
-    if (req.session && req.session.admin && req.session.adminId) {
-        return next();
-    }
+const ROLES_ADMIN = new Set(['admin', 'recepcion']);
+const ESTADOS_ADMIN = new Set(['activo', 'inactivo']);
 
+function responderSesionInvalida(req, res, mensaje = 'Sesion no activa') {
     if (req.originalUrl.startsWith('/admin')) {
         return res.redirect('/admin/login.html');
     }
 
     return res.status(401).json({
         ok: false,
-        error: 'Sesion no activa'
+        error: mensaje
     });
+}
+
+function destruirSesion(req) {
+    return new Promise(resolve => {
+        if (!req.session) return resolve();
+        req.session.destroy(() => resolve());
+    });
+}
+
+function regenerarSesion(req) {
+    return new Promise((resolve, reject) => {
+        req.session.regenerate(error => {
+            if (error) return reject(error);
+            return resolve();
+        });
+    });
+}
+
+async function obtenerUsuarioSesion(req) {
+    if (!req.session || !req.session.admin || !req.session.adminId) {
+        return null;
+    }
+
+    const [rows] = await pool.query(
+        `SELECT id, usuario, nombre, estado, rol, session_id, ultimo_login, fecha_creacion
+         FROM usuarios_admin
+         WHERE id = ?
+         LIMIT 1`,
+        [req.session.adminId]
+    );
+
+    return rows[0] || null;
+}
+
+async function requireAdminSession(req, res, next) {
+    try {
+        const admin = await obtenerUsuarioSesion(req);
+
+        if (!admin || admin.estado !== 'activo') {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return responderSesionInvalida(req, res);
+        }
+
+        if (!admin.session_id || admin.session_id !== req.sessionID) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return responderSesionInvalida(req, res, 'Sesion invalidada por un nuevo inicio de sesion');
+        }
+
+        req.session.admin = true;
+        req.session.adminId = admin.id;
+        req.session.adminNombre = admin.nombre;
+        req.session.adminUsuario = admin.usuario;
+        req.session.adminRol = admin.rol || 'recepcion';
+        req.adminUser = admin;
+
+        return next();
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al validar sesion'
+        });
+    }
+}
+
+function requireRole(rol) {
+    return (req, res, next) => {
+        const rolActual = req.adminUser && req.adminUser.rol
+            ? req.adminUser.rol
+            : req.session && req.session.adminRol;
+
+        if (rolActual === rol) {
+            return next();
+        }
+
+        return res.status(403).json({
+            ok: false,
+            error: 'Forbidden'
+        });
+    };
 }
 
 function getSessionAdmin(req) {
     return {
         id: req.session.adminId,
         nombre: req.session.adminNombre,
-        usuario: req.session.adminUsuario
+        usuario: req.session.adminUsuario,
+        rol: req.session.adminRol || 'recepcion'
     };
 }
 
@@ -83,6 +165,30 @@ function formatearFechaCorta(valor) {
     });
 }
 
+let notificacionesEventoKeyDisponible = null;
+
+async function tieneColumnaEventoKey(conn = pool) {
+    if (notificacionesEventoKeyDisponible !== null) {
+        return notificacionesEventoKeyDisponible;
+    }
+
+    try {
+        const [rows] = await conn.query(`
+            SELECT COUNT(*) AS total
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'notificaciones'
+            AND COLUMN_NAME = 'evento_key'
+        `);
+
+        notificacionesEventoKeyDisponible = Number(rows[0]?.total || 0) > 0;
+        return notificacionesEventoKeyDisponible;
+    } catch (error) {
+        notificacionesEventoKeyDisponible = false;
+        return false;
+    }
+}
+
 async function crearNotificacion({
     tipo,
     titulo,
@@ -90,9 +196,31 @@ async function crearNotificacion({
     entidad,
     entidad_id,
     usuario_id = null,
-    usuario_nombre = null
+    usuario_nombre = null,
+    evento_key = 'default'
 }, conn = pool) {
     try {
+        const usarEventoKey = await tieneColumnaEventoKey(conn);
+
+        if (usarEventoKey) {
+            await conn.query(
+                `INSERT IGNORE INTO notificaciones
+                 (tipo, titulo, mensaje, entidad, entidad_id, usuario_id, usuario_nombre, evento_key)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    tipo,
+                    titulo,
+                    mensaje,
+                    entidad,
+                    entidad_id,
+                    usuario_id,
+                    usuario_nombre,
+                    evento_key
+                ]
+            );
+            return;
+        }
+
         await conn.query(
             `INSERT IGNORE INTO notificaciones
              (tipo, titulo, mensaje, entidad, entidad_id, usuario_id, usuario_nombre)
@@ -102,7 +230,7 @@ async function crearNotificacion({
                 titulo,
                 mensaje,
                 entidad,
-                entidad_id,
+                evento_key === null ? Math.floor(Math.random() * 2147483647) : entidad_id,
                 usuario_id,
                 usuario_nombre
             ]
@@ -117,6 +245,27 @@ function adminNotificacion(req) {
         usuario_id: req.session && req.session.adminId ? req.session.adminId : null,
         usuario_nombre: req.session && req.session.adminNombre ? req.session.adminNombre : null
     };
+}
+
+function nombreRol(rol) {
+    return rol === 'admin' ? 'admin' : 'recepcion';
+}
+
+async function crearNotificacionAuditoriaUsuario(req, {
+    tipo,
+    titulo,
+    mensaje,
+    entidad_id
+}) {
+    await crearNotificacion({
+        tipo,
+        titulo,
+        mensaje,
+        entidad: 'usuario_admin',
+        entidad_id,
+        ...adminNotificacion(req),
+        evento_key: null
+    });
 }
 
 async function obtenerResumenMembresia(id, conn = pool) {
@@ -215,12 +364,12 @@ app.post('/api/admin/crear-inicial', async (req, res) => {
         }
 
         const usuarioLimpio = String(usuario).trim();
-        const nombreLimpio = String(nombre || 'Recepción').trim();
+        const nombreLimpio = String(nombre || 'Administrador').trim();
         const passwordHash = await generarHashPassword(password);
 
         const [result] = await pool.query(
-            `INSERT INTO usuarios_admin (usuario, password_hash, nombre, estado)
-             VALUES (?, ?, ?, 'activo')`,
+            `INSERT INTO usuarios_admin (usuario, password_hash, nombre, estado, rol)
+             VALUES (?, ?, ?, 'activo', 'admin')`,
             [usuarioLimpio, passwordHash, nombreLimpio]
         );
 
@@ -229,7 +378,8 @@ app.post('/api/admin/crear-inicial', async (req, res) => {
             admin: {
                 id: result.insertId,
                 usuario: usuarioLimpio,
-                nombre: nombreLimpio
+                nombre: nombreLimpio,
+                rol: 'admin'
             }
         });
 
@@ -254,7 +404,7 @@ app.post('/api/login', async (req, res) => {
         }
 
         const [rows] = await pool.query(
-            `SELECT id, usuario, password_hash, nombre, estado
+            `SELECT id, usuario, password_hash, nombre, estado, rol
              FROM usuarios_admin
              WHERE usuario = ?
              LIMIT 1`,
@@ -282,18 +432,40 @@ app.post('/api/login', async (req, res) => {
             });
         }
 
+        await regenerarSesion(req);
+
         req.session.admin = true;
         req.session.adminId = admin.id;
         req.session.adminNombre = admin.nombre;
         req.session.adminUsuario = admin.usuario;
+        req.session.adminRol = admin.rol || 'recepcion';
         req.session.loginAt = new Date().toISOString();
+
+        await pool.query(
+            `UPDATE usuarios_admin
+             SET session_id = ?, ultimo_login = NOW()
+             WHERE id = ?`,
+            [req.sessionID, admin.id]
+        );
+
+        await crearNotificacion({
+            tipo: 'usuario_login',
+            titulo: 'Inicio de sesion',
+            mensaje: `${admin.nombre} inicio sesion como ${nombreRol(admin.rol)}.`,
+            entidad: 'usuario_admin',
+            entidad_id: admin.id,
+            usuario_id: admin.id,
+            usuario_nombre: admin.nombre,
+            evento_key: null
+        });
 
         return res.json({
             ok: true,
             admin: {
                 id: admin.id,
                 nombre: admin.nombre,
-                usuario: admin.usuario
+                usuario: admin.usuario,
+                rol: admin.rol || 'recepcion'
             }
         });
 
@@ -306,7 +478,20 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/logout', (req, res) => {
+app.post('/api/logout', async (req, res) => {
+    try {
+        if (req.session && req.session.adminId) {
+            await pool.query(
+                `UPDATE usuarios_admin
+                 SET session_id = NULL
+                 WHERE id = ? AND session_id = ?`,
+                [req.session.adminId, req.sessionID]
+            );
+        }
+    } catch (error) {
+        console.error('Error limpiando session_id:', error);
+    }
+
     req.session.destroy(error => {
         if (error) {
             return res.status(500).json({
@@ -320,35 +505,72 @@ app.post('/api/logout', (req, res) => {
     });
 });
 
-app.get('/api/verificar-sesion', (req, res) => {
-    if (!req.session || !req.session.admin) {
+app.get('/api/verificar-sesion', async (req, res) => {
+    try {
+        const admin = await obtenerUsuarioSesion(req);
+
+        if (!admin || admin.estado !== 'activo' || !admin.session_id || admin.session_id !== req.sessionID) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.status(401).json({
+                logueado: false
+            });
+        }
+
+        req.session.adminRol = admin.rol || 'recepcion';
+
         return res.json({
-            logueado: false
+            logueado: true,
+            admin: {
+                id: admin.id,
+                nombre: admin.nombre,
+                usuario: admin.usuario,
+                rol: admin.rol || 'recepcion'
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            logueado: false,
+            error: 'Error al verificar sesion'
         });
     }
-
-    return res.json({
-        logueado: true,
-        admin: {
-            id: req.session.adminId,
-            nombre: req.session.adminNombre,
-            usuario: req.session.adminUsuario
-        }
-    });
 });
 
-app.get('/api/auth/session', (req, res) => {
-    if (!req.session || !req.session.admin || !req.session.adminId) {
-        return res.status(401).json({
+app.get('/api/auth/session', async (req, res) => {
+    try {
+        const admin = await obtenerUsuarioSesion(req);
+
+        if (!admin || admin.estado !== 'activo' || !admin.session_id || admin.session_id !== req.sessionID) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.status(401).json({
+                ok: false,
+                error: 'Sesion no activa'
+            });
+        }
+
+        req.session.adminRol = admin.rol || 'recepcion';
+
+        const adminSesion = {
+            id: admin.id,
+            nombre: admin.nombre,
+            usuario: admin.usuario,
+            rol: admin.rol || 'recepcion'
+        };
+
+        return res.json({
+            ok: true,
+            ...adminSesion,
+            admin: adminSesion
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
             ok: false,
-            error: 'Sesion no activa'
+            error: 'Error al validar sesion'
         });
     }
-
-    return res.json({
-        ok: true,
-        admin: getSessionAdmin(req)
-    });
 });
 
 app.use('/api', requireAdminSession);
@@ -367,7 +589,7 @@ app.get('/api/admin/perfil', async (req, res) => {
             FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_NAME = 'usuarios_admin'
-            AND COLUMN_NAME IN ('fecha_creacion', 'created_at', 'ultimo_acceso', 'last_login', 'rol')
+            AND COLUMN_NAME IN ('fecha_creacion', 'created_at', 'ultimo_login', 'ultimo_acceso', 'last_login', 'rol')
         `);
 
         const columnas = new Set(columns.map(col => col.COLUMN_NAME));
@@ -376,11 +598,13 @@ app.get('/api/admin/perfil', async (req, res) => {
             : columnas.has('created_at')
                 ? 'created_at AS fecha_creacion'
                 : 'NULL AS fecha_creacion';
-        const ultimoAcceso = columnas.has('ultimo_acceso')
-            ? 'ultimo_acceso'
-            : columnas.has('last_login')
-                ? 'last_login AS ultimo_acceso'
-                : 'NULL AS ultimo_acceso';
+        const ultimoAcceso = columnas.has('ultimo_login')
+            ? 'ultimo_login AS ultimo_acceso'
+            : columnas.has('ultimo_acceso')
+                ? 'ultimo_acceso'
+                : columnas.has('last_login')
+                    ? 'last_login AS ultimo_acceso'
+                    : 'NULL AS ultimo_acceso';
         const rol = columnas.has('rol')
             ? 'rol'
             : 'NULL AS rol';
@@ -417,7 +641,7 @@ app.get('/api/admin/perfil', async (req, res) => {
             fecha_creacion: admin.fecha_creacion,
             ultimo_acceso: admin.ultimo_acceso,
             sesion_iniciada: req.session.loginAt || null,
-            rol: admin.rol || (admin.id === 1 ? 'Administrador' : 'Recepción')
+            rol: admin.rol || (admin.id === 1 ? 'admin' : 'recepcion')
         });
 
     } catch (error) {
@@ -429,7 +653,22 @@ app.get('/api/admin/perfil', async (req, res) => {
     }
 });
 
-app.put('/api/admin/cambiar-password', async (req, res) => {
+app.get('/api/admin/me', async (req, res) => {
+    const admin = req.adminUser;
+
+    return res.json({
+        id: admin.id,
+        nombre: admin.nombre,
+        usuario: admin.usuario,
+        rol: admin.rol || 'recepcion',
+        estado: admin.estado,
+        ultimo_login: admin.ultimo_login,
+        fecha_creacion: admin.fecha_creacion,
+        sesion_iniciada: req.session.loginAt || null
+    });
+});
+
+async function cambiarPasswordPropia(req, res) {
     try {
         if (!req.session || !req.session.admin || !req.session.adminId) {
             return res.status(401).json({
@@ -455,6 +694,13 @@ app.put('/api/admin/cambiar-password', async (req, res) => {
             return res.status(400).json({
                 ok: false,
                 error: 'Las contrasenas no coinciden'
+            });
+        }
+
+        if (String(password_nueva).length < 6) {
+            return res.status(400).json({
+                ok: false,
+                error: 'La nueva contrasena debe tener al menos 6 caracteres'
             });
         }
 
@@ -496,6 +742,13 @@ app.put('/api/admin/cambiar-password', async (req, res) => {
             [nuevoHash, admin.id]
         );
 
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'usuario_password_cambiada',
+            titulo: 'Cambio de contrasena',
+            mensaje: `${req.session.adminNombre} cambio su contrasena.`,
+            entidad_id: admin.id
+        });
+
         return res.json({
             ok: true,
             mensaje: 'Contrasena actualizada correctamente'
@@ -506,6 +759,314 @@ app.put('/api/admin/cambiar-password', async (req, res) => {
         return res.status(500).json({
             ok: false,
             error: 'Error al actualizar contrasena'
+        });
+    }
+}
+
+app.put('/api/admin/cambiar-password', cambiarPasswordPropia);
+app.put('/api/admin/me/password', cambiarPasswordPropia);
+
+function limpiarTexto(valor) {
+    return String(valor || '').trim();
+}
+
+function validarRol(rol) {
+    return ROLES_ADMIN.has(rol);
+}
+
+function validarEstado(estado) {
+    return ESTADOS_ADMIN.has(estado);
+}
+
+async function existeOtroUsuarioConNombre(usuario, id = null) {
+    const params = [usuario];
+    let filtroId = '';
+
+    if (id) {
+        filtroId = 'AND id <> ?';
+        params.push(id);
+    }
+
+    const [[row]] = await pool.query(
+        `SELECT COUNT(*) AS total
+         FROM usuarios_admin
+         WHERE usuario = ?
+         ${filtroId}`,
+        params
+    );
+
+    return Number(row.total || 0) > 0;
+}
+
+async function quedariaSinAdminActivo(id, nuevoRol, nuevoEstado) {
+    if (nuevoRol === 'admin' && nuevoEstado === 'activo') {
+        return false;
+    }
+
+    const [[row]] = await pool.query(
+        `SELECT COUNT(*) AS total
+         FROM usuarios_admin
+         WHERE rol = 'admin'
+         AND estado = 'activo'
+         AND id <> ?`,
+        [id]
+    );
+
+    return Number(row.total || 0) === 0;
+}
+
+app.get('/api/admin/usuarios', requireRole('admin'), async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT
+                id,
+                nombre,
+                usuario,
+                rol,
+                estado,
+                ultimo_login,
+                fecha_creacion,
+                fecha_actualizacion
+            FROM usuarios_admin
+            ORDER BY fecha_creacion DESC, id DESC
+        `);
+
+        return res.json({
+            ok: true,
+            usuarios: rows
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al listar usuarios'
+        });
+    }
+});
+
+app.post('/api/admin/usuarios', requireRole('admin'), async (req, res) => {
+    try {
+        const nombre = limpiarTexto(req.body.nombre) || 'Usuario administrativo';
+        const usuario = limpiarTexto(req.body.usuario);
+        const password = String(req.body.password || '');
+        const confirmarPassword = String(req.body.confirmar_password || req.body.confirmarPassword || '');
+        const rol = limpiarTexto(req.body.rol) || 'recepcion';
+        const estado = limpiarTexto(req.body.estado) || 'activo';
+
+        if (!usuario) {
+            return res.status(400).json({ ok: false, error: 'Usuario obligatorio' });
+        }
+
+        if (!password) {
+            return res.status(400).json({ ok: false, error: 'Contrasena obligatoria' });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ ok: false, error: 'La contrasena debe tener al menos 6 caracteres' });
+        }
+
+        if (!confirmarPassword || password !== confirmarPassword) {
+            return res.status(400).json({ ok: false, error: 'La confirmacion de contrasena no coincide' });
+        }
+
+        if (!validarRol(rol)) {
+            return res.status(400).json({ ok: false, error: 'Rol no valido' });
+        }
+
+        if (!validarEstado(estado)) {
+            return res.status(400).json({ ok: false, error: 'Estado no valido' });
+        }
+
+        if (await existeOtroUsuarioConNombre(usuario)) {
+            return res.status(409).json({ ok: false, error: 'El usuario ya existe' });
+        }
+
+        const passwordHash = await generarHashPassword(password);
+        const [result] = await pool.query(
+            `INSERT INTO usuarios_admin (nombre, usuario, password_hash, rol, estado)
+             VALUES (?, ?, ?, ?, ?)`,
+            [nombre, usuario, passwordHash, rol, estado]
+        );
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'usuario_creado',
+            titulo: 'Usuario administrativo creado',
+            mensaje: `${req.session.adminNombre} creo el usuario ${nombre} con rol ${nombreRol(rol)}.`,
+            entidad_id: result.insertId
+        });
+
+        return res.status(201).json({
+            ok: true,
+            usuario: {
+                id: result.insertId,
+                nombre,
+                usuario,
+                rol,
+                estado
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al crear usuario'
+        });
+    }
+});
+
+app.put('/api/admin/usuarios/:id', requireRole('admin'), async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const nombre = limpiarTexto(req.body.nombre);
+        const usuario = limpiarTexto(req.body.usuario);
+        const rol = limpiarTexto(req.body.rol);
+        const estado = limpiarTexto(req.body.estado);
+        const password = req.body.password ? String(req.body.password) : '';
+        const confirmarPassword = String(req.body.confirmar_password || req.body.confirmarPassword || '');
+
+        if (!id) {
+            return res.status(400).json({ ok: false, error: 'Usuario no valido' });
+        }
+
+        if (!nombre || !usuario) {
+            return res.status(400).json({ ok: false, error: 'Nombre y usuario son obligatorios' });
+        }
+
+        if (!validarRol(rol)) {
+            return res.status(400).json({ ok: false, error: 'Rol no valido' });
+        }
+
+        if (!validarEstado(estado)) {
+            return res.status(400).json({ ok: false, error: 'Estado no valido' });
+        }
+
+        const [[actual]] = await pool.query(
+            `SELECT id, nombre, usuario, rol, estado
+             FROM usuarios_admin
+             WHERE id = ?
+             LIMIT 1`,
+            [id]
+        );
+
+        if (!actual) {
+            return res.status(404).json({ ok: false, error: 'Usuario no encontrado' });
+        }
+
+        if (id === req.session.adminId && estado !== 'activo') {
+            return res.status(400).json({ ok: false, error: 'No puedes desactivar tu propio usuario' });
+        }
+
+        if (actual.rol === 'admin' && actual.estado === 'activo' && await quedariaSinAdminActivo(id, rol, estado)) {
+            return res.status(400).json({ ok: false, error: 'No puedes dejar el sistema sin un admin activo' });
+        }
+
+        if (await existeOtroUsuarioConNombre(usuario, id)) {
+            return res.status(409).json({ ok: false, error: 'El usuario ya existe' });
+        }
+
+        const campos = ['nombre = ?', 'usuario = ?', 'rol = ?', 'estado = ?'];
+        const valores = [nombre, usuario, rol, estado];
+        let passwordActualizado = false;
+
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ ok: false, error: 'La contrasena debe tener al menos 6 caracteres' });
+            }
+
+            if (!confirmarPassword || password !== confirmarPassword) {
+                return res.status(400).json({ ok: false, error: 'La confirmacion de contrasena no coincide' });
+            }
+
+            campos.push('password_hash = ?');
+            valores.push(await generarHashPassword(password));
+            passwordActualizado = true;
+        }
+
+        valores.push(id);
+
+        await pool.query(
+            `UPDATE usuarios_admin
+             SET ${campos.join(', ')}
+             WHERE id = ?`,
+            valores
+        );
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: 'usuario_editado',
+            titulo: 'Usuario administrativo editado',
+            mensaje: `${req.session.adminNombre} edito el usuario ${nombre}.`,
+            entidad_id: id
+        });
+
+        if (passwordActualizado) {
+            await crearNotificacionAuditoriaUsuario(req, {
+                tipo: 'usuario_password_cambiada',
+                titulo: 'Cambio de contrasena',
+                mensaje: `${req.session.adminNombre} actualizo la contrasena de ${nombre}.`,
+                entidad_id: id
+            });
+        }
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al editar usuario'
+        });
+    }
+});
+
+app.patch('/api/admin/usuarios/:id/estado', requireRole('admin'), async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const estado = limpiarTexto(req.body.estado);
+
+        if (!id || !validarEstado(estado)) {
+            return res.status(400).json({ ok: false, error: 'Estado no valido' });
+        }
+
+        const [[actual]] = await pool.query(
+            `SELECT id, nombre, rol, estado
+             FROM usuarios_admin
+             WHERE id = ?
+             LIMIT 1`,
+            [id]
+        );
+
+        if (!actual) {
+            return res.status(404).json({ ok: false, error: 'Usuario no encontrado' });
+        }
+
+        if (id === req.session.adminId && estado !== 'activo') {
+            return res.status(400).json({ ok: false, error: 'No puedes desactivar tu propio usuario' });
+        }
+
+        if (actual.rol === 'admin' && actual.estado === 'activo' && estado !== 'activo' && await quedariaSinAdminActivo(id, actual.rol, estado)) {
+            return res.status(400).json({ ok: false, error: 'No puedes dejar el sistema sin un admin activo' });
+        }
+
+        await pool.query(
+            `UPDATE usuarios_admin
+             SET estado = ?,
+                 session_id = CASE WHEN ? = 'inactivo' THEN NULL ELSE session_id END
+             WHERE id = ?`,
+            [estado, estado, id]
+        );
+
+        await crearNotificacionAuditoriaUsuario(req, {
+            tipo: estado === 'activo' ? 'usuario_activado' : 'usuario_desactivado',
+            titulo: estado === 'activo' ? 'Usuario activado' : 'Usuario desactivado',
+            mensaje: `${req.session.adminNombre} ${estado === 'activo' ? 'activo' : 'desactivo'} el usuario ${actual.nombre}.`,
+            entidad_id: id
+        });
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Error al cambiar estado'
         });
     }
 });
