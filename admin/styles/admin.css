@@ -7194,6 +7194,34 @@ body.admin-page .admin-logout-header-btn svg {
   height: 16px;
 }
 
+body.admin-page .header-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border, #E8E9EC);
+  background: var(--surface, #fff);
+  color: var(--text-2, #555560);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  position: relative;
+  cursor: pointer;
+  transition: border-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1), background .2s cubic-bezier(.4,0,.2,1);
+}
+
+body.admin-page .header-btn:hover {
+  border-color: var(--red, #DD0F0D);
+  color: var(--red, #DD0F0D);
+}
+
+body.admin-page .header-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 body.admin-page .logout-modal-overlay {
   align-items: center !important;
   justify-content: center !important;
