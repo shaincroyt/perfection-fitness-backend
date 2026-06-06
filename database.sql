@@ -1,14 +1,4 @@
--- Duracion flexible de planes y membresias
--- Ejecutar solo si las columnas no existen en la base de datos actual.
 
-ALTER TABLE planes
-ADD COLUMN duracion_valor INT DEFAULT 1,
-ADD COLUMN duracion_unidad ENUM('dias','meses','usos') DEFAULT 'meses';
-
-ALTER TABLE membresias
-ADD COLUMN duracion_unidad ENUM('dias','meses','usos') DEFAULT 'meses',
-ADD COLUMN usos_totales INT NULL,
-ADD COLUMN usos_restantes INT NULL;
 -- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
 -- Host: mysql-8ea2946-perfection.l.aivencloud.com    Database: defaultdb
@@ -32,7 +22,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '2d100ab3-6170-11f1-a20b-2608d1b7e54f:1-64';
+
 
 --
 -- Table structure for table `administradores`
