@@ -8152,8 +8152,8 @@ body.admin-page-membresias .client-tab {
 }
 
 body.admin-page-membresias .client-tab.active {
-  background: #fff;
-  color: var(--red);
+  background: var(--red);
+  color: var(--white);
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
 
