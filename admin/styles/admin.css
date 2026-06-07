@@ -8242,3 +8242,9 @@ body.admin-page-nueva-membresia .form-input.is-readonly {
     gap: 18px;
   }
 }
+
+#adminAccessDeniedMessage{
+
+  font-size: 10px;
+
+}
