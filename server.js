@@ -2890,7 +2890,7 @@ app.post('/api/membresias', requirePermission('membresias.crear'), async (req, r
         const membresiaActiva = await obtenerMembresiaActivaCliente(cliente_id);
         if (membresiaActiva) {
             return res.status(409).json({
-                error: 'Este cliente ya tiene una membresia activa. Si deseas extender su acceso, usa la opcion renovar membresia.',
+                error: 'Este cliente ya tiene una membresia activa. Si deseas extender su acceso, borra su membresia y haz una nueva.',
                 code: 'cliente_membresia_activa'
             });
         }

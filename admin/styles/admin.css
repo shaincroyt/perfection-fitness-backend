@@ -1785,7 +1785,7 @@ body.admin-page-clientes *, body.admin-page-clientes *::before, body.admin-page-
 14. Membresias
 ============================== */
 
-body.admin-page-membresias *, body.admin-page-membresias *::before, body.admin-page-membresias *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body.admin-page-membresias *, body.admin-page-membresias *::before, body.admin-page-membresias *::after { box-sizing: border-box;  }
 
     body.admin-page-membresias {
       --red:       #DD0F0D;
@@ -8103,6 +8103,7 @@ body[class*="admin-page-"] .sidebar-user.admin-session-box .admin-logout-btn {
   background: #fee2e2;
   color: #dc2626;
   font-weight: 800;
+  text-align: center;
 }
 
 .admin-access-denied-modal h2 {
