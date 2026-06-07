@@ -219,7 +219,9 @@ function requireRole(rol) {
 
         return res.status(403).json({
             ok: false,
-            error: 'No tienes permisos para realizar esta accion'
+            code: 'permission_denied',
+            title: 'Acceso denegado',
+            error: 'No tienes permisos para realizar esta accion.'
         });
     };
 }
@@ -287,7 +289,9 @@ function requirePermission(codigo) {
 
             return res.status(403).json({
                 ok: false,
-                error: 'No tienes permisos para realizar esta accion'
+                code: 'permission_denied',
+                title: 'Acceso denegado',
+                error: 'No tienes permisos para realizar esta accion.'
             });
         } catch (error) {
             console.error(error);
@@ -907,16 +911,16 @@ app.get('/api/auth/heartbeat', async (req, res) => {
             return res.status(401).json({ valid: false, reason: 'user_disabled' });
         }
 
-        if (!admin.session_id || admin.session_id !== req.sessionID) {
-            await destruirSesion(req);
-            res.clearCookie('connect.sid');
-            return res.status(401).json({ valid: false, reason: 'session_replaced' });
-        }
-
         if (!await rolSesionActivo(admin.rol || 'recepcion')) {
             await destruirSesion(req);
             res.clearCookie('connect.sid');
             return res.status(401).json({ valid: false, reason: 'role_disabled' });
+        }
+
+        if (!admin.session_id || admin.session_id !== req.sessionID) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.status(401).json({ valid: false, reason: 'session_replaced' });
         }
 
         req.session.adminRol = admin.rol || 'recepcion';
@@ -1270,26 +1274,79 @@ app.post('/api/admin/roles/:id/duplicar', requirePermission('roles.crear'), asyn
 });
 
 app.put('/api/admin/roles/:id', requirePermission('roles.editar'), async (req, res) => {
+    const conn = await pool.getConnection();
+
     try {
         const codigo = normalizarCodigoRol(req.params.id);
         const nombre = limpiarTexto(req.body.nombre);
         const descripcion = limpiarTexto(req.body.descripcion);
+        const estado = req.body.estado === undefined || req.body.estado === null || req.body.estado === ''
+            ? null
+            : limpiarTexto(req.body.estado);
+        const permisos = Array.isArray(req.body.permisos)
+            ? Array.from(new Set(req.body.permisos.map(limpiarTexto).filter(Boolean)))
+            : null;
 
         if (!validarRol(codigo) || !nombre) {
             return res.status(400).json({ ok: false, error: 'Rol no valido' });
         }
 
-        const rol = await obtenerRolAdmin(codigo);
+        if (estado !== null && !validarEstado(estado)) {
+            return res.status(400).json({ ok: false, error: 'Estado no valido' });
+        }
+
+        if (ROLES_SISTEMA.has(codigo) && estado && estado !== 'activo') {
+            return res.status(400).json({ ok: false, error: 'No puedes desactivar roles base del sistema' });
+        }
+
+        if (codigo === 'admin' && permisos !== null) {
+            return res.status(400).json({ ok: false, error: 'No se pueden modificar permisos del rol admin' });
+        }
+
+        const rol = await obtenerRolAdmin(codigo, conn);
         if (!rol) {
             return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
         }
 
-        await pool.query(
+        await conn.beginTransaction();
+
+        await conn.query(
             `UPDATE roles_admin
-             SET nombre = ?, descripcion = ?
+             SET nombre = ?, descripcion = ?, estado = COALESCE(?, estado)
              WHERE codigo = ?`,
-            [nombre, descripcion || null, codigo]
+            [nombre, descripcion || null, estado, codigo]
         );
+
+        let permisosAsignados = null;
+        if (permisos !== null) {
+            const [permisosValidos] = await conn.query(
+                `SELECT id, codigo
+                 FROM permisos_admin
+                 WHERE codigo IN (?)`,
+                [permisos.length > 0 ? permisos : ['__sin_permisos__']]
+            );
+            const codigosValidos = new Set(permisosValidos.map(permiso => permiso.codigo));
+            const codigosInvalidos = permisos.filter(permiso => !codigosValidos.has(permiso));
+
+            if (codigosInvalidos.length > 0) {
+                await conn.rollback();
+                return res.status(400).json({
+                    ok: false,
+                    error: `Permisos no validos: ${codigosInvalidos.join(', ')}`
+                });
+            }
+
+            permisosAsignados = await asignarPermisosARol(conn, codigo, permisos);
+        }
+
+        if (estado && estado !== 'activo') {
+            await conn.query(
+                `UPDATE usuarios_admin
+                 SET session_id = NULL
+                 WHERE rol = ?`,
+                [codigo]
+            );
+        }
 
         await crearNotificacionAuditoriaUsuario(req, {
             tipo: 'rol_editado',
@@ -1299,10 +1356,26 @@ app.put('/api/admin/roles/:id', requirePermission('roles.editar'), async (req, r
             evento_key: `${codigo}-${Date.now()}`
         });
 
-        return res.json({ ok: true });
+        await conn.commit();
+
+        return res.json({
+            ok: true,
+            rol: {
+                id: codigo,
+                codigo,
+                nombre,
+                descripcion,
+                estado: estado || rol.estado,
+                sistema: Number(rol.sistema || 0) === 1,
+                permisos: permisosAsignados
+            }
+        });
     } catch (error) {
+        await conn.rollback();
         console.error(error);
         return res.status(500).json({ ok: false, error: 'Error al editar rol' });
+    } finally {
+        conn.release();
     }
 });
 
@@ -1508,6 +1581,13 @@ app.put('/api/admin/roles/:id/permisos', requirePermission('roles.asignar_permis
                 permisosValidos.flatMap(permiso => [rol, permiso.id])
             );
         }
+
+        await conn.query(
+            `UPDATE roles_admin
+             SET fecha_actualizacion = CURRENT_TIMESTAMP
+             WHERE codigo = ?`,
+            [rol]
+        );
 
         const anteriores = new Set(permisosAntes);
         const nuevos = new Set(permisos);

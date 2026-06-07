@@ -24,6 +24,7 @@
   let sessionData = null;
   let permissions = new Set();
   let permissionsVersion = null;
+  let heartbeatTimer = null;
 
   function redirectToLogin() {
     if (redirecting) return;
@@ -35,6 +36,7 @@
     apiBase: API_BASE,
     checkSession,
     applyPermissions,
+    showAccessDenied,
     getSession: () => sessionData,
     getPermissions: () => Array.from(permissions),
     hasPermission: (codigo) => permissions.has(codigo)
@@ -53,6 +55,10 @@
       redirectToLogin();
     }
 
+    if (response.status === 403) {
+      showAccessDenied();
+    }
+
     return response;
   };
 
@@ -65,6 +71,34 @@
       document.body.appendChild(notice);
     }
     notice.textContent = message;
+  }
+
+  function showAccessDenied(message = 'No tienes permisos para realizar esta accion.') {
+    let overlay = document.getElementById('adminAccessDeniedOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'adminAccessDeniedOverlay';
+      overlay.className = 'admin-access-denied-overlay';
+      overlay.innerHTML = `
+        <div class="admin-access-denied-modal" role="dialog" aria-modal="true" aria-labelledby="adminAccessDeniedTitle">
+          <div class="admin-access-denied-icon">!</div>
+          <h2 id="adminAccessDeniedTitle">Acceso denegado</h2>
+          <p id="adminAccessDeniedMessage"></p>
+          <button type="button" id="adminAccessDeniedOk">Entendido</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', event => {
+        if (event.target === overlay) overlay.classList.remove('open');
+      });
+      overlay.querySelector('#adminAccessDeniedOk')?.addEventListener('click', () => {
+        overlay.classList.remove('open');
+      });
+    }
+
+    const text = overlay.querySelector('#adminAccessDeniedMessage');
+    if (text) text.textContent = message;
+    overlay.classList.add('open');
   }
 
   function applyPermissions(root = document) {
@@ -137,8 +171,13 @@
       if (!response.ok) return;
 
       if (permissionsVersion !== null && data.permissions_version !== permissionsVersion) {
-        await checkSession();
-        showSessionNotice('Tus permisos fueron actualizados.');
+        showSessionNotice('Tus permisos cambiaron. Vuelve a iniciar sesion.');
+        await originalFetch(`${API_BASE}/logout`, {
+          method: 'POST',
+          credentials: 'include'
+        }).catch(() => {});
+        setTimeout(redirectToLogin, 1200);
+        return;
       }
       permissionsVersion = data.permissions_version;
     } catch (error) {
@@ -157,12 +196,12 @@
   document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, { childList: true, subtree: true });
     checkSession().then(() => heartbeat());
-    setInterval(heartbeat, 15000);
+    heartbeatTimer = heartbeatTimer || setInterval(heartbeat, 15000);
   });
 
   if (document.readyState !== 'loading') {
     observer.observe(document.body, { childList: true, subtree: true });
     checkSession().then(() => heartbeat());
-    setInterval(heartbeat, 15000);
+    heartbeatTimer = heartbeatTimer || setInterval(heartbeat, 15000);
   }
 })();

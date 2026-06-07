@@ -293,13 +293,17 @@
         </div>
         <div class="form-group">
           <label class="form-label">Fecha de Fin</label>
-          <input type="date" class="form-input" id="modalFechaFin"/>
+          <input type="date" class="form-input" id="modalFechaFin" readonly/>
+        </div>
+        <div class="form-group full">
+          <div class="message error" id="quickMembershipError"></div>
+          <div class="message success" id="quickMembershipSuccess"></div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="closeModal()">
+      <button class="btn btn-primary" id="quickMembershipSave" onclick="guardarMembresiaRapida()" data-permission="membresias.crear">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         Guardar Membresía
       </button>
@@ -434,6 +438,149 @@ async function exportarMembresias() {
 let membresias = [];
 let filtered = [...membresias];
 let planesActivos = [];
+let clientesRapidos = [];
+let tipoClienteRapido = 'existente';
+
+function fechaLocalSQL(fecha) {
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, '0');
+  const d = String(fecha.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function limpiarTextoSeguro(valor) {
+  return String(valor ?? '').trim();
+}
+
+function showQuickMembershipMessage(type, text) {
+  const success = document.getElementById('quickMembershipSuccess');
+  const error = document.getElementById('quickMembershipError');
+  if (success) success.classList.remove('visible');
+  if (error) error.classList.remove('visible');
+  const target = type === 'success' ? success : error;
+  if (!target) return;
+  target.textContent = text;
+  target.classList.add('visible');
+}
+
+function ensureQuickClientControls() {
+  const clienteSelect = document.getElementById('modalCliente');
+  if (!clienteSelect || document.getElementById('quickClientControls')) return;
+
+  const wrap = document.createElement('div');
+  wrap.id = 'quickClientControls';
+  wrap.innerHTML = `
+    <div class="client-mode quick-client-mode" aria-label="Tipo de cliente">
+      <button type="button" class="client-tab active" id="quickClienteExistenteTab" onclick="cambiarClienteRapido('existente')">Cliente existente</button>
+      <button type="button" class="client-tab" id="quickClienteNuevoTab" onclick="cambiarClienteRapido('nuevo')" data-permission="clientes.crear">Registrar nuevo</button>
+    </div>
+    <div class="quick-client-new is-hidden" id="quickClienteNuevoPanel">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label" for="quickNombre">Nombre completo</label>
+          <input type="text" class="form-input" id="quickNombre" placeholder="Ej. Lucia Gomez"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="quickDni">DNI</label>
+          <input type="text" class="form-input" id="quickDni" maxlength="8" placeholder="Ej. 45821396"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="quickTelefono">Telefono</label>
+          <input type="tel" class="form-input" id="quickTelefono" placeholder="Ej. 987 654 321"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label" for="quickCorreo">Correo</label>
+          <input type="email" class="form-input" id="quickCorreo" placeholder="Ej. cliente@correo.com"/>
+        </div>
+      </div>
+    </div>
+  `;
+
+  clienteSelect.parentElement.insertBefore(wrap, clienteSelect);
+  window.AdminAuth?.applyPermissions?.(wrap);
+}
+
+function cambiarClienteRapido(tipo) {
+  tipoClienteRapido = tipo === 'nuevo' ? 'nuevo' : 'existente';
+  document.getElementById('quickClienteExistenteTab')?.classList.toggle('active', tipoClienteRapido === 'existente');
+  document.getElementById('quickClienteNuevoTab')?.classList.toggle('active', tipoClienteRapido === 'nuevo');
+  document.getElementById('modalCliente')?.classList.toggle('is-hidden', tipoClienteRapido !== 'existente');
+  document.getElementById('quickClienteNuevoPanel')?.classList.toggle('is-hidden', tipoClienteRapido !== 'nuevo');
+}
+
+function unidadPlanRapido(plan) {
+  return ['dias', 'meses', 'usos'].includes(plan?.duracion_unidad) ? plan.duracion_unidad : 'meses';
+}
+
+function cantidadPlanRapido(plan) {
+  const valor = parseInt(plan?.duracion_valor, 10);
+  return Number.isFinite(valor) && valor > 0 ? valor : 1;
+}
+
+function calcularFechaFinRapida() {
+  const planId = document.getElementById('modalPlan')?.value;
+  const fechaInicio = document.getElementById('modalFechaInicio')?.value || fechaLocalSQL(new Date());
+  const fechaFinInput = document.getElementById('modalFechaFin');
+  const plan = planesActivos.find(item => String(item.id) === String(planId));
+  if (!fechaFinInput) return;
+
+  if (!plan || !fechaInicio) {
+    fechaFinInput.value = '';
+    return;
+  }
+
+  const fin = new Date(`${fechaInicio}T00:00:00`);
+  const cantidad = cantidadPlanRapido(plan);
+  const unidad = unidadPlanRapido(plan);
+
+  if (unidad === 'meses') {
+    fin.setMonth(fin.getMonth() + cantidad);
+  } else {
+    fin.setDate(fin.getDate() + cantidad);
+  }
+
+  fechaFinInput.value = fechaLocalSQL(fin);
+}
+
+async function cargarClientesRapidos() {
+  ensureQuickClientControls();
+  const select = document.getElementById('modalCliente');
+  if (!select) return;
+
+  try {
+    const res = await fetch(`${API_URL}/clientes`);
+    if (!res.ok) throw new Error('No se pudieron cargar clientes');
+    const data = await res.json();
+    clientesRapidos = Array.isArray(data)
+      ? data.filter(cliente => cliente?.id && cliente?.nombre && (cliente.estado || 'activo') === 'activo')
+      : [];
+
+    select.innerHTML = '<option value="">Seleccionar cliente...</option>' + clientesRapidos.map(cliente => `
+      <option value="${cliente.id}">${cliente.nombre} - DNI ${cliente.dni || '-'}</option>
+    `).join('');
+  } catch (error) {
+    console.error('Error cargando clientes rapidos:', error);
+    select.innerHTML = '<option value="">No se pudieron cargar clientes</option>';
+  }
+}
+
+function resetQuickMembershipForm() {
+  showQuickMembershipMessage('success', '');
+  document.getElementById('quickMembershipSuccess')?.classList.remove('visible');
+  document.getElementById('quickMembershipError')?.classList.remove('visible');
+  cambiarClienteRapido('existente');
+  ['quickNombre', 'quickDni', 'quickTelefono', 'quickCorreo'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  });
+  const cliente = document.getElementById('modalCliente');
+  const plan = document.getElementById('modalPlan');
+  const inicio = document.getElementById('modalFechaInicio');
+  if (cliente) cliente.value = '';
+  if (plan) plan.value = '';
+  if (inicio) inicio.value = fechaLocalSQL(new Date());
+  calcularFechaFinRapida();
+}
 
 async function cargarPlanesActivos() {
   try {
@@ -449,8 +596,117 @@ async function cargarPlanesActivos() {
         <option value="${plan.id}">${plan.nombre}</option>
       `).join('')}
     `;
+    calcularFechaFinRapida();
   } catch (error) {
     console.error('Error cargando planes:', error);
+  }
+}
+
+async function guardarMembresiaRapida() {
+  const saveBtn = document.getElementById('quickMembershipSave');
+  const planId = document.getElementById('modalPlan')?.value;
+  const fechaInicio = document.getElementById('modalFechaInicio')?.value;
+  const fechaFin = document.getElementById('modalFechaFin')?.value;
+  const plan = planesActivos.find(item => String(item.id) === String(planId));
+
+  const errores = [];
+  if (!planId || !plan) errores.push('Selecciona un plan valido');
+  if (!fechaInicio) errores.push('Selecciona fecha de inicio');
+  if (!fechaFin) errores.push('La fecha fin debe calcularse automaticamente');
+
+  let clienteId = document.getElementById('modalCliente')?.value;
+
+  if (tipoClienteRapido === 'existente' && !clienteId) {
+    errores.push('Selecciona un cliente existente');
+  }
+
+  const nuevoCliente = {
+    nombre: limpiarTextoSeguro(document.getElementById('quickNombre')?.value),
+    dni: limpiarTextoSeguro(document.getElementById('quickDni')?.value),
+    telefono: limpiarTextoSeguro(document.getElementById('quickTelefono')?.value),
+    correo: limpiarTextoSeguro(document.getElementById('quickCorreo')?.value)
+  };
+
+  if (tipoClienteRapido === 'nuevo') {
+    if (!nuevoCliente.nombre) errores.push('Completa el nombre del cliente');
+    if (!nuevoCliente.dni) errores.push('Completa el DNI del cliente');
+    if (nuevoCliente.dni && !/^\d{8}$/.test(nuevoCliente.dni.replace(/\D/g, ''))) {
+      errores.push('El DNI debe tener 8 digitos');
+    }
+    if (nuevoCliente.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nuevoCliente.correo)) {
+      errores.push('El correo no tiene un formato valido');
+    }
+    const dniNuevo = nuevoCliente.dni.replace(/\D/g, '');
+    const clienteDuplicado = clientesRapidos.find(cliente =>
+      String(cliente.dni || '').replace(/\D/g, '') === dniNuevo
+    );
+    if (clienteDuplicado) {
+      errores.push('Ya existe un cliente con ese DNI. Usa cliente existente');
+    }
+  }
+
+  if (errores.length > 0) {
+    showQuickMembershipMessage('error', errores.join('. '));
+    return;
+  }
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Guardando...';
+
+  try {
+    if (tipoClienteRapido === 'nuevo') {
+      const resCliente = await fetch(`${API_URL}/clientes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...nuevoCliente, estado: 'activo' })
+      });
+      const clienteCreado = await resCliente.json().catch(() => ({}));
+      if (!resCliente.ok) throw new Error(clienteCreado.error || 'No se pudo registrar el cliente');
+      clienteId = clienteCreado.id;
+    }
+
+    const cantidad = cantidadPlanRapido(plan);
+    const unidad = unidadPlanRapido(plan);
+    const precioPlan = Number(plan.precio ?? plan.precio_mensual ?? 0);
+    const precioTotal = precioPlan * cantidad;
+    const asistencias = plan.es_ilimitado === 1 || plan.es_ilimitado === '1'
+      ? null
+      : (Number.parseInt(plan.asistencias_incluidas, 10) || null);
+
+    const resMembresia = await fetch(`${API_URL}/membresias`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cliente_id: clienteId,
+        plan_id: planId,
+        meses: cantidad,
+        duracion_unidad: unidad,
+        usos_totales: asistencias,
+        usos_restantes: asistencias,
+        precio_total: precioTotal,
+        promocion: null,
+        fecha_inicio: fechaInicio,
+        fecha_fin: fechaFin,
+        origen: 'presencial'
+      })
+    });
+    const membresiaCreada = await resMembresia.json().catch(() => ({}));
+    if (!resMembresia.ok) throw new Error(membresiaCreada.error || 'No se pudo crear la membresia');
+
+    showQuickMembershipMessage('success', `Membresia creada correctamente. Codigo: ${membresiaCreada.codigo || '-'}`);
+    await cargarClientesRapidos();
+    await cargarMembresias();
+    await cargarSidebar();
+    setTimeout(closeModal, 700);
+  } catch (error) {
+    console.error(error);
+    showQuickMembershipMessage('error', error.message || 'Error al guardar membresia');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Guardar MembresÃ­a
+    `;
   }
 }
 
@@ -874,9 +1130,12 @@ function cerrarModalEliminar() {
   const codes = ['GYM-A8K2PZ','GYM-B5L9XQ','GYM-C7M4RT'];
   let codeIdx = 0;
   function openModal() {
+    ensureQuickClientControls();
+    resetQuickMembershipForm();
     document.getElementById('codeDisplay').textContent = codes[codeIdx % codes.length];
     codeIdx++;
     document.getElementById('modalOverlay').classList.add('open');
+    cargarClientesRapidos();
   }
   function closeModal() {
     document.getElementById('modalOverlay').classList.remove('open');
@@ -895,8 +1154,12 @@ function cerrarModalEliminar() {
 
   
 
+ document.getElementById('modalPlan')?.addEventListener('change', calcularFechaFinRapida);
+ document.getElementById('modalFechaInicio')?.addEventListener('change', calcularFechaFinRapida);
+
  cargarMembresias();
  cargarPlanesActivos();
+ cargarClientesRapidos();
 
  document
   .getElementById('confirmDeleteBtn')

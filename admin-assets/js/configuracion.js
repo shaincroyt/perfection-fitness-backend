@@ -460,6 +460,8 @@
     $('roleCodigo').value = duplicate ? '' : (role?.codigo || '');
     $('roleNombre').value = duplicate ? `${role?.nombre || roleLabel(role?.codigo)} copia` : (role?.nombre || '');
     $('roleDescripcion').value = role?.descripcion || '';
+    $('roleEstado').value = duplicate ? 'activo' : (role?.estado || 'activo');
+    $('roleEstadoGroup').hidden = Boolean(!role || duplicate);
     $('roleBasedOnGroup').hidden = Boolean(role && !duplicate);
     $('roleBasedOn').value = duplicate ? (role?.codigo || 'recepcion') : 'vacio';
     $('roleModalTitle').textContent = role && !duplicate ? 'Editar rol' : duplicate ? 'Duplicar rol' : 'Crear rol';
@@ -482,6 +484,7 @@
     const codigo = $('roleCodigo').value;
     const nombre = $('roleNombre').value.trim();
     const descripcion = $('roleDescripcion').value.trim();
+    const estado = $('roleEstado')?.value || 'activo';
     const basadoEn = $('roleBasedOn').value;
 
     if (!nombre) {
@@ -498,15 +501,27 @@
         method: codigo ? 'PUT' : 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, descripcion, basado_en: basadoEn })
+        body: JSON.stringify(codigo
+          ? { nombre, descripcion, estado }
+          : { nombre, descripcion, basado_en: basadoEn })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Error al guardar rol');
 
       closeRoleModal();
       showMessage('role', 'success', codigo ? 'Rol actualizado correctamente' : 'Rol creado correctamente');
+      if (data.rol && !codigo) {
+        const nuevoCodigo = data.rol.codigo || data.rol.id;
+        state.roles = [
+          ...state.roles.filter(role => (role.codigo || role.id) !== nuevoCodigo),
+          data.rol
+        ];
+        renderRoleOptions();
+        renderRoles();
+      }
       await loadRoles();
       renderRoles();
+      renderUsers();
     } catch (error) {
       showMessage('role', 'error', error.message || 'Error al guardar rol');
     } finally {
@@ -545,6 +560,7 @@
       showMessage('role', 'success', 'Estado del rol actualizado');
       await loadRoles();
       renderRoles();
+      renderUsers();
     } catch (error) {
       showMessage('role', 'error', error.message || 'Error al cambiar estado');
     }
@@ -726,6 +742,7 @@
       showMessage('rolePermissions', 'success', 'Permisos guardados correctamente');
       await loadRoles();
       renderRoles();
+      renderUsers();
       closePermissionsModal();
     } catch (error) {
       showMessage('rolePermissions', 'error', error.message || 'Error al guardar permisos');

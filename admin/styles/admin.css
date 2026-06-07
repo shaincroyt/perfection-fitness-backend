@@ -8066,3 +8066,172 @@ body[class*="admin-page-"] .sidebar-user.admin-session-box .admin-logout-btn {
     overflow-wrap: anywhere;
   }
 }
+
+/* Fixes transversales: permisos, acceso rapido y tablet */
+.admin-access-denied-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(16, 24, 40, .45);
+}
+
+.admin-access-denied-overlay.open {
+  display: flex;
+}
+
+.admin-access-denied-modal {
+  width: min(100%, 380px);
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--border, #E8E9EC);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .24);
+  padding: 24px;
+  text-align: center;
+}
+
+.admin-access-denied-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.admin-access-denied-modal h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--text-1, #18181b);
+}
+
+.admin-access-denied-modal p {
+  margin: 0 0 18px;
+  color: var(--text-2, #555560);
+  line-height: 1.45;
+}
+
+.admin-access-denied-modal button {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: var(--red, #DD0F0D);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+body.admin-page-membresias .quick-client-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 5px;
+  margin-bottom: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+body.admin-page-membresias .client-tab {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+body.admin-page-membresias .client-tab.active {
+  background: #fff;
+  color: var(--red);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+body.admin-page-membresias .quick-client-new,
+body.admin-page-membresias .is-hidden {
+  display: none;
+}
+
+body.admin-page-membresias .quick-client-new:not(.is-hidden) {
+  display: block;
+  margin-top: 12px;
+}
+
+body.admin-page-membresias .message {
+  display: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body.admin-page-membresias .message.visible {
+  display: block;
+}
+
+body.admin-page-membresias .message.success {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+body.admin-page-membresias .message.error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+@media (max-width: 1024px) {
+  body.admin-page .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: 100dvh !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.admin-page .sidebar-user {
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+  }
+
+  body.admin-page-nueva-membresia .content-grid,
+  body.admin-page-validar .validate-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.admin-page-nueva-membresia .preview-card,
+  body.admin-page-validar .card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  body.admin-page-validar .result-active-body-new,
+  body.admin-page-validar .result-expired-body-new {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  body.admin-page-nueva-membresia .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.admin-page-nueva-membresia .card-body,
+  body.admin-page-validar .card-body {
+    padding: 22px;
+  }
+
+  body.admin-page-validar .validate-grid {
+    gap: 18px;
+  }
+}
