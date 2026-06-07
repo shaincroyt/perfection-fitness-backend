@@ -73,6 +73,10 @@
     target.classList.add('visible');
   }
 
+  function showErrorModal(title, message) {
+    window.AdminAuth?.showError?.(title, message);
+  }
+
   function setHeaderDate() {
     const headerDate = $('headerDate');
     if (!headerDate) return;
@@ -341,6 +345,7 @@
       renderRoles();
     } catch (error) {
       showMessage('adminUser', 'error', error.message || 'Error al guardar usuario');
+      showErrorModal('Error al guardar usuario', error.message || 'No se pudo guardar el usuario.');
     } finally {
       submit.disabled = false;
       submit.textContent = $('adminUserId').value ? 'Guardar cambios' : 'Crear usuario';
@@ -524,6 +529,7 @@
       renderUsers();
     } catch (error) {
       showMessage('role', 'error', error.message || 'Error al guardar rol');
+      showErrorModal(codigo ? 'Error al editar rol' : 'Error al crear rol', error.message || 'No se pudo guardar el rol.');
     } finally {
       submit.disabled = false;
       submit.textContent = codigo ? 'Guardar rol' : 'Crear rol';

@@ -37,6 +37,7 @@
     checkSession,
     applyPermissions,
     showAccessDenied,
+    showError: showErrorModal,
     getSession: () => sessionData,
     getPermissions: () => Array.from(permissions),
     hasPermission: (codigo) => permissions.has(codigo)
@@ -74,6 +75,10 @@
   }
 
   function showAccessDenied(message = 'No tienes permisos para realizar esta accion.') {
+    showErrorModal('Acceso denegado', message);
+  }
+
+  function showErrorModal(title = 'Error', message = 'No se pudo completar la accion.') {
     let overlay = document.getElementById('adminAccessDeniedOverlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -96,7 +101,9 @@
       });
     }
 
+    const heading = overlay.querySelector('#adminAccessDeniedTitle');
     const text = overlay.querySelector('#adminAccessDeniedMessage');
+    if (heading) heading.textContent = title;
     if (text) text.textContent = message;
     overlay.classList.add('open');
   }

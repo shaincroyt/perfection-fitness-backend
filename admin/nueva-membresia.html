@@ -207,7 +207,7 @@
 
               <div class="form-group">
                 <label class="form-label" for="dni">DNI</label>
-                <input type="text" class="form-input" id="dni" placeholder="Ej. 45821396" maxlength="8"/>
+                <input type="text" class="form-input" id="dni" placeholder="Ej. 45821396" inputmode="numeric" maxlength="8" pattern="[0-9]{8}"/>
               </div>
 
               <div class="form-group">
@@ -503,6 +503,7 @@ let personaExtraActiva = false;
     .classList.toggle('is-hidden', existente);
 
   limpiarDatosCliente();
+  actualizarBloqueoCamposCliente();
 }
 
 function limpiarDatosCliente() {
@@ -538,6 +539,19 @@ document
   .classList.remove('loaded');
 }
 
+function actualizarBloqueoCamposCliente() {
+  const existente = document
+    .getElementById('tabClienteExistente')
+    .classList.contains('active');
+
+  ['nombre', 'dni', 'telefono', 'correo'].forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.readOnly = existente;
+    input.classList.toggle('is-readonly', existente);
+  });
+}
+
 function rellenarClienteExistente() {
 
   const clienteId =
@@ -569,6 +583,7 @@ card.classList.add('loaded');
 
   document.getElementById('correo').value =
     cliente.correo || '';
+  actualizarBloqueoCamposCliente();
 
     document.querySelector('.client-selected-card').innerHTML = `
   <div class="client-selected-icon">
@@ -661,7 +676,7 @@ function agregarPersonaExtra() {
         </div>
         <div class="form-group">
           <label class="form-label" for="personaExtraDni">DNI</label>
-          <input type="text" class="form-input" id="personaExtraDni" maxlength="8" placeholder="Ej. 45821396"/>
+          <input type="text" class="form-input" id="personaExtraDni" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="Ej. 45821396"/>
         </div>
         <div class="form-group">
           <label class="form-label" for="personaExtraTelefono">Teléfono</label>
@@ -884,6 +899,14 @@ async function cargarPlanes() {
       '"': '&quot;',
       "'": '&#039;'
     }[char]));
+  }
+
+  function mostrarErrorGeneral(titulo, mensaje) {
+    if (window.AdminAuth?.showError) {
+      window.AdminAuth.showError(titulo, mensaje);
+      return;
+    }
+    console.error(`${titulo}: ${mensaje}`);
   }
 
   function codigosDesdeRespuesta(data, personas = []) {
@@ -1116,10 +1139,16 @@ async function generarMembresia() {
   personas.forEach((persona, index) => {
     const etiqueta = `Persona ${index + 1}`;
     if (persona.tipoCliente === 'existente' && !persona.cliente_id) {
-      errores.push(`${etiqueta}: selecciona un cliente existente`);
+      errores.push(`${etiqueta}: debes seleccionar un cliente registrado. Si la persona aun no existe, cambia a Registrar nuevo.`);
     }
     if (!persona.nombre) errores.push(`${etiqueta}: completa el nombre`);
     if (!persona.dni) errores.push(`${etiqueta}: completa el DNI`);
+    if (persona.dni && !/^[0-9]{8}$/.test(String(persona.dni).trim())) {
+      errores.push(`${etiqueta}: el DNI debe tener exactamente 8 digitos`);
+    }
+    if (persona.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(persona.correo).trim())) {
+      errores.push(`${etiqueta}: el correo no tiene un formato valido`);
+    }
   });
 
   const dnis = personas.map(p => String(p.dni || '').replace(/\D/g, '')).filter(Boolean);
@@ -1143,10 +1172,27 @@ async function generarMembresia() {
     return;
   }
 
+  const nuevoConCorreoExistente = personas.find(persona => {
+    if (persona.tipoCliente !== 'nuevo' || !persona.correo) return false;
+    const correoPersona = String(persona.correo || '').trim().toLowerCase();
+    return clientesDB.some(cliente => String(cliente.correo || '').trim().toLowerCase() === correoPersona);
+  });
+
+  if (nuevoConCorreoExistente) {
+    mostrarErrorGeneral('Correo duplicado', 'Ya existe un cliente registrado con este correo.');
+    return;
+  }
+
   if (errores.length > 0) {
     err.innerHTML = '⚠️ ' + errores.join('<br>⚠️ ');
     err.style.display = 'block';
     err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (errores.some(texto => texto.includes('cliente registrado'))) {
+      mostrarErrorGeneral(
+        'Selecciona un cliente registrado',
+        'Debes seleccionar un cliente registrado. Si la persona aun no existe, cambia a la pestaña Registrar nuevo.'
+      );
+    }
     return;
   }
 
@@ -1156,7 +1202,7 @@ async function generarMembresia() {
     const plan = planesDB.find(p => String(p.id) === String(planId));
 
     if (!plan) {
-      alert('Plan no válido');
+      mostrarErrorGeneral('Plan no valido', 'Selecciona un plan valido.');
       return;
     }
 
@@ -1254,7 +1300,7 @@ const fechaFinSQL = fechaLocalSQL(fin);
 
   } catch (error) {
     console.error(error);
-    alert('Error al generar la membresía');
+    mostrarErrorGeneral('Error al generar membresia', 'No se pudo generar la vista previa.');
   }
 }
   /* ── Copiar código ── */
@@ -1290,7 +1336,7 @@ const fechaFinSQL = fechaLocalSQL(fin);
 
 async function confirmarMembresia() {
   if (!membresiaPendiente) {
-    alert('Primero genera una vista previa.');
+    mostrarErrorGeneral('Vista previa requerida', 'Primero genera una vista previa.');
     return;
   }
 
@@ -1345,7 +1391,8 @@ async function confirmarMembresia() {
         });
 
         if (!resCliente.ok) {
-          throw new Error('No se pudo crear o actualizar el cliente');
+          const error = await resCliente.json().catch(() => ({}));
+          throw new Error(error.error || 'No se pudo crear el cliente');
         }
 
         const clienteCreado = await resCliente.json();
@@ -1359,7 +1406,8 @@ async function confirmarMembresia() {
       });
 
       if (!resMembresia.ok) {
-        throw new Error('No se pudo crear la membresía');
+        const error = await resMembresia.json().catch(() => ({}));
+        throw new Error(error.error || 'No se pudo crear la membresía');
       }
 
       membresiaCreada = await resMembresia.json();
@@ -1385,7 +1433,7 @@ async function confirmarMembresia() {
 
   } catch (error) {
     console.error(error);
-    alert(error.message || 'Error al confirmar la membresía');
+    mostrarErrorGeneral('Error al confirmar membresia', error.message || 'No se pudo confirmar la membresia.');
   }
 }
 
@@ -1418,6 +1466,8 @@ async function confirmarMembresia() {
       block: 'center'
     });
   }
+
+  actualizarBloqueoCamposCliente();
 }
 
 iniciarPagina();

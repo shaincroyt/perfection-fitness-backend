@@ -463,6 +463,12 @@ function showQuickMembershipMessage(type, text) {
   target.classList.add('visible');
 }
 
+function showQuickMembershipModal(title, text) {
+  if (window.AdminAuth?.showError) {
+    window.AdminAuth.showError(title, text);
+  }
+}
+
 function ensureQuickClientControls() {
   const clienteSelect = document.getElementById('modalCliente');
   if (!clienteSelect || document.getElementById('quickClientControls')) return;
@@ -482,7 +488,7 @@ function ensureQuickClientControls() {
         </div>
         <div class="form-group">
           <label class="form-label" for="quickDni">DNI</label>
-          <input type="text" class="form-input" id="quickDni" maxlength="8" placeholder="Ej. 45821396"/>
+          <input type="text" class="form-input" id="quickDni" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="Ej. 45821396"/>
         </div>
         <div class="form-group">
           <label class="form-label" for="quickTelefono">Telefono</label>
@@ -617,7 +623,7 @@ async function guardarMembresiaRapida() {
   let clienteId = document.getElementById('modalCliente')?.value;
 
   if (tipoClienteRapido === 'existente' && !clienteId) {
-    errores.push('Selecciona un cliente existente');
+    errores.push('Debes seleccionar un cliente registrado. Si la persona aun no existe, usa Registrar nuevo');
   }
 
   const nuevoCliente = {
@@ -643,10 +649,20 @@ async function guardarMembresiaRapida() {
     if (clienteDuplicado) {
       errores.push('Ya existe un cliente con ese DNI. Usa cliente existente');
     }
+    if (nuevoCliente.correo) {
+      const correoNuevo = nuevoCliente.correo.trim().toLowerCase();
+      const correoDuplicado = clientesRapidos.find(cliente =>
+        String(cliente.correo || '').trim().toLowerCase() === correoNuevo
+      );
+      if (correoDuplicado) {
+        errores.push('Ya existe un cliente registrado con este correo');
+      }
+    }
   }
 
   if (errores.length > 0) {
     showQuickMembershipMessage('error', errores.join('. '));
+    showQuickMembershipModal('Revisa los datos', errores.join('. '));
     return;
   }
 
@@ -701,6 +717,7 @@ async function guardarMembresiaRapida() {
   } catch (error) {
     console.error(error);
     showQuickMembershipMessage('error', error.message || 'Error al guardar membresia');
+    showQuickMembershipModal('Error al guardar membresia', error.message || 'No se pudo guardar la membresia.');
   } finally {
     saveBtn.disabled = false;
     saveBtn.innerHTML = `

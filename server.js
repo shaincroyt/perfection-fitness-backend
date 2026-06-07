@@ -486,6 +486,22 @@ async function obtenerRolAdmin(codigo, conn = pool) {
     return rows[0] || null;
 }
 
+async function asegurarRolesBase(conn = pool) {
+    try {
+        await conn.query(
+            `INSERT INTO roles_admin (codigo, nombre, descripcion, estado, sistema)
+             VALUES
+             ('admin', 'Administrador', 'Acceso total al sistema y configuracion del gimnasio.', 'activo', 1),
+             ('recepcion', 'Recepcion', 'Gestiona ingresos, clientes y atencion al cliente.', 'activo', 1)
+             ON DUPLICATE KEY UPDATE
+                sistema = 1,
+                estado = CASE WHEN codigo IN ('admin', 'recepcion') THEN estado ELSE VALUES(estado) END`
+        );
+    } catch (error) {
+        if (!tablaRolesNoExiste(error)) throw error;
+    }
+}
+
 async function generarCodigoRolUnico(nombre, conn = pool, excluir = null) {
     const base = generarCodigoRol(nombre);
     let codigo = base;
@@ -1073,6 +1089,7 @@ app.get('/api/admin/permisos', requirePermission('roles.asignar_permisos'), asyn
 app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => {
     try {
         try {
+            await asegurarRolesBase();
             const [rows] = await pool.query(`
                 SELECT
                     r.codigo,
@@ -1167,6 +1184,7 @@ app.post('/api/admin/roles', requirePermission('roles.crear'), async (req, res) 
         }
 
         await conn.beginTransaction();
+        await asegurarRolesBase(conn);
 
         const codigo = await generarCodigoRolUnico(nombre, conn);
         await conn.query(
@@ -1220,6 +1238,7 @@ app.post('/api/admin/roles/:id/duplicar', requirePermission('roles.crear'), asyn
 
     try {
         const origenCodigo = normalizarCodigoRol(req.params.id);
+        await asegurarRolesBase(conn);
         const origen = await obtenerRolAdmin(origenCodigo, conn);
 
         if (!origen && !validarRol(origenCodigo)) {
@@ -1303,6 +1322,7 @@ app.put('/api/admin/roles/:id', requirePermission('roles.editar'), async (req, r
             return res.status(400).json({ ok: false, error: 'No se pueden modificar permisos del rol admin' });
         }
 
+        await asegurarRolesBase(conn);
         const rol = await obtenerRolAdmin(codigo, conn);
         if (!rol) {
             return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
@@ -1725,6 +1745,82 @@ function limpiarTexto(valor) {
     return String(valor || '').trim();
 }
 
+function normalizarDni(valor) {
+    return String(valor || '').trim();
+}
+
+function dniValido(valor) {
+    return /^[0-9]{8}$/.test(normalizarDni(valor));
+}
+
+function normalizarCorreo(valor) {
+    return String(valor || '').trim().toLowerCase();
+}
+
+function correoValido(valor) {
+    const correo = normalizarCorreo(valor);
+    return !correo || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+}
+
+function validarPayloadCliente({ nombre, dni, correo }) {
+    if (!limpiarTexto(nombre)) {
+        return 'Nombre es obligatorio';
+    }
+
+    if (!dniValido(dni)) {
+        return 'El DNI debe tener exactamente 8 digitos.';
+    }
+
+    if (!correoValido(correo)) {
+        return 'El correo no tiene un formato valido.';
+    }
+
+    return null;
+}
+
+async function existeDniCliente(dni, excluirId = null, conn = pool) {
+    const params = [normalizarDni(dni)];
+    let filtroId = '';
+
+    if (excluirId) {
+        filtroId = 'AND id <> ?';
+        params.push(excluirId);
+    }
+
+    const [[row]] = await conn.query(
+        `SELECT COUNT(*) AS total
+         FROM clientes
+         WHERE dni = ?
+         ${filtroId}`,
+        params
+    );
+
+    return Number(row.total || 0) > 0;
+}
+
+async function existeCorreoCliente(correo, excluirId = null, conn = pool) {
+    const correoNormalizado = normalizarCorreo(correo);
+    if (!correoNormalizado) return false;
+
+    const params = [correoNormalizado];
+    let filtroId = '';
+
+    if (excluirId) {
+        filtroId = 'AND id <> ?';
+        params.push(excluirId);
+    }
+
+    const [[row]] = await conn.query(
+        `SELECT COUNT(*) AS total
+         FROM clientes
+         WHERE LOWER(TRIM(correo)) = ?
+         ${filtroId}`,
+        params
+    );
+
+    return Number(row.total || 0) > 0;
+}
+
 function validarRol(rol) {
     return /^[a-z0-9_.-]{2,50}$/i.test(String(rol || ''));
 }
@@ -2098,33 +2194,29 @@ app.get('/api/clientes', requirePermission('clientes.ver'), async (req, res) => 
 
 app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) => {
     try {
-        const { nombre, dni, telefono, correo, estado } = req.body;
+        const nombre = limpiarTexto(req.body.nombre);
+        const dni = normalizarDni(req.body.dni);
+        const telefono = limpiarTexto(req.body.telefono);
+        const correo = normalizarCorreo(req.body.correo);
+        const estado = validarEstado(limpiarTexto(req.body.estado)) ? limpiarTexto(req.body.estado) : 'activo';
 
-        const [existente] = await pool.query(
-            'SELECT * FROM clientes WHERE dni = ?',
-            [dni]
-        );
+        const errorCliente = validarPayloadCliente({ nombre, dni, correo });
+        if (errorCliente) {
+            return res.status(400).json({ error: errorCliente });
+        }
 
-        if (existente.length > 0) {
-            const cliente = existente[0];
+        if (await existeDniCliente(dni)) {
+            return res.status(409).json({ error: 'Ya existe un cliente registrado con este DNI.' });
+        }
 
-            await pool.query(
-                `UPDATE clientes
-                 SET nombre = ?, telefono = ?, correo = ?, estado = ?
-                 WHERE id = ?`,
-                [nombre, telefono, correo, estado || 'activo', cliente.id]
-            );
-
-            return res.json({
-                id: cliente.id,
-                actualizado: true
-            });
+        if (await existeCorreoCliente(correo)) {
+            return res.status(409).json({ error: 'Ya existe un cliente registrado con este correo.' });
         }
 
         const [result] = await pool.query(
             `INSERT INTO clientes (nombre, dni, telefono, correo, estado)
              VALUES (?, ?, ?, ?, ?)`,
-            [nombre, dni, telefono, correo, estado || 'activo']
+            [nombre, dni, telefono, correo || null, estado]
         );
 
         await crearNotificacion({
@@ -2149,25 +2241,34 @@ app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) 
 
 app.put('/api/clientes/:id', requirePermission('clientes.editar'), async (req, res) => {
     try {
-        const { id } = req.params;
-        const { nombre, dni, telefono, correo, estado } = req.body;
+        const id = Number(req.params.id);
+        const nombre = limpiarTexto(req.body.nombre);
+        const dni = normalizarDni(req.body.dni);
+        const telefono = limpiarTexto(req.body.telefono);
+        const correo = normalizarCorreo(req.body.correo);
 
-        const [duplicado] = await pool.query(
-            'SELECT id FROM clientes WHERE dni = ? AND id != ?',
-            [dni, id]
-        );
+        if (!id) {
+            return res.status(400).json({ error: 'Cliente no valido' });
+        }
 
-        if (duplicado.length > 0) {
-            return res.status(400).json({
-                error: 'Ya existe otro cliente con ese DNI'
-            });
+        const errorCliente = validarPayloadCliente({ nombre, dni, correo });
+        if (errorCliente) {
+            return res.status(400).json({ error: errorCliente });
+        }
+
+        if (await existeDniCliente(dni, id)) {
+            return res.status(409).json({ error: 'Ya existe otro cliente con ese DNI.' });
+        }
+
+        if (await existeCorreoCliente(correo, id)) {
+            return res.status(409).json({ error: 'Ya existe un cliente registrado con este correo.' });
         }
 
         await pool.query(
             `UPDATE clientes
              SET nombre = ?, dni = ?, telefono = ?, correo = ?
              WHERE id = ?`,
-            [nombre, dni, telefono, correo, id]
+            [nombre, dni, telefono, correo || null, id]
         );
 
         res.json({
@@ -2449,6 +2550,28 @@ async function desactivarClienteSiSinMembresiaActiva(clienteId, membresiaId, con
          )`,
         [clienteId, membresiaId]
     );
+}
+
+async function obtenerMembresiaActivaCliente(clienteId, conn = pool) {
+    const [[membresia]] = await conn.query(
+        `SELECT id, codigo, fecha_fin
+         FROM membresias
+         WHERE cliente_id = ?
+         AND estado = 'activa'
+         AND (
+            COALESCE(duracion_unidad, 'meses') = 'usos'
+            OR DATE(fecha_fin) >= CURDATE()
+         )
+         AND (
+            asistencias_totales IS NULL
+            OR COALESCE(asistencias_usadas, 0) < asistencias_totales
+         )
+         ORDER BY fecha_fin DESC, id DESC
+         LIMIT 1`,
+        [clienteId]
+    );
+
+    return membresia || null;
 }
 
 async function validarMembresiaYRegistrar(membresia) {
@@ -2767,6 +2890,26 @@ app.post('/api/membresias', requirePermission('membresias.crear'), async (req, r
             origen
         } = req.body;
 
+        const [[cliente]] = await pool.query(
+            `SELECT id, nombre
+             FROM clientes
+             WHERE id = ?
+             LIMIT 1`,
+            [cliente_id]
+        );
+
+        if (!cliente) {
+            return res.status(400).json({ error: 'Debes seleccionar un cliente registrado.' });
+        }
+
+        const membresiaActiva = await obtenerMembresiaActivaCliente(cliente_id);
+        if (membresiaActiva) {
+            return res.status(409).json({
+                error: 'Este cliente ya tiene una membresia activa. Si deseas extender su acceso, usa la opcion renovar membresia.',
+                code: 'cliente_membresia_activa'
+            });
+        }
+
         const plan = await obtenerPlanParaMembresia(plan_id);
         if (!plan) {
             return res.status(400).json({ error: 'Plan no valido' });
@@ -2784,9 +2927,18 @@ app.post('/api/membresias', requirePermission('membresias.crear'), async (req, r
         const codigo = await generarCodigoUnico();
 
         const [membresiaExistente] = await pool.query(
-    'SELECT * FROM membresias WHERE cliente_id = ?',
-    [cliente_id]
-);
+            `SELECT *
+             FROM membresias
+             WHERE cliente_id = ?
+             AND (
+                estado <> 'activa'
+                OR DATE(fecha_fin) < CURDATE()
+                OR (asistencias_totales IS NOT NULL AND COALESCE(asistencias_usadas, 0) >= asistencias_totales)
+             )
+             ORDER BY id DESC
+             LIMIT 1`,
+            [cliente_id]
+        );
 
 if (membresiaExistente.length > 0) {
     const membresia = membresiaExistente[0];
@@ -2947,6 +3099,29 @@ app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async 
             });
         }
 
+        for (const persona of personas) {
+            const errorCliente = persona.cliente_id
+                ? null
+                : validarPayloadCliente({
+                    nombre: persona.nombre,
+                    dni: persona.dni,
+                    correo: persona.correo
+                });
+
+            if (errorCliente) {
+                return res.status(400).json({ error: errorCliente });
+            }
+        }
+
+        const correos = personas
+            .map(p => normalizarCorreo(p.correo))
+            .filter(Boolean);
+        if (correos.length !== new Set(correos).size) {
+            return res.status(400).json({
+                error: 'No se permiten correos duplicados entre personas'
+            });
+        }
+
         await conn.beginTransaction();
 
         const plan = await obtenerPlanParaMembresia(plan_id, conn);
@@ -2991,30 +3166,39 @@ app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async 
                     throw new Error('Cliente existente no encontrado');
                 }
 
+                if (await obtenerMembresiaActivaCliente(clienteId, conn)) {
+                    const error = new Error(`El cliente ${cliente.nombre} ya tiene una membresia activa. Usa renovar membresia.`);
+                    error.statusCode = 409;
+                    throw error;
+                }
+
                 nombreCliente = cliente.nombre;
             } else {
                 const nombre = String(persona.nombre || '').trim();
-                const dni = String(persona.dni || '').trim();
+                const dni = normalizarDni(persona.dni);
                 const telefono = String(persona.telefono || '').trim();
-                const correo = String(persona.correo || '').trim();
+                const correo = normalizarCorreo(persona.correo);
 
                 if (!nombre || !dni) {
                     throw new Error('Nombre y DNI son obligatorios para clientes nuevos');
                 }
 
-                const [existente] = await conn.query(
-                    'SELECT id FROM clientes WHERE dni = ?',
-                    [dni]
-                );
+                if (await existeDniCliente(dni, null, conn)) {
+                    const error = new Error('El DNI ya existe. Usa cliente existente para esa persona.');
+                    error.statusCode = 409;
+                    throw error;
+                }
 
-                if (existente.length > 0) {
-                    throw new Error('El DNI ya existe. Usa cliente existente para esa persona.');
+                if (await existeCorreoCliente(correo, null, conn)) {
+                    const error = new Error('Ya existe un cliente registrado con este correo.');
+                    error.statusCode = 409;
+                    throw error;
                 }
 
                 const [clienteCreado] = await conn.query(
                     `INSERT INTO clientes (nombre, dni, telefono, correo, estado)
                      VALUES (?, ?, ?, ?, 'activo')`,
-                    [nombre, dni, telefono, correo]
+                    [nombre, dni, telefono, correo || null]
                 );
 
                 clienteId = clienteCreado.insertId;
@@ -3104,7 +3288,7 @@ app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async 
     } catch (error) {
         await conn.rollback();
         console.error(error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             error: error.message || 'Error al crear membresía grupal'
         });
     } finally {

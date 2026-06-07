@@ -267,7 +267,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">DNI</label>
-          <input type="text" class="form-input" placeholder="Ej. 45821396"/>
+          <input type="text" class="form-input" placeholder="Ej. 45821396" inputmode="numeric" maxlength="8" pattern="[0-9]{8}"/>
         </div>
         <div class="form-group">
           <label class="form-label">Teléfono</label>
@@ -367,6 +367,14 @@
   let nombreClienteEliminar = '';
   let clienteEditando = null;
 
+  function mostrarError(titulo, mensaje) {
+    if (window.AdminAuth?.showError) {
+      window.AdminAuth.showError(titulo, mensaje);
+      return;
+    }
+    console.error(`${titulo}: ${mensaje}`);
+  }
+
   function normalizarEstado(estado) {
     if (!estado) return 'Inactivo';
     return estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase();
@@ -425,7 +433,12 @@
   const correo = inputs[4].value.trim();
 
   if (!nombre || !dni) {
-    alert('Nombre y DNI son obligatorios');
+    mostrarError('Datos incompletos', 'Nombre y DNI son obligatorios.');
+    return;
+  }
+
+  if (!/^[0-9]{8}$/.test(dni)) {
+    mostrarError('DNI invalido', 'El DNI debe tener exactamente 8 digitos.');
     return;
   }
 
@@ -451,9 +464,8 @@ const res = await fetch(url, {
       })
     });
 
-    if (!res.ok) {
-      throw new Error('No se pudo guardar el cliente');
-    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'No se pudo guardar el cliente');
 
     closeModal();
     await cargarClientes();
@@ -462,7 +474,7 @@ const res = await fetch(url, {
 
   } catch (error) {
     console.error(error);
-    alert('Error al guardar cliente');
+    mostrarError('Error al guardar cliente', error.message || 'No se pudo guardar el cliente.');
   }
 }
 

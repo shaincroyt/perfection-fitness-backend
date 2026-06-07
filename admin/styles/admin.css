@@ -8187,6 +8187,12 @@ body.admin-page-membresias .message.error {
   color: #dc2626;
 }
 
+body.admin-page-nueva-membresia .form-input.is-readonly {
+  background: #f4f4f5;
+  color: var(--text-2);
+  cursor: not-allowed;
+}
+
 @media (max-width: 1024px) {
   body.admin-page .sidebar {
     position: fixed !important;
