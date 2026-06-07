@@ -55,12 +55,58 @@
 /* ==============================
 10. Modales
 ============================== */
+
+/* =============================================================
+   ★ DESIGN SYSTEM v2 — Global Tokens & Base Variables
+   Professional SaaS look. Additive — no existing rules removed.
+============================================================= */
+:root {
+  /* Brand — desaturado vs #DD0F0D original, más ejecutivo */
+  --brand:          #C0392B;
+  --brand-dark:     #96281B;
+  --brand-light:    rgba(192,57,43,.09);
+  --brand-border:   rgba(192,57,43,.22);
+
+  /* Sidebar dark slate */
+  --sidebar-bg:     #0F172A;
+
+  /* Backgrounds */
+  --surface-2:      #F3F4F8;
+
+  /* Borders */
+  --border-mid:     #CDD2DF;
+
+  /* Radius — sistema de 5 niveles */
+  --radius-sm:      6px;
+  --radius-md:      10px;
+  --radius-lg:      12px;
+  --radius-xl:      16px;
+
+  /* Shadows — sistema de 5 niveles */
+  --sh-xs:          0 1px 2px rgba(0,0,0,.05);
+  --sh-sm:          0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --sh-md:          0 4px 8px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --sh-lg:          0 12px 24px rgba(0,0,0,.09), 0 4px 8px rgba(0,0,0,.04);
+  --sh-xl:          0 20px 40px rgba(0,0,0,.12), 0 8px 16px rgba(0,0,0,.06);
+}
+
+/* Base override that applies across ALL admin pages */
+body.admin-page {
+  --bg:     #F8F9FB;
+  --border: #E4E7EF;
+  --text-1: #111827;
+  --text-2: #4B5563;
+  --text-3: #9CA3AF;
+  --red:    #DC2626;
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
   min-height: 100%;
 }
+
 .sidebar-user {
   flex-wrap: wrap;
 }
@@ -8962,3 +9008,751 @@ body.admin-page-nueva-membresia .form-input.is-readonly {
 }
 
 /* Fin de admin.css */
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  ★ SAAS REDESIGN LAYER — Enterprise Professional v2.0       ║
+   ║  Transforms gym-brand UI → modern SaaS admin platform.     ║
+   ║  Additive overrides only. No JS IDs modified.              ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+
+/* ──────────────────────────────────────────────────────────────
+   1. SIDEBAR — Dark slate (Linear / Stripe / Vercel style)
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .sidebar {
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid rgba(255,255,255,.04) !important;
+}
+
+/* Remove gym decorative circles */
+body.admin-page .sidebar::before,
+body.admin-page .sidebar::after {
+  display: none !important;
+}
+
+body.admin-page .sidebar-logo {
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  padding: 0 18px !important;
+}
+
+/* Placeholder icon — neutral look */
+body.admin-page .sidebar-logo-placeholder {
+  background: rgba(192,57,43,.22) !important;
+  border: 1.5px solid rgba(192,57,43,.32) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Logo label keeps Bebas Neue — brand identity */
+body.admin-page .logo-label {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .05em;
+  font-size: 19px;
+}
+
+body.admin-page .logo-sub {
+  color: rgba(255,255,255,.30) !important;
+  letter-spacing: .11em !important;
+  font-size: 9.5px !important;
+}
+
+/* Nav section labels */
+body.admin-page .nav-label {
+  color: rgba(255,255,255,.22) !important;
+  font-size: 9.5px !important;
+  letter-spacing: .14em !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  padding: 14px 8px 5px !important;
+}
+
+/* Nav items */
+body.admin-page .nav-item {
+  color: rgba(255,255,255,.57) !important;
+  border-radius: var(--radius) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  padding: 9px 12px !important;
+  gap: 10px !important;
+  transition: background var(--t), color var(--t) !important;
+}
+
+body.admin-page .nav-item svg {
+  opacity: .50 !important;
+  flex-shrink: 0;
+  transition: opacity var(--t) !important;
+}
+
+body.admin-page .nav-item:hover {
+  background: rgba(255,255,255,.07) !important;
+  color: rgba(255,255,255,.88) !important;
+}
+
+body.admin-page .nav-item:hover svg {
+  opacity: .80 !important;
+}
+
+/* Active state */
+body.admin-page .nav-item.active {
+  background: rgba(255,255,255,.09) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+body.admin-page .nav-item.active svg {
+  opacity: 1 !important;
+}
+
+/* Active left indicator — brand red instead of yellow */
+body.admin-page .nav-item.active::before {
+  background: var(--brand) !important;
+  width: 3px !important;
+  height: 18px !important;
+  border-radius: 0 3px 3px 0 !important;
+}
+
+/* Count badge in nav */
+body.admin-page .nav-badge {
+  background: rgba(255,255,255,.10) !important;
+  color: rgba(255,255,255,.60) !important;
+  font-size: 10px !important;
+  padding: 1px 6px !important;
+  border-radius: 20px !important;
+}
+
+/* Sidebar user area */
+body.admin-page .sidebar-user {
+  border-top: 1px solid rgba(255,255,255,.06) !important;
+  padding: 14px 18px !important;
+  gap: 10px !important;
+}
+
+body.admin-page .user-avatar {
+  background: rgba(192,57,43,.28) !important;
+  border: 1.5px solid rgba(192,57,43,.42) !important;
+  border-radius: 50% !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: rgba(255,255,255,.90) !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+body.admin-page .user-name {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: rgba(255,255,255,.88) !important;
+}
+
+body.admin-page .user-role {
+  font-size: 10.5px !important;
+  color: rgba(255,255,255,.32) !important;
+}
+
+/* Logout button in sidebar */
+body.admin-page .admin-logout-btn {
+  background: rgba(255,255,255,.07) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(255,255,255,.60) !important;
+  border-radius: var(--radius) !important;
+  font-size: 12px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  margin-top: 8px !important;
+  transition: all var(--t) !important;
+}
+
+body.admin-page .admin-logout-btn:hover {
+  background: rgba(255,255,255,.12) !important;
+  color: rgba(255,255,255,.90) !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   2. HEADER — Lightweight, professional, no Bebas Neue
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .header {
+  background: #fff !important;
+  border-bottom: 1px solid rgba(0,0,0,.07) !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,.04) !important;
+  padding: 0 26px !important;
+}
+
+/* ✦ CORE CHANGE: Replace Bebas Neue with DM Sans in header */
+body.admin-page .header-title {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.015em !important;
+  color: var(--text-1) !important;
+  line-height: 1.2 !important;
+}
+
+body.admin-page .header-breadcrumb {
+  font-size: 11.5px !important;
+  color: var(--text-3) !important;
+  margin-top: 1px !important;
+  font-weight: 400 !important;
+}
+
+body.admin-page .header-breadcrumb span {
+  color: var(--brand) !important;
+  font-weight: 500 !important;
+}
+
+body.admin-page .header-date {
+  font-size: 12px !important;
+  color: var(--text-3) !important;
+  font-weight: 400 !important;
+}
+
+body.admin-page .header-btn {
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  color: var(--text-3) !important;
+  transition: all var(--t) !important;
+}
+
+body.admin-page .header-btn:hover {
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+  background: var(--brand-light) !important;
+}
+
+body.admin-page .notif-dot {
+  background: var(--brand) !important;
+  width: 6px !important;
+  height: 6px !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   3. MAIN CONTENT — Cooler background
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .main,
+body.admin-page main {
+  background: var(--bg) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   4. STAT CARDS — SaaS dashboard, no gym bars
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .stat-card {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--sh-sm) !important;
+  padding: 20px !important;
+  transition: box-shadow var(--t) !important;
+}
+
+body.admin-page .stat-card:hover {
+  box-shadow: var(--sh-md) !important;
+  transform: none !important;
+}
+
+/* Remove gym-style bottom color bar */
+body.admin-page .stat-card::after {
+  display: none !important;
+}
+
+/* Icon containers — squared, SaaS style */
+body.admin-page .stat-icon {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: var(--radius-md) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+body.admin-page .stat-value {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.025em !important;
+  color: var(--text-1) !important;
+  line-height: 1.1 !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+body.admin-page .stat-label {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--text-3) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  margin-bottom: 4px !important;
+}
+
+body.admin-page .stat-sub {
+  font-size: 12px !important;
+  color: var(--text-3) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   5. SECTION HEADERS — Clean hierarchy
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .section-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 14px !important;
+}
+
+body.admin-page .section-title {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--text-1) !important;
+  letter-spacing: -.01em !important;
+}
+
+body.admin-page .section-link {
+  font-size: 12.5px !important;
+  color: var(--brand) !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+
+body.admin-page .section-link:hover {
+  text-decoration: underline !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   6. TABLES — Clean SaaS tables
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .table-wrap {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden !important;
+  background: #fff !important;
+  box-shadow: var(--sh-sm) !important;
+}
+
+body.admin-page table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+body.admin-page thead tr {
+  background: var(--surface-2) !important;
+}
+
+body.admin-page thead th {
+  padding: 10px 16px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+  color: var(--text-3) !important;
+  border-bottom: 1px solid var(--border) !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  background: var(--surface-2) !important;
+}
+
+body.admin-page tbody td {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid rgba(228,231,239,.65) !important;
+  color: var(--text-1) !important;
+  vertical-align: middle !important;
+  font-size: 13.5px !important;
+}
+
+body.admin-page tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+body.admin-page tbody tr:hover td {
+  background: rgba(248,249,251,.85) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   7. TABLE ACTION BUTTONS — Soft, professional
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .table-action-btn {
+  height: 28px !important;
+  padding: 0 10px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  font-family: 'DM Sans', sans-serif !important;
+  border: 1px solid var(--border) !important;
+  background: #fff !important;
+  color: var(--text-2) !important;
+  cursor: pointer !important;
+  transition: all var(--t) !important;
+  white-space: nowrap !important;
+}
+
+body.admin-page .table-action-btn:hover:not(:disabled) {
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+  background: var(--brand-light) !important;
+}
+
+body.admin-page .table-action-btn.danger {
+  border-color: #fee2e2 !important;
+  background: #fff5f5 !important;
+  color: var(--red) !important;
+}
+
+body.admin-page .table-action-btn.danger:hover:not(:disabled) {
+  background: var(--red) !important;
+  border-color: var(--red) !important;
+  color: #fff !important;
+}
+
+body.admin-page .table-action-btn:disabled {
+  opacity: .38 !important;
+  cursor: not-allowed !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   8. MODAL OVERLAYS — Dark blur
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .logout-modal-overlay,
+body.admin-page .config-modal-overlay,
+body.admin-page .confirm-modal-overlay {
+  background: rgba(15,23,42,.46) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Logout modal */
+body.admin-page .logout-modal {
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--sh-xl) !important;
+  border: 1px solid var(--border) !important;
+}
+
+body.admin-page .logout-modal-header {
+  padding: 20px 24px 16px !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* ✦ Remove Bebas Neue from logout modal title */
+body.admin-page .logout-modal-title {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.01em !important;
+  color: var(--text-1) !important;
+  line-height: 1.2 !important;
+}
+
+body.admin-page .logout-modal-text {
+  font-size: 14px !important;
+  color: var(--text-2) !important;
+  line-height: 1.55 !important;
+}
+
+body.admin-page .logout-modal-actions {
+  padding: 0 24px 20px !important;
+  gap: 8px !important;
+}
+
+body.admin-page .logout-cancel-btn {
+  height: 36px !important;
+  border-radius: var(--radius) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  padding: 0 16px !important;
+  border: 1px solid var(--border) !important;
+  background: #fff !important;
+  color: var(--text-2) !important;
+  transition: all var(--t) !important;
+}
+
+body.admin-page .logout-cancel-btn:hover {
+  border-color: var(--border-mid) !important;
+  color: var(--text-1) !important;
+  background: var(--surface-2) !important;
+}
+
+body.admin-page .logout-confirm-btn {
+  height: 36px !important;
+  border-radius: var(--radius) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  padding: 0 16px !important;
+  background: var(--brand) !important;
+  border-color: var(--brand) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  transition: background var(--t) !important;
+}
+
+body.admin-page .logout-confirm-btn:hover:not(:disabled) {
+  background: var(--brand-dark) !important;
+  transform: none !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   9. CONFIG MODALS — Unified enterprise style
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .config-modal {
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--sh-xl) !important;
+  border: 1px solid rgba(228,231,239,.6) !important;
+}
+
+body.admin-page .config-modal-header {
+  border-bottom: 1px solid var(--border) !important;
+  padding: 18px 22px !important;
+  background: #fff !important;
+}
+
+/* ✦ Remove Bebas Neue from all config modal titles */
+body.admin-page .config-modal-title,
+body.admin-page [class*="-modal-title"] {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.01em !important;
+  color: var(--text-1) !important;
+}
+
+body.admin-page .config-modal-actions {
+  border-top: 1px solid var(--border) !important;
+  background: var(--surface-2) !important;
+  padding: 14px 22px !important;
+}
+
+/* Confirm modal card */
+body.admin-page .confirm-modal-card {
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--sh-xl) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   10. STATUS BADGES / PILLS — Unified sizing
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .status-pill,
+body.admin-page .badge {
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 3px 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+}
+
+/* Badge dot size */
+body.admin-page .badge-dot,
+body.admin-page .status-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+/* Plan pills */
+body.admin-page .plan-pill {
+  border-radius: var(--radius-sm) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   11. CLIENT CARDS (dashboard) — Cleaner look
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .client-card {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--sh-sm) !important;
+  padding: 16px !important;
+  background: #fff !important;
+  transition: box-shadow var(--t) !important;
+}
+
+body.admin-page .client-card:hover {
+  box-shadow: var(--sh-md) !important;
+}
+
+body.admin-page .client-name {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-1) !important;
+}
+
+body.admin-page .client-plan {
+  font-size: 12px !important;
+  color: var(--text-3) !important;
+}
+
+body.admin-page .client-date {
+  font-size: 11.5px !important;
+  color: var(--text-3) !important;
+}
+
+/* Avatar cells in tables */
+body.admin-page .avatar-sm {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  flex-shrink: 0 !important;
+}
+
+body.admin-page .td-name {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-1) !important;
+}
+
+body.admin-page .td-email {
+  font-size: 12px !important;
+  color: var(--text-3) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   12. ROLE CARDS — configuracion
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .role-card {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--sh-sm) !important;
+  transition: box-shadow var(--t) !important;
+}
+
+body.admin-page .role-card:hover {
+  box-shadow: var(--sh-md) !important;
+}
+
+body.admin-page .role-card-title {
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-1) !important;
+  letter-spacing: -.01em !important;
+}
+
+body.admin-page .role-card-description {
+  font-size: 12.5px !important;
+  color: var(--text-3) !important;
+  line-height: 1.45 !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   13. NOTIFICATION POPOVER — Polished
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .notification-popover {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--sh-lg) !important;
+}
+
+body.admin-page .notification-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--text-1) !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   14. FORM ELEMENTS — Professional inputs
+────────────────────────────────────────────────────────────── */
+
+/* Input/select fields on all admin pages */
+body.admin-page input[type="text"],
+body.admin-page input[type="email"],
+body.admin-page input[type="password"],
+body.admin-page input[type="number"],
+body.admin-page input[type="date"],
+body.admin-page input[type="search"],
+body.admin-page select {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 14px !important;
+  color: var(--text-1) !important;
+  background: #fff !important;
+  transition: border-color var(--t), box-shadow var(--t) !important;
+}
+
+body.admin-page input:focus,
+body.admin-page select:focus,
+body.admin-page textarea:focus {
+  outline: none !important;
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px var(--brand-light) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   15. LOGOUT HEADER BUTTON — Unified with design system
+────────────────────────────────────────────────────────────── */
+
+body.admin-page .admin-logout-header-btn {
+  height: 34px !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-2) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  transition: all var(--t) !important;
+}
+
+body.admin-page .admin-logout-header-btn:hover {
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+  background: var(--brand-light) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   16. GLOBAL RESPONSIVE ADDITIONS
+────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1280px) {
+  body.admin-page .header {
+    padding: 0 20px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  body.admin-page .header {
+    padding: 0 16px !important;
+  }
+  body.admin-page .header-title {
+    font-size: 15px !important;
+  }
+  body.admin-page thead th {
+    padding: 9px 12px !important;
+  }
+  body.admin-page tbody td {
+    padding: 11px 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body.admin-page .table-wrap {
+    border-radius: var(--radius-md) !important;
+  }
+  body.admin-page .stat-card {
+    border-radius: var(--radius-md) !important;
+  }
+  body.admin-page .table-action-btn {
+    height: 26px !important;
+    font-size: 11.5px !important;
+    padding: 0 8px !important;
+  }
+}
+
+/* ── End of SaaS Redesign Layer ─────────────────────────────── */
+
