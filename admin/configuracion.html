@@ -227,14 +227,18 @@
         <div class="message success" id="adminUserSuccess">Usuario guardado correctamente</div>
         <div class="message error" id="adminUserError">Error al guardar usuario</div>
 
+        <!-- Roles del sistema -->
         <section class="roles-system-section" id="rolesSystemSection" data-permission="roles.ver" hidden>
           <div class="roles-system-header">
             <div>
               <div class="roles-eyebrow">Roles del sistema</div>
               <div class="roles-title">Roles y permisos</div>
-              <div class="roles-subtitle">Define que puede hacer cada tipo de usuario dentro del gimnasio.</div>
+              <div class="roles-subtitle">Define qué puede hacer cada tipo de usuario dentro del gimnasio.</div>
             </div>
-            <button class="btn btn-primary" type="button" id="createRoleBtn" data-permission="roles.crear">Crear rol</button>
+            <button class="btn btn-primary" type="button" id="createRoleBtn" data-permission="roles.crear">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Crear rol
+            </button>
           </div>
           <div class="roles-card-grid" id="rolesGrid">
             <div class="admin-users-empty">Cargando roles...</div>
@@ -270,8 +274,11 @@
   </main>
 </div>
 
+<!-- ====================================================
+  MODAL: CREAR / EDITAR ROL (con permisos integrados)
+===================================================== -->
 <div class="modal-overlay config-modal-overlay" id="roleModal" hidden>
-  <div class="config-modal">
+  <div class="config-modal role-modal-wide">
     <div class="config-modal-header">
       <div>
         <div class="config-modal-title" id="roleModalTitle">Crear rol</div>
@@ -279,32 +286,57 @@
       </div>
       <button class="modal-close" type="button" id="roleModalClose">&times;</button>
     </div>
-    <form id="roleForm" class="config-modal-body">
+    <form id="roleForm">
       <input type="hidden" id="roleCodigo" />
-      <div class="form-group">
-        <label class="form-label" for="roleNombre">Nombre del rol</label>
-        <input class="form-input" id="roleNombre" autocomplete="off" placeholder="Supervisor de sede" />
+
+      <!-- Sección: Datos del rol -->
+      <div class="role-modal-section">
+        <div class="role-modal-section-label">
+          <span class="role-modal-step">1</span>
+          Datos del rol
+        </div>
+        <div class="role-modal-fields">
+          <div class="form-group">
+            <label class="form-label" for="roleNombre">Nombre del rol</label>
+            <input class="form-input" id="roleNombre" autocomplete="off" placeholder="Ej: Supervisor de sede" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="roleDescripcion">Descripción</label>
+            <input class="form-input" id="roleDescripcion" autocomplete="off" placeholder="Ej: Gestiona caja, recepción y reportes diarios" />
+          </div>
+          <div class="role-modal-row">
+            <div class="form-group" id="roleEstadoGroup">
+              <label class="form-label" for="roleEstado">Estado</label>
+              <select class="form-input" id="roleEstado">
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+            <div class="form-group" id="roleBasedOnGroup">
+              <label class="form-label" for="roleBasedOn">Crear basado en</label>
+              <select class="form-input" id="roleBasedOn">
+                <option value="vacio">— Sin base (vacío) —</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="roleDescripcion">Descripcion</label>
-        <input class="form-input" id="roleDescripcion" autocomplete="off" placeholder="Gestiona caja, recepcion y reportes diarios" />
+
+      <!-- Sección: Permisos (solo si tiene permiso roles.asignar_permisos) -->
+      <div class="role-modal-section role-modal-perms-section" id="roleModalPermsWrap" hidden>
+        <div class="role-modal-section-label">
+          <span class="role-modal-step">2</span>
+          Permisos
+          <span class="role-modal-perm-badge" id="roleModalPermCount">0 permisos seleccionados</span>
+        </div>
+        <div class="role-modal-perms-toolbar">
+          <input class="form-input role-modal-search" id="roleModalPermSearch" placeholder="Buscar permiso…" autocomplete="off" />
+        </div>
+        <div class="role-modal-perms-grid" id="roleModalPermsGrid">
+          <div class="admin-users-empty">Cargando permisos...</div>
+        </div>
       </div>
-      <div class="form-group" id="roleEstadoGroup">
-        <label class="form-label" for="roleEstado">Estado</label>
-        <select class="form-input" id="roleEstado">
-          <option value="activo">Activo</option>
-          <option value="inactivo">Inactivo</option>
-        </select>
-      </div>
-      <div class="form-group" id="roleBasedOnGroup">
-        <label class="form-label" for="roleBasedOn">Crear basado en</label>
-        <select class="form-input" id="roleBasedOn">
-          <option value="vacio">Vacio</option>
-          <option value="recepcion">Recepcion</option>
-          <option value="supervisor">Supervisor</option>
-          <option value="admin">Administrador</option>
-        </select>
-      </div>
+
       <div class="config-modal-actions">
         <button class="btn btn-secondary" type="button" id="roleCancelBtn">Cancelar</button>
         <button class="btn btn-primary" type="submit" id="roleSubmitBtn">Crear rol</button>
@@ -313,12 +345,15 @@
   </div>
 </div>
 
+<!-- ====================================================
+  MODAL: VER / EDITAR PERMISOS (desde card "Ver permisos")
+===================================================== -->
 <div class="modal-overlay config-modal-overlay permissions-modal-overlay" id="permissionsModal" hidden>
   <div class="config-modal permissions-modal">
     <div class="config-modal-header">
       <div>
         <div class="config-modal-title" id="permissionsModalTitle">Permisos</div>
-        <div class="config-modal-subtitle" id="permissionsModalSubtitle">Selecciona permisos para este rol.</div>
+        <div class="config-modal-subtitle" id="permissionsModalSubtitle">Permisos asignados a este rol.</div>
       </div>
       <button class="modal-close" type="button" id="permissionsModalClose">&times;</button>
     </div>

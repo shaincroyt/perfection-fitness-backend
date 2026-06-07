@@ -7163,6 +7163,259 @@ body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.a
       body.admin-page-configuracion .permission-count { min-width: 0; text-align: left; }
       body.admin-page-configuracion .config-modal-actions { flex-direction: column; }
       body.admin-page-configuracion .config-modal-actions .btn { width: 100%; }
+      body.admin-page-configuracion .role-modal-row { flex-direction: column; }
+      body.admin-page-configuracion .role-modal-perms-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================
+       MEJORAS ROLES: Cards con resumen de permisos
+    ============================================ */
+
+    body.admin-page-configuracion .role-permisos-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 12px 0 4px;
+      padding: 10px 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    body.admin-page-configuracion .role-permiso-item {
+      font-size: 12px;
+      color: #166534;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    body.admin-page-configuracion .role-permiso-more {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    body.admin-page-configuracion .role-permiso-none {
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+    }
+
+    body.admin-page-configuracion .role-metric-permisos {
+      background: rgba(221,15,13,.07) !important;
+      color: var(--red) !important;
+      border-color: rgba(221,15,13,.15) !important;
+    }
+
+    /* ============================================
+       MODAL CREAR/EDITAR ROL: layout ancho + 2 secciones
+    ============================================ */
+
+    body.admin-page-configuracion .role-modal-wide {
+      width: min(820px, 100%);
+    }
+
+    body.admin-page-configuracion .role-modal-section {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    body.admin-page-configuracion .role-modal-section:last-of-type {
+      border-bottom: none;
+    }
+
+    body.admin-page-configuracion .role-modal-section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    body.admin-page-configuracion .role-modal-step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--red);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    body.admin-page-configuracion .role-modal-perm-badge {
+      margin-left: auto;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(221,15,13,.10);
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    body.admin-page-configuracion .role-modal-fields {
+      display: grid;
+      gap: 14px;
+    }
+
+    body.admin-page-configuracion .role-modal-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    body.admin-page-configuracion .role-modal-row .form-group {
+      flex: 1;
+    }
+
+    body.admin-page-configuracion .role-modal-perms-section {
+      background: #fafbfc;
+    }
+
+    body.admin-page-configuracion .role-modal-perms-toolbar {
+      margin-bottom: 14px;
+    }
+
+    body.admin-page-configuracion .role-modal-search {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    body.admin-page-configuracion .role-modal-perms-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      max-height: 46vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    /* ============================================
+       CATEGORÍAS DE PERMISOS EN MODAL DE CREAR/EDITAR
+    ============================================ */
+
+    body.admin-page-configuracion .modal-perm-category {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      overflow: hidden;
+    }
+
+    body.admin-page-configuracion .modal-perm-category-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 12px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    body.admin-page-configuracion .modal-perm-category-name {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-2);
+    }
+
+    body.admin-page-configuracion .modal-perm-category-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    body.admin-page-configuracion .modal-perm-cat-btn {
+      padding: 3px 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: white;
+      color: var(--text-3);
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+
+    body.admin-page-configuracion .modal-perm-cat-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    body.admin-page-configuracion .modal-perm-cat-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    body.admin-page-configuracion .modal-perm-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============================================
+       PERMISSION OPTION: mejorado (en ambos modales)
+    ============================================ */
+
+    body.admin-page-configuracion .permission-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(229,231,235,.6);
+      cursor: pointer;
+      transition: background var(--t);
+    }
+
+    body.admin-page-configuracion .permission-option:last-child {
+      border-bottom: none;
+    }
+
+    body.admin-page-configuracion .permission-option:hover {
+      background: #f9fafb;
+    }
+
+    body.admin-page-configuracion .permission-option.is-checked {
+      background: rgba(34,197,94,.05);
+    }
+
+    body.admin-page-configuracion .permission-option.is-unchecked {
+      opacity: .65;
+    }
+
+    body.admin-page-configuracion .permission-option input[type="checkbox"] {
+      margin-top: 2px;
+      accent-color: var(--red);
+      flex-shrink: 0;
+    }
+
+    body.admin-page-configuracion .perm-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    body.admin-page-configuracion .permission-option strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      line-height: 1.3;
+    }
+
+    body.admin-page-configuracion .permission-option small {
+      display: block;
+      font-size: 10.5px;
+      color: var(--text-3);
+      font-family: 'Courier New', monospace;
     }
 
 /* ==============================
