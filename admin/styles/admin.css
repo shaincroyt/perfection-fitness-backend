@@ -8094,8 +8094,8 @@ body[class*="admin-page-"] .sidebar-user.admin-session-box .admin-logout-btn {
 }
 
 .admin-access-denied-icon {
-  width: 42px;
-  height: 42px;
+  width: 60px;
+  height: 60px;
   margin: 0 auto 12px;
   display: grid;
   place-items: center;
@@ -8104,6 +8104,7 @@ body[class*="admin-page-"] .sidebar-user.admin-session-box .admin-logout-btn {
   color: #dc2626;
   font-weight: 800;
   text-align: center;
+  font-size: 28px;
 }
 
 .admin-access-denied-modal h2 {
