@@ -7775,7 +7775,7 @@ body.admin-page-configuracion .permission-option:hover {
 /* Activo: resaltado con borde verde */
 body.admin-page-configuracion .permission-option.is-checked {
   background: rgba(34,197,94,.04);
-  border-left-color: #22c55e;
+  border-left-color: var(--red);
 }
 
 body.admin-page-configuracion .permission-option.is-checked strong {
