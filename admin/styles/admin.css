@@ -7557,6 +7557,319 @@ body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.a
       }
     }
 
+/* ============================================
+   FIX 3: SCROLL LOCK — body no scrollea con modal abierto
+============================================ */
+
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ============================================
+   FIX 1+2: LAYOUT MODAL — header fijo, body scroll, footer fijo
+   Causa del bug: .config-modal tenía overflow:auto global,
+   los botones desaparecían al scrollear.
+============================================ */
+
+/* Override del overflow global: el modal en sí ya no scrollea */
+body.admin-page-configuracion .config-modal {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 40px);
+}
+
+/* Header: siempre arriba, nunca shrink */
+body.admin-page-configuracion .config-modal-header {
+  flex-shrink: 0;
+}
+
+/* Footer/acciones: siempre abajo, nunca shrink */
+body.admin-page-configuracion .config-modal-actions {
+  flex-shrink: 0;
+  background: #fff;
+}
+
+/* ── MODAL CREAR/EDITAR ROL ─────────────────────── */
+
+/* El form es el contenedor interno → debe ser flex column */
+body.admin-page-configuracion .role-modal-wide > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Sección de datos: no shrink (siempre visible) */
+body.admin-page-configuracion .role-modal-section:not(.role-modal-perms-section) {
+  flex-shrink: 0;
+}
+
+/* Sección de permisos: ocupa el espacio sobrante y clipea */
+body.admin-page-configuracion .role-modal-perms-section {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label de sección y buscador: no shrink */
+body.admin-page-configuracion .role-modal-section-label,
+body.admin-page-configuracion .role-modal-perms-toolbar {
+  flex-shrink: 0;
+}
+
+/* FIX 2: grid de permisos — altura controlada, scroll interno */
+body.admin-page-configuracion .role-modal-perms-grid {
+  flex: 1;
+  min-height: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  /* scrollbar sutil */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(221,15,13,.25) transparent;
+}
+body.admin-page-configuracion .role-modal-perms-grid::-webkit-scrollbar { width: 5px; }
+body.admin-page-configuracion .role-modal-perms-grid::-webkit-scrollbar-thumb {
+  background: rgba(221,15,13,.25);
+  border-radius: 999px;
+}
+
+/* ── MODAL VER PERMISOS ──────────────────────────── */
+
+/* Toolbar: no shrink */
+body.admin-page-configuracion .permissions-toolbar {
+  flex-shrink: 0;
+}
+
+/* Layout: ocupa espacio sobrante, scroll propio */
+body.admin-page-configuracion .permissions-layout {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* permissions-grid dentro del layout: deja fluir naturalmente */
+body.admin-page-configuracion .permissions-layout .permissions-grid {
+  max-height: none;
+  overflow: visible;
+}
+
+/* ============================================
+   FIX 5: DETAILS/SUMMARY — categorías de permisos más claras
+============================================ */
+
+/* Contenedor de categoría */
+body.admin-page-configuracion .permission-category {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+/* Summary: estilo clickeable */
+body.admin-page-configuracion .permission-category > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--bg);
+  transition: background var(--t);
+  user-select: none;
+  border-bottom: 1px solid transparent;
+}
+
+body.admin-page-configuracion .permission-category > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Flecha indicadora de colapso */
+body.admin-page-configuracion .permission-category > summary::before {
+  content: '\25B6';       /* ▶ */
+  font-size: 9px;
+  color: var(--text-3);
+  flex-shrink: 0;
+  transition: transform .18s cubic-bezier(.4,0,.2,1), color .18s;
+  line-height: 1;
+}
+
+body.admin-page-configuracion .permission-category[open] > summary::before {
+  transform: rotate(90deg);
+  color: var(--red);
+}
+
+body.admin-page-configuracion .permission-category[open] > summary {
+  background: rgba(221,15,13,.04);
+  border-bottom-color: var(--border);
+}
+
+body.admin-page-configuracion .permission-category > summary:hover {
+  background: rgba(221,15,13,.06);
+}
+
+/* Layout del title dentro del summary */
+body.admin-page-configuracion .permission-category-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-1);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* Badge del conteo de permisos */
+body.admin-page-configuracion .permission-category-title > span:last-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(221,15,13,.10);
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+/* Lista de permisos dentro de un details */
+body.admin-page-configuracion .permission-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+/* ── Permission option: checked vs unchecked ─── */
+
+body.admin-page-configuracion .permission-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(229,231,235,.6);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background var(--t), border-left-color var(--t), opacity var(--t);
+}
+
+body.admin-page-configuracion .permission-option:last-child {
+  border-bottom: none;
+}
+
+body.admin-page-configuracion .permission-option:hover {
+  background: #f9fafb;
+}
+
+/* Activo: resaltado con borde verde */
+body.admin-page-configuracion .permission-option.is-checked {
+  background: rgba(34,197,94,.04);
+  border-left-color: #22c55e;
+}
+
+body.admin-page-configuracion .permission-option.is-checked strong {
+  color: #166534;
+}
+
+/* Inactivo: opacidad reducida */
+body.admin-page-configuracion .permission-option.is-unchecked {
+  opacity: .55;
+  border-left-color: transparent;
+}
+
+body.admin-page-configuracion .permission-option input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: var(--red);
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+
+/* ============================================
+   FIX 6: RESPONSIVE — modales en tablet y móvil
+============================================ */
+
+@media (max-width: 1024px) {
+  body.admin-page-configuracion .config-modal {
+    max-height: calc(100vh - 28px);
+  }
+  body.admin-page-configuracion .role-modal-wide {
+    width: min(720px, 100%);
+  }
+  body.admin-page-configuracion .permissions-modal {
+    width: min(900px, 100%);
+  }
+}
+
+@media (max-width: 768px) {
+  body.admin-page-configuracion .config-modal {
+    max-height: calc(100dvh - 20px);
+    border-radius: 12px;
+  }
+  body.admin-page-configuracion .config-modal-overlay {
+    padding: 10px;
+  }
+  body.admin-page-configuracion .role-modal-wide {
+    width: 100%;
+  }
+  body.admin-page-configuracion .permissions-modal {
+    width: 100%;
+  }
+  body.admin-page-configuracion .role-modal-perms-grid {
+    grid-template-columns: 1fr;
+    max-height: 240px;
+  }
+  body.admin-page-configuracion .permissions-layout {
+    grid-template-columns: 1fr;
+  }
+  body.admin-page-configuracion .role-summary-panel {
+    display: none; /* ocultar en móvil para ganar espacio */
+  }
+  body.admin-page-configuracion .config-modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  body.admin-page-configuracion .config-modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  body.admin-page-configuracion .config-modal {
+    max-height: calc(100dvh - 12px);
+    border-radius: 10px;
+  }
+  body.admin-page-configuracion .config-modal-overlay {
+    padding: 6px;
+    align-items: flex-end;
+  }
+  body.admin-page-configuracion .config-modal {
+    border-radius: 14px 14px 0 0;
+    max-height: 95dvh;
+  }
+  body.admin-page-configuracion .role-modal-perms-grid {
+    max-height: 200px;
+  }
+  body.admin-page-configuracion .role-modal-row {
+    flex-direction: column;
+  }
+  body.admin-page-configuracion .permission-category > summary {
+    padding: 10px 12px;
+  }
+}
+
 /* ==============================
 19. Responsive
 ============================== */

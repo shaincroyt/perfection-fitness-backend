@@ -8,39 +8,39 @@
   // Descripciones legibles por humanos para cada permiso
   // El backend puede traer su propia descripcion; este mapa es el fallback
   const PERMISOS_DESCRIPCIONES = {
-    'clientes.ver':               'Permite ver la lista de clientes registrados.',
-    'clientes.crear':             'Permite registrar nuevos clientes en el sistema.',
-    'clientes.editar':            'Permite modificar datos de clientes existentes.',
-    'clientes.eliminar':          'Permite eliminar o desactivar clientes registrados.',
-    'membresias.ver':             'Permite ver las membresías creadas y su estado.',
-    'membresias.crear':           'Permite crear nuevas membresías y generar códigos de acceso.',
-    'membresias.editar':          'Permite modificar datos de una membresía existente.',
-    'membresias.eliminar':        'Permite eliminar o desactivar membresías registradas.',
-    'membresias.renovar':         'Permite renovar membresías inactivas cuando corresponda.',
-    'planes.ver':                 'Permite consultar los planes disponibles del gimnasio.',
-    'planes.crear':               'Permite crear nuevos planes de membresía.',
-    'planes.editar':              'Permite modificar precios, duración y asistencias de los planes.',
-    'planes.eliminar':            'Permite eliminar o desactivar planes del sistema.',
-    'asistencias.ver':            'Permite revisar el historial de ingresos y asistencias.',
-    'asistencias.eliminar':       'Permite eliminar asistencias registradas por error.',
-    'validacion.usar':            'Permite validar códigos de membresía y registrar ingresos al gimnasio.',
-    'dashboard.ver':              'Permite acceder al resumen general del gimnasio.',
-    'configuracion.ver':          'Permite entrar a la configuración del sistema.',
-    'usuarios.ver':               'Permite ver los usuarios administrativos registrados.',
-    'usuarios.crear':             'Permite crear nuevos usuarios administrativos.',
-    'usuarios.editar':            'Permite modificar datos y rol de usuarios administrativos.',
-    'usuarios.desactivar':        'Permite activar o desactivar usuarios del sistema.',
-    'roles.ver':                  'Permite ver los roles y permisos del sistema.',
-    'roles.crear':                'Permite crear roles personalizados para el personal.',
-    'roles.editar':               'Permite modificar nombre, descripción y estado de roles.',
-    'roles.eliminar':             'Permite eliminar o desactivar roles personalizados.',
-    'roles.asignar_permisos':     'Permite asignar o quitar permisos a los roles.',
-    'exportar.clientes':          'Permite descargar reportes de clientes.',
-    'exportar.membresias':        'Permite descargar reportes de membresías.',
-    'exportar.asistencias':       'Permite descargar reportes de asistencias.',
-    'notificaciones.ver':         'Permite ver las notificaciones del sistema.',
-    'notificaciones.marcar_leida':'Permite marcar notificaciones como revisadas.',
-    'notificaciones.eliminar':    'Permite eliminar notificaciones del panel.'
+    'clientes.ver': 'Permite ver la lista de clientes registrados.',
+    'clientes.crear': 'Permite registrar nuevos clientes en el sistema.',
+    'clientes.editar': 'Permite modificar datos de clientes existentes.',
+    'clientes.eliminar': 'Permite eliminar o desactivar clientes registrados.',
+    'membresias.ver': 'Permite ver las membresías creadas y su estado.',
+    'membresias.crear': 'Permite crear nuevas membresías y generar códigos de acceso.',
+    'membresias.editar': 'Permite modificar datos de una membresía existente.',
+    'membresias.eliminar': 'Permite eliminar o desactivar membresías registradas.',
+    'membresias.renovar': 'Permite renovar membresías inactivas cuando corresponda.',
+    'planes.ver': 'Permite consultar los planes disponibles del gimnasio.',
+    'planes.crear': 'Permite crear nuevos planes de membresía.',
+    'planes.editar': 'Permite modificar precios, duración y asistencias de los planes.',
+    'planes.eliminar': 'Permite eliminar o desactivar planes del sistema.',
+    'asistencias.ver': 'Permite revisar el historial de ingresos y asistencias.',
+    'asistencias.eliminar': 'Permite eliminar asistencias registradas por error.',
+    'validacion.usar': 'Permite validar códigos de membresía y registrar ingresos al gimnasio.',
+    'dashboard.ver': 'Permite acceder al resumen general del gimnasio.',
+    'configuracion.ver': 'Permite entrar a la configuración del sistema.',
+    'usuarios.ver': 'Permite ver los usuarios administrativos registrados.',
+    'usuarios.crear': 'Permite crear nuevos usuarios administrativos.',
+    'usuarios.editar': 'Permite modificar datos y rol de usuarios administrativos.',
+    'usuarios.desactivar': 'Permite activar o desactivar usuarios del sistema.',
+    'roles.ver': 'Permite ver los roles y permisos del sistema.',
+    'roles.crear': 'Permite crear roles personalizados para el personal.',
+    'roles.editar': 'Permite modificar nombre, descripción y estado de roles.',
+    'roles.eliminar': 'Permite eliminar o desactivar roles personalizados.',
+    'roles.asignar_permisos': 'Permite asignar o quitar permisos a los roles.',
+    'exportar.clientes': 'Permite descargar reportes de clientes.',
+    'exportar.membresias': 'Permite descargar reportes de membresías.',
+    'exportar.asistencias': 'Permite descargar reportes de asistencias.',
+    'notificaciones.ver': 'Permite ver las notificaciones del sistema.',
+    'notificaciones.marcar_leida': 'Permite marcar notificaciones como revisadas.',
+    'notificaciones.eliminar': 'Permite eliminar notificaciones del panel.'
   };
 
   const state = {
@@ -147,12 +147,12 @@
 
       // Rellenar contenido
       const titleEl = $('confirmModalTitle');
-      const msgEl   = $('confirmModalMessage');
+      const msgEl = $('confirmModalMessage');
       const confirmBtn = $('confirmModalConfirm');
-      const cancelBtn  = $('confirmModalCancel');
+      const cancelBtn = $('confirmModalCancel');
 
-      if (titleEl)   titleEl.textContent   = title;
-      if (msgEl)     msgEl.textContent     = message;
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = message;
       if (confirmBtn) {
         confirmBtn.textContent = confirmText;
         confirmBtn.className = `btn btn-confirm-${type}`;
@@ -171,10 +171,11 @@
         cancelBtn?.removeEventListener('click', onCancel);
         overlay.removeEventListener('click', onOverlay);
         document.removeEventListener('keydown', onKeydown);
+        unlockBodyScroll();
       }
 
       function onConfirm() { cleanup(); resolve(true); }
-      function onCancel()  { cleanup(); resolve(false); }
+      function onCancel() { cleanup(); resolve(false); }
       function onOverlay(e) { if (e.target === overlay) onCancel(); }
       function onKeydown(e) { if (e.key === 'Escape') onCancel(); }
 
@@ -182,7 +183,27 @@
       cancelBtn?.addEventListener('click', onCancel);
       overlay.addEventListener('click', onOverlay);
       document.addEventListener('keydown', onKeydown);
+
+      lockBodyScroll(); // bloquear scroll del fondo
     });
+  }
+
+  // =============================================
+  // SCROLL LOCK — bloquea el fondo al abrir modales
+  // =============================================
+
+  function lockBodyScroll() {
+    document.body.classList.add('modal-open');
+  }
+
+  function unlockBodyScroll() {
+    // Solo desbloquea si no hay ningún modal visible abierto
+    const stillOpen = document.querySelectorAll(
+      '#roleModal.open, #permissionsModal.open, #confirmModal.open'
+    );
+    if (stillOpen.length === 0) {
+      document.body.classList.remove('modal-open');
+    }
   }
 
   function setHeaderDate() {
@@ -702,6 +723,7 @@
 
     modal.hidden = false;
     modal.classList.add('open');
+    lockBodyScroll();
     $('roleNombre').focus();
   }
 
@@ -711,6 +733,7 @@
     modal.classList.remove('open');
     modal.hidden = true;
     state.modalPermisos = new Set();
+    unlockBodyScroll();
   }
 
   // Renderiza los checkboxes dentro del roleModal
@@ -724,15 +747,15 @@
 
     const filtered = q
       ? grouped
-          .map(([cat, perms]) => [
-            cat,
-            (perms || []).filter(p =>
-              p.codigo.toLowerCase().includes(q) ||
-              p.nombre.toLowerCase().includes(q) ||
-              String(p.descripcion || '').toLowerCase().includes(q)
-            )
-          ])
-          .filter(([, perms]) => perms.length > 0)
+        .map(([cat, perms]) => [
+          cat,
+          (perms || []).filter(p =>
+            p.codigo.toLowerCase().includes(q) ||
+            p.nombre.toLowerCase().includes(q) ||
+            String(p.descripcion || '').toLowerCase().includes(q)
+          )
+        ])
+        .filter(([, perms]) => perms.length > 0)
       : grouped;
 
     if (filtered.length === 0) {
@@ -752,9 +775,9 @@
         </div>
         <div class="modal-perm-list">
           ${(permisos || []).map(permiso => {
-            const checked = isAdminRole || state.modalPermisos.has(permiso.codigo);
-            const desc = getPermisoDescripcion(permiso);
-            return `
+      const checked = isAdminRole || state.modalPermisos.has(permiso.codigo);
+      const desc = getPermisoDescripcion(permiso);
+      return `
               <label class="permission-option ${checked ? 'is-checked' : ''}">
                 <input type="checkbox" data-modal-perm value="${escapeHtml(permiso.codigo)}" ${checked ? 'checked' : ''} ${isAdminRole ? 'disabled' : ''}>
                 <span class="perm-text">
@@ -763,7 +786,7 @@
                 </span>
               </label>
             `;
-          }).join('')}
+    }).join('')}
         </div>
       </div>
     `).join('');
@@ -1041,6 +1064,7 @@
     const modal = $('permissionsModal');
     modal.hidden = false;
     modal.classList.add('open');
+    lockBodyScroll();
 
     await loadRolePermissions(codigo);
   }
@@ -1050,6 +1074,7 @@
     if (!modal) return;
     modal.classList.remove('open');
     modal.hidden = true;
+    unlockBodyScroll();
   }
 
   async function loadRolePermissions(role) {
@@ -1101,9 +1126,9 @@
         </summary>
         <div class="permission-list">
           ${(permisos || []).map(permiso => {
-            const checked = adminRole || state.permisosRol.has(permiso.codigo);
-            const desc = getPermisoDescripcion(permiso);
-            return `
+      const checked = adminRole || state.permisosRol.has(permiso.codigo);
+      const desc = getPermisoDescripcion(permiso);
+      return `
               <label class="permission-option ${checked ? 'is-checked' : 'is-unchecked'}">
                 <input type="checkbox" value="${escapeHtml(permiso.codigo)}" ${checked ? 'checked' : ''} ${adminRole ? 'disabled' : ''}>
                 <span class="perm-text">
@@ -1112,7 +1137,7 @@
                 </span>
               </label>
             `;
-          }).join('')}
+    }).join('')}
         </div>
       </details>
     `).join('');
