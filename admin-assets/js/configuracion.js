@@ -5,6 +5,44 @@
     { id: 'admin', codigo: 'admin', nombre: 'Administrador', descripcion: 'Acceso total al sistema.', estado: 'activo', sistema: true, usuarios: 0, permisos: 0 }
   ];
 
+  // Descripciones legibles por humanos para cada permiso
+  // El backend puede traer su propia descripcion; este mapa es el fallback
+  const PERMISOS_DESCRIPCIONES = {
+    'clientes.ver':               'Permite ver la lista de clientes registrados.',
+    'clientes.crear':             'Permite registrar nuevos clientes en el sistema.',
+    'clientes.editar':            'Permite modificar datos de clientes existentes.',
+    'clientes.eliminar':          'Permite eliminar o desactivar clientes registrados.',
+    'membresias.ver':             'Permite ver las membresías creadas y su estado.',
+    'membresias.crear':           'Permite crear nuevas membresías y generar códigos de acceso.',
+    'membresias.editar':          'Permite modificar datos de una membresía existente.',
+    'membresias.eliminar':        'Permite eliminar o desactivar membresías registradas.',
+    'membresias.renovar':         'Permite renovar membresías inactivas cuando corresponda.',
+    'planes.ver':                 'Permite consultar los planes disponibles del gimnasio.',
+    'planes.crear':               'Permite crear nuevos planes de membresía.',
+    'planes.editar':              'Permite modificar precios, duración y asistencias de los planes.',
+    'planes.eliminar':            'Permite eliminar o desactivar planes del sistema.',
+    'asistencias.ver':            'Permite revisar el historial de ingresos y asistencias.',
+    'asistencias.eliminar':       'Permite eliminar asistencias registradas por error.',
+    'validacion.usar':            'Permite validar códigos de membresía y registrar ingresos al gimnasio.',
+    'dashboard.ver':              'Permite acceder al resumen general del gimnasio.',
+    'configuracion.ver':          'Permite entrar a la configuración del sistema.',
+    'usuarios.ver':               'Permite ver los usuarios administrativos registrados.',
+    'usuarios.crear':             'Permite crear nuevos usuarios administrativos.',
+    'usuarios.editar':            'Permite modificar datos y rol de usuarios administrativos.',
+    'usuarios.desactivar':        'Permite activar o desactivar usuarios del sistema.',
+    'roles.ver':                  'Permite ver los roles y permisos del sistema.',
+    'roles.crear':                'Permite crear roles personalizados para el personal.',
+    'roles.editar':               'Permite modificar nombre, descripción y estado de roles.',
+    'roles.eliminar':             'Permite eliminar o desactivar roles personalizados.',
+    'roles.asignar_permisos':     'Permite asignar o quitar permisos a los roles.',
+    'exportar.clientes':          'Permite descargar reportes de clientes.',
+    'exportar.membresias':        'Permite descargar reportes de membresías.',
+    'exportar.asistencias':       'Permite descargar reportes de asistencias.',
+    'notificaciones.ver':         'Permite ver las notificaciones del sistema.',
+    'notificaciones.marcar_leida':'Permite marcar notificaciones como revisadas.',
+    'notificaciones.eliminar':    'Permite eliminar notificaciones del panel.'
+  };
+
   const state = {
     currentUser: null,
     usuarios: [],
@@ -77,6 +115,74 @@
 
   function showErrorModal(title, message) {
     window.AdminAuth?.showError?.(title, message);
+  }
+
+  // Devuelve la descripción humana de un permiso.
+  // Prioridad: descripción del backend → mapa local → ninguna
+  function getPermisoDescripcion(permiso) {
+    const fromBackend = String(permiso.descripcion || '').trim();
+    // Si el backend trae una descripción real (no vacía y no igual al código), úsala
+    if (fromBackend && fromBackend !== permiso.codigo) return fromBackend;
+    // Fallback al mapa local
+    return PERMISOS_DESCRIPCIONES[permiso.codigo] || '';
+  }
+
+  /**
+   * Modal de confirmación personalizado (reemplaza window.confirm).
+   * @param {Object} options
+   * @param {string} options.title     Título del modal
+   * @param {string} options.message   Mensaje descriptivo
+   * @param {string} [options.confirmText]  Texto del botón de confirmar
+   * @param {string} [options.type]    'danger' | 'warning' (afecta color del botón)
+   * @returns {Promise<boolean>} true si confirma, false si cancela
+   */
+  function showConfirmModal({ title, message, confirmText = 'Confirmar', type = 'danger' }) {
+    return new Promise((resolve) => {
+      const overlay = $('confirmModal');
+      if (!overlay) {
+        // Fallback si el HTML no tiene el modal todavía
+        resolve(window.confirm(`${title}\n\n${message}`));
+        return;
+      }
+
+      // Rellenar contenido
+      const titleEl = $('confirmModalTitle');
+      const msgEl   = $('confirmModalMessage');
+      const confirmBtn = $('confirmModalConfirm');
+      const cancelBtn  = $('confirmModalCancel');
+
+      if (titleEl)   titleEl.textContent   = title;
+      if (msgEl)     msgEl.textContent     = message;
+      if (confirmBtn) {
+        confirmBtn.textContent = confirmText;
+        confirmBtn.className = `btn btn-confirm-${type}`;
+      }
+
+      overlay.hidden = false;
+      overlay.classList.add('open');
+
+      // Accesibilidad: foco en botón cancelar
+      cancelBtn?.focus();
+
+      function cleanup() {
+        overlay.classList.remove('open');
+        overlay.hidden = true;
+        confirmBtn?.removeEventListener('click', onConfirm);
+        cancelBtn?.removeEventListener('click', onCancel);
+        overlay.removeEventListener('click', onOverlay);
+        document.removeEventListener('keydown', onKeydown);
+      }
+
+      function onConfirm() { cleanup(); resolve(true); }
+      function onCancel()  { cleanup(); resolve(false); }
+      function onOverlay(e) { if (e.target === overlay) onCancel(); }
+      function onKeydown(e) { if (e.key === 'Escape') onCancel(); }
+
+      confirmBtn?.addEventListener('click', onConfirm);
+      cancelBtn?.addEventListener('click', onCancel);
+      overlay.addEventListener('click', onOverlay);
+      document.addEventListener('keydown', onKeydown);
+    });
   }
 
   function setHeaderDate() {
@@ -264,7 +370,13 @@
     const user = state.usuarios.find((item) => Number(item.id) === Number(id));
     if (!user) return;
 
-    const ok = window.confirm(`${estado === 'activo' ? 'Activar' : 'Desactivar'} a ${user.nombre}?`);
+    const accion = estado === 'activo' ? 'Activar' : 'Desactivar';
+    const ok = await showConfirmModal({
+      title: `${accion} usuario`,
+      message: `¿Seguro que deseas ${accion.toLowerCase()} a ${user.nombre}?`,
+      confirmText: accion,
+      type: estado === 'inactivo' ? 'danger' : 'warning'
+    });
     if (!ok) return;
 
     try {
@@ -641,12 +753,13 @@
         <div class="modal-perm-list">
           ${(permisos || []).map(permiso => {
             const checked = isAdminRole || state.modalPermisos.has(permiso.codigo);
+            const desc = getPermisoDescripcion(permiso);
             return `
               <label class="permission-option ${checked ? 'is-checked' : ''}">
                 <input type="checkbox" data-modal-perm value="${escapeHtml(permiso.codigo)}" ${checked ? 'checked' : ''} ${isAdminRole ? 'disabled' : ''}>
                 <span class="perm-text">
                   <strong>${escapeHtml(permiso.nombre)}</strong>
-                  <small>${escapeHtml(permiso.codigo)}</small>
+                  ${desc ? `<span class="perm-desc">${escapeHtml(desc)}</span>` : ''}
                 </span>
               </label>
             `;
@@ -839,7 +952,13 @@
     const role = state.roles.find(item => (item.codigo || item.id) === codigo);
     if (!role) return;
 
-    const ok = window.confirm(`${estado === 'activo' ? 'Activar' : 'Desactivar'} el rol ${role.nombre}?`);
+    const accion = estado === 'activo' ? 'Activar' : 'Desactivar';
+    const ok = await showConfirmModal({
+      title: `${accion} rol`,
+      message: `¿Seguro que deseas ${accion.toLowerCase()} el rol "${role.nombre}"?`,
+      confirmText: accion,
+      type: estado === 'inactivo' ? 'danger' : 'warning'
+    });
     if (!ok) return;
 
     try {
@@ -868,7 +987,12 @@
     const role = state.roles.find(item => (item.codigo || item.id) === codigo);
     if (!role) return;
 
-    const ok = window.confirm(`Eliminar el rol ${role.nombre}?`);
+    const ok = await showConfirmModal({
+      title: 'Eliminar rol',
+      message: `¿Seguro que deseas eliminar el rol "${role.nombre}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar rol',
+      type: 'danger'
+    });
     if (!ok) return;
 
     try {
@@ -886,9 +1010,17 @@
       }
       renderRoles();
     } catch (error) {
-      showMessage('role', 'error', error.message === 'Este rol tiene usuarios asignados.'
-        ? 'Este rol tiene usuarios asignados. Reasigna esos usuarios a otro rol antes de eliminarlo.'
-        : error.message || 'Error al eliminar rol');
+      // Mostrar el error en un modal de información, no en alert()
+      const msg = error.message === 'Este rol tiene usuarios asignados.'
+        ? 'No puedes eliminar este rol porque tiene usuarios asignados. Reasigna esos usuarios a otro rol primero.'
+        : error.message || 'Error al eliminar rol';
+      showMessage('role', 'error', msg);
+      await showConfirmModal({
+        title: 'No se puede eliminar',
+        message: msg,
+        confirmText: 'Entendido',
+        type: 'warning'
+      });
     }
   }
 
@@ -970,12 +1102,13 @@
         <div class="permission-list">
           ${(permisos || []).map(permiso => {
             const checked = adminRole || state.permisosRol.has(permiso.codigo);
+            const desc = getPermisoDescripcion(permiso);
             return `
               <label class="permission-option ${checked ? 'is-checked' : 'is-unchecked'}">
                 <input type="checkbox" value="${escapeHtml(permiso.codigo)}" ${checked ? 'checked' : ''} ${adminRole ? 'disabled' : ''}>
                 <span class="perm-text">
                   <strong>${escapeHtml(permiso.nombre)}</strong>
-                  <small>${escapeHtml(permiso.codigo)}</small>
+                  ${desc ? `<span class="perm-desc">${escapeHtml(desc)}</span>` : ''}
                 </span>
               </label>
             `;

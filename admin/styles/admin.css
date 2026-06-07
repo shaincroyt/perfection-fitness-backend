@@ -7418,6 +7418,145 @@ body.admin-page-configuracion *, body.admin-page-configuracion *::before, body.a
       font-family: 'Courier New', monospace;
     }
 
+    /* ============================================
+       MODAL DE CONFIRMACIÓN PERSONALIZADO
+    ============================================ */
+
+    body.admin-page-configuracion .confirm-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(17, 24, 39, .52);
+      backdrop-filter: blur(2px);
+    }
+
+    body.admin-page-configuracion .confirm-modal-overlay.open {
+      display: grid;
+    }
+
+    body.admin-page-configuracion .confirm-modal-card {
+      width: min(420px, 100%);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 32px 80px rgba(0,0,0,.28);
+      padding: 32px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0;
+      animation: confirm-modal-in .18s cubic-bezier(.34,1.56,.64,1) both;
+    }
+
+    @keyframes confirm-modal-in {
+      from { opacity: 0; transform: scale(.88) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    body.admin-page-configuracion .confirm-modal-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      flex-shrink: 0;
+    }
+
+    body.admin-page-configuracion .confirm-modal-icon--danger {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    body.admin-page-configuracion .confirm-modal-icon--warning {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    body.admin-page-configuracion .confirm-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-1);
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
+
+    body.admin-page-configuracion .confirm-modal-message {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.55;
+      margin-bottom: 26px;
+      max-width: 320px;
+    }
+
+    body.admin-page-configuracion .confirm-modal-actions {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    body.admin-page-configuracion .btn-confirm-danger {
+      background: #dc2626;
+      color: white;
+      border: none;
+      box-shadow: 0 2px 8px rgba(220,38,38,.3);
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+
+    body.admin-page-configuracion .btn-confirm-danger:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+    }
+
+    body.admin-page-configuracion .btn-confirm-warning {
+      background: #d97706;
+      color: white;
+      border: none;
+      box-shadow: 0 2px 8px rgba(217,119,6,.28);
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all var(--t);
+    }
+
+    body.admin-page-configuracion .btn-confirm-warning:hover {
+      background: #b45309;
+      transform: translateY(-1px);
+    }
+
+    /* Descripción humana de permisos */
+    body.admin-page-configuracion .perm-desc {
+      display: block;
+      margin-top: 2px;
+      font-size: 11.5px;
+      color: var(--text-3);
+      line-height: 1.4;
+      font-weight: 400;
+    }
+
+    /* Ocultar código técnico (small) — ya no se muestra como texto principal */
+    body.admin-page-configuracion .permission-option small {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      body.admin-page-configuracion .confirm-modal-card {
+        padding: 24px 18px 20px;
+      }
+      body.admin-page-configuracion .confirm-modal-actions {
+        flex-direction: column;
+      }
+      body.admin-page-configuracion .confirm-modal-actions .btn {
+        width: 100%;
+      }
+    }
+
 /* ==============================
 19. Responsive
 ============================== */
