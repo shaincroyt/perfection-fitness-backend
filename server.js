@@ -471,7 +471,7 @@ function generarCodigoRol(nombre) {
 }
 
 function tablaRolesNoExiste(error) {
-    return error && (error.code === 'ER_NO_SUCH_TABLE' || error.code === 'ER_BAD_FIELD_ERROR');
+    return error && error.code === 'ER_NO_SUCH_TABLE';
 }
 
 async function obtenerRolAdmin(codigo, conn = pool) {
@@ -1088,80 +1088,65 @@ app.get('/api/admin/permisos', requirePermission('roles.asignar_permisos'), asyn
 
 app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => {
     try {
-        try {
-            await asegurarRolesBase();
-            const [rows] = await pool.query(`
-                SELECT
-                    r.codigo,
-                    r.nombre,
-                    r.descripcion,
-                    r.estado,
-                    r.sistema,
-                    r.fecha_creacion,
-                    COUNT(DISTINCT u.id) AS usuarios,
-                    COUNT(DISTINCT rp.permiso_id) AS permisos
-                FROM roles_admin r
-                LEFT JOIN usuarios_admin u ON u.rol = r.codigo
-                LEFT JOIN roles_permisos rp ON rp.rol_codigo = r.codigo
-                GROUP BY r.codigo, r.nombre, r.descripcion, r.estado, r.sistema, r.fecha_creacion
-                ORDER BY r.sistema DESC, r.nombre ASC
-            `);
+        await asegurarRolesBase();
 
-            return res.json({
-                ok: true,
-                roles: rows.map(row => ({
-                    id: row.codigo,
-                    codigo: row.codigo,
-                    nombre: row.nombre,
-                    descripcion: row.descripcion || '',
-                    estado: row.estado || 'activo',
-                    sistema: Number(row.sistema || 0) === 1,
-                    usuarios: Number(row.usuarios || 0),
-                    permisos: row.codigo === 'admin' ? TODOS_LOS_PERMISOS.length : Number(row.permisos || 0),
-                    editable: row.codigo !== 'admin',
-                    eliminable: Number(row.sistema || 0) !== 1 && Number(row.usuarios || 0) === 0
-                }))
-            });
-        } catch (error) {
-            if (!tablaRolesNoExiste(error)) {
-                throw error;
-            }
-        }
-
-        const [rows] = await pool.query(`
-            SELECT rol AS codigo, COUNT(*) AS usuarios
-            FROM usuarios_admin
-            GROUP BY rol
-            ORDER BY rol ASC
+        const [columns] = await pool.query(`
+            SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'roles_admin'
+            AND COLUMN_NAME IN ('fecha_creacion', 'created_at')
         `);
 
-        const roles = new Map([
-            ['admin', { id: 'admin', codigo: 'admin', nombre: 'Administrador', descripcion: 'Acceso total al sistema.', estado: 'activo', sistema: true, usuarios: 0, permisos: TODOS_LOS_PERMISOS.length, editable: false, eliminable: false }],
-            ['recepcion', { id: 'recepcion', codigo: 'recepcion', nombre: 'Recepcion', descripcion: 'Gestiona ingresos y atencion al cliente.', estado: 'activo', sistema: true, usuarios: 0, permisos: PERMISOS_RECEPCION_DEFAULT.length, editable: true, eliminable: false }]
-        ]);
+        const columnas = new Set(columns.map(col => col.COLUMN_NAME));
 
-        rows.forEach(row => {
-            const codigo = normalizarCodigoRol(row.codigo);
-            const existente = roles.get(codigo) || {};
-            roles.set(codigo, {
-                ...existente,
-                id: codigo,
-                codigo,
-                nombre: existente.nombre || roleLabelBackend(codigo),
-                descripcion: existente.descripcion || '',
-                estado: existente.estado || 'activo',
-                sistema: existente.sistema || ROLES_SISTEMA.has(codigo),
-                usuarios: Number(row.usuarios || 0),
-                permisos: existente.permisos || 0,
-                editable: codigo !== 'admin',
-                eliminable: !ROLES_SISTEMA.has(codigo) && Number(row.usuarios || 0) === 0
-            });
-        });
+        const fechaRol = columnas.has('fecha_creacion')
+            ? 'r.fecha_creacion'
+            : columnas.has('created_at')
+                ? 'r.created_at'
+                : 'NULL';
+
+        const [rows] = await pool.query(`
+            SELECT
+                r.codigo,
+                r.nombre,
+                r.descripcion,
+                r.estado,
+                r.sistema,
+                ${fechaRol} AS fecha_creacion,
+                COUNT(DISTINCT u.id) AS usuarios,
+                COUNT(DISTINCT rp.permiso_id) AS permisos
+            FROM roles_admin r
+            LEFT JOIN usuarios_admin u ON u.rol = r.codigo
+            LEFT JOIN roles_permisos rp ON rp.rol_codigo = r.codigo
+            GROUP BY
+                r.codigo,
+                r.nombre,
+                r.descripcion,
+                r.estado,
+                r.sistema,
+                fecha_creacion
+            ORDER BY r.sistema DESC, r.nombre ASC
+        `);
 
         return res.json({
             ok: true,
-            roles: Array.from(roles.values())
+            roles: rows.map(row => ({
+                id: row.codigo,
+                codigo: row.codigo,
+                nombre: row.nombre,
+                descripcion: row.descripcion || '',
+                estado: row.estado || 'activo',
+                sistema: Number(row.sistema || 0) === 1,
+                usuarios: Number(row.usuarios || 0),
+                permisos: row.codigo === 'admin'
+                    ? TODOS_LOS_PERMISOS.length
+                    : Number(row.permisos || 0),
+                editable: row.codigo !== 'admin',
+                eliminable: Number(row.sistema || 0) !== 1 && Number(row.usuarios || 0) === 0
+            }))
         });
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({
