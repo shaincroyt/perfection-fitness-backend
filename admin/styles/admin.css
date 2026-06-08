@@ -262,7 +262,7 @@ body.admin-page-dashboard *::after {
 }
 
 body.admin-page-dashboard {
-  --red: #DD0F0D;
+  --red: #000000;
   --red-dark: #B50C0A;
   --red-deeper: #8C0908;
   --yellow: #F6D42E;
