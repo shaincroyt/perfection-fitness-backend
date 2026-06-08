@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MembresÃ­as â€” Panel Administrativo</title>
+  <title>Membresías â€” Panel Administrativo</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles/admin.css">
 <script src="../assets/js/admin-auth.js"></script>
@@ -24,7 +24,7 @@
       </div>
       <div>
         <div class="logo-label"><!-- Nombre --></div>
-        <div class="logo-sub">AdministraciÃ³n</div>
+        <div class="logo-sub">Administración</div>
       </div>
     </div>
  
@@ -45,12 +45,12 @@
 
         <div class="nav-item active" onclick="window.location.href='membresias.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-          MembresÃ­as
+          Membresías
         </div>
 
         <div class="nav-item" onclick="window.location.href='nueva-membresia.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-          Nueva MembresÃ­a
+          Nueva Membresía
         </div>
       </div>
 
@@ -77,7 +77,7 @@
         <span class="nav-label">Sistema</span>
         <div class="nav-item" onclick="window.location.href='configuracion.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-          ConfiguraciÃ³n
+          Configuración
         </div>
       </div>
     </nav>
@@ -90,7 +90,7 @@
       </div>
       <button type="button" class="admin-logout-btn admin-logout-trigger">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar sesiÃ³n
+        Cerrar sesión
       </button>
     </div>
   </aside>
@@ -98,14 +98,14 @@
   <!-- HEADER -->
   <header class="header">
     <div class="header-left">
-      <div class="header-title">MembresÃ­as</div>
-      <div class="header-breadcrumb">Inicio / <span>GestiÃ³n de MembresÃ­as</span></div>
+      <div class="header-title">Membresías</div>
+      <div class="header-breadcrumb">Inicio / <span>Gestión de Membresías</span></div>
     </div>
     <div class="header-right">
       <div class="header-date" id="headerDate"></div>
-      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesiÃ³n">
+      <button type="button" class="admin-logout-header-btn admin-logout-trigger" title="Cerrar sesión">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar sesiÃ³n
+        Cerrar sesión
       </button>
       <div class="notification-wrap" id="notificationWrap">
         <button class="header-btn" title="Notificaciones" onclick="toggleNotificaciones(event)">
@@ -128,7 +128,7 @@
       </button>
       <a href="nueva-membresia.html" class="btn btn-primary" id="btnCrearMembresia" data-permission="membresias.crear" style="text-decoration: none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nueva MembresÃ­a
+        Nueva Membresía
       </a>
     </div>
   </header>
@@ -145,7 +145,7 @@
           </div>
         </div>
         <div>
-          <div class="stat-label">Total MembresÃ­as</div>
+          <div class="stat-label">Total Membresías</div>
           <div class="stat-value loading-value">--</div>
         </div>
       </div>
@@ -187,13 +187,13 @@
     <!-- TABLE SECTION -->
     <section>
       <div class="section-head">
-        <div class="section-title">Todas las MembresÃ­as</div>
+        <div class="section-title">Todas las Membresías</div>
         <div class="toolbar" style="padding:8px 14px;box-shadow:none;border:1px solid var(--border);background:var(--surface);">
           <div class="search-wrap" style="min-width:210px;">
             <span class="search-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </span>
-            <input type="text" class="search-input" id="searchInput" placeholder="Buscar por cliente o cÃ³digo..."/>
+            <input type="text" class="search-input" id="searchInput" placeholder="Buscar por cliente o código..."/>
           </div>
           <select class="filter-select" id="planFilter">
             <option value="">Todos los planes</option>
@@ -202,8 +202,8 @@
             <option value="">Todos los estados</option>
             <option value="activa">Activa</option>
             <option value="vence_hoy">Vence hoy</option>
-            <option value="vence_manana">Vence maÃ±ana</option>
-            <option value="vence_3_dias">Vence en 3 dÃ­as</option>
+            <option value="vence_manana">Vence mañana</option>
+            <option value="vence_3_dias">Vence en 3 días</option>
             <option value="vencida">Vencida</option>
             <option value="inactiva">Inactiva</option>
           </select>
@@ -216,7 +216,7 @@
             <thead>
               <tr>
                 <th>Cliente</th>
-                <th>CÃ³digo</th>
+                <th>Código</th>
                 <th>Tipo de Plan</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
@@ -228,7 +228,7 @@
           </table>
           <div class="empty-state" id="emptyState">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-            <p>No se encontraron membresÃ­as con esos criterios.</p>
+            <p>No se encontraron membresías con esos criterios.</p>
           </div>
         </div>
         <div class="table-footer">
@@ -241,12 +241,12 @@
   </main>
 </div>
 
-<!-- Modal de creaciÃ³n rÃ¡pida eliminado. Crear membresÃ­as desde nueva-membresia.html -->
+<!-- Modal de creación rápida eliminado. Crear membresías desde nueva-membresia.html -->
 
 <div class="modal-overlay" id="deleteModal">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">Eliminar membresÃ­a</span>
+      <span class="modal-title">Eliminar membresía</span>
       <button class="modal-close" onclick="cerrarModalEliminar()">
         âœ•
       </button>
@@ -256,8 +256,8 @@
       <div class="modal-icon danger">ðŸ—‘ï¸</div>
 
       <p style="color:var(--text-2);line-height:1.6;">
-        Esta acciÃ³n eliminarÃ¡ la membresÃ­a seleccionada.
-        El cliente permanecerÃ¡ registrado en el sistema.
+        Esta acción eliminará la membresía seleccionada.
+        El cliente permanecerá registrado en el sistema.
       </p>
     </div>
 
@@ -275,13 +275,13 @@
 <script>
 
   
- // 1. Capturar los parÃ¡metros que vienen en la URL
+ // 1. Capturar los parámetros que vienen en la URL
   const urlParams = new URLSearchParams(window.location.search);
   
-  // 2. Extraer el valor del parÃ¡metro 'estado'
+  // 2. Extraer el valor del parámetro 'estado'
   const estadoSeleccionado = urlParams.get('estado');
 
-  // 3. Si el parÃ¡metro existe, asignarlo al select con id 'statusFilter'
+  // 3. Si el parámetro existe, asignarlo al select con id 'statusFilter'
   if (estadoSeleccionado) {
     const select = document.getElementById('statusFilter');
     
@@ -349,13 +349,13 @@ async function exportarMembresias() {
       { titulo: 'Cliente', campo: 'cliente' },
       { titulo: 'DNI', campo: 'dni' },
       { titulo: 'Plan', campo: 'plan' },
-      { titulo: 'CÃ³digo', campo: 'codigo' },
+      { titulo: 'Código', campo: 'codigo' },
       { titulo: 'Meses', campo: 'meses' },
-      { titulo: 'Unidad duraciÃ³n', campo: 'duracion_unidad' },
+      { titulo: 'Unidad duración', campo: 'duracion_unidad' },
       { titulo: 'Usos totales', campo: 'usos_totales' },
       { titulo: 'Usos restantes', campo: 'usos_restantes' },
       { titulo: 'Precio total', campo: 'precio_total' },
-      { titulo: 'PromociÃ³n', campo: 'promocion' },
+      { titulo: 'Promoción', campo: 'promocion' },
       { titulo: 'Fecha inicio', campo: 'fecha_inicio' },
       { titulo: 'Fecha fin', campo: 'fecha_fin' },
       { titulo: 'Estado', campo: 'estado' }
@@ -427,7 +427,7 @@ async function cargarMembresias() {
     render();
 
   } catch (error) {
-    console.error('Error cargando membresÃ­as:', error);
+    console.error('Error cargando membresías:', error);
     document.querySelectorAll('.stat-value').forEach(value => {
       value.classList.remove('loading-value');
       value.textContent = '--';
@@ -464,7 +464,7 @@ function estadoDetalle(m) {
   const dias = Number(m.dias_restantes);
 
   if (m.estado === 'vencida') {
-    return `Vencido hace ${Math.abs(dias)} dÃ­a(s)`;
+    return `Vencido hace ${Math.abs(dias)} día(s)`;
   }
 
   if (dias === 0) {
@@ -472,10 +472,10 @@ function estadoDetalle(m) {
   }
 
   if (dias === 1) {
-    return 'Vence maÃ±ana';
+    return 'Vence mañana';
   }
 
-  return `Vence en ${dias} dÃ­as`;
+  return `Vence en ${dias} días`;
 }
 
 function estadoVisualMembresia(m) {
@@ -496,8 +496,8 @@ function estadoVisualTexto(estado) {
   return {
     vencida: 'Vencida',
     vence_hoy: 'Vence hoy',
-    vence_manana: 'Vence maÃ±ana',
-    vence_3_dias: 'Vence en 3 dÃ­as',
+    vence_manana: 'Vence mañana',
+    vence_3_dias: 'Vence en 3 días',
     activa: 'Activa',
     inactiva: 'Inactiva'
   }[estado] || 'Inactiva';
@@ -512,11 +512,11 @@ function estadoVisualDetalle(m) {
   const estado = estadoVisualMembresia(m);
 
   if (estado === 'vencida') {
-    return `Vencida hace ${Math.abs(dias)} dÃ­a(s)`;
+    return `Vencida hace ${Math.abs(dias)} día(s)`;
   }
 
   if (estado === 'activa' && dias > 3) {
-    return `Vence en ${dias} dÃ­as`;
+    return `Vence en ${dias} días`;
   }
 
   return estadoVisualTexto(estado);
@@ -669,7 +669,7 @@ function actualizarCards() {
     <button
       class="icon-btn danger"
       data-permission="membresias.eliminar"
-      title="Eliminar membresÃ­a"
+      title="Eliminar membresía"
       onclick="eliminarMembresia(${m.id})">
 
       <svg viewBox="0 0 24 24"
@@ -699,7 +699,7 @@ function actualizarCards() {
 
   info.innerHTML = total === 0
     ? 'Sin resultados'
-    : `Mostrando <strong>${start + 1}â€“${Math.min(start + PER_PAGE, total)}</strong> de <strong>${total}</strong> membresÃ­as`;
+    : `Mostrando <strong>${start + 1}—${Math.min(start + PER_PAGE, total)}</strong> de <strong>${total}</strong> membresías`;
 
   renderPagination();
   window.AdminAuth?.applyPermissions?.(document);
@@ -826,7 +826,7 @@ function cerrarModalEliminar() {
 
       console.error(error);
 
-      alert('Error al eliminar membresÃ­a');
+      alert('Error al eliminar membresía');
     }
 });
 
