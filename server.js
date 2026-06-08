@@ -2124,6 +2124,7 @@ app.get(['/admin', '/admin/'], requireAdminSession, (req, res) => {
 });
 
 app.use('/admin/styles', express.static(path.join(adminDir, 'styles')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.get('/admin/:page', requireAdminSession, (req, res, next) => {
     const { page } = req.params;
