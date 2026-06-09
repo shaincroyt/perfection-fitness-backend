@@ -13340,4 +13340,282 @@ body.admin-page-nueva-membresia #formError {
   }
 }
 
+/* Ajustes finales de tema oscuro y consistencia visual */
+@media (min-width: 1025px) {
+  body.admin-page .sidebar {
+    height: 100vh;
+    overflow: hidden !important;
+  }
+
+  body.admin-page nav {
+    padding: 12px 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.admin-page .sidebar-logo {
+    height: 74px !important;
+    gap: 14px !important;
+    padding: 0 24px !important;
+  }
+
+  body.admin-page .sidebar-brand-img,
+  body.admin-page-dashboard .sidebar-logo img {
+    width: 42px !important;
+    height: 42px !important;
+    max-width: 42px !important;
+    object-fit: contain;
+  }
+
+  body.admin-page .nav-section {
+    margin-bottom: 14px !important;
+    padding: 0 12px !important;
+  }
+
+  body.admin-page .nav-label {
+    padding: 0 12px 9px !important;
+    font-size: 10px !important;
+  }
+
+  body.admin-page .nav-item {
+    min-height: 38px !important;
+    padding: 9px 14px !important;
+    font-size: 13px !important;
+  }
+
+  body.admin-page .sidebar-user,
+  body[class*="admin-page-"] .sidebar-user.admin-session-box {
+    margin: auto 12px 14px !important;
+    padding: 12px !important;
+    gap: 8px !important;
+  }
+
+  body.admin-page .user-avatar,
+  body[class*="admin-page-"] .sidebar-user.admin-session-box .user-avatar {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 12px !important;
+  }
+
+  body.admin-page .user-name {
+    font-size: 13px !important;
+  }
+
+  body.admin-page .user-role {
+    font-size: 11px !important;
+  }
+
+  body.admin-page .admin-logout-btn,
+  body[class*="admin-page-"] .sidebar-user.admin-session-box .admin-logout-btn {
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+}
+
+body.admin-page .loading-value {
+  background: linear-gradient(90deg, rgba(124, 58, 237, .18) 25%, rgba(168, 85, 247, .34) 38%, rgba(124, 58, 237, .18) 63%) !important;
+  background-size: 400% 100% !important;
+  border: 1px solid rgba(168, 85, 247, .10);
+}
+
+body.admin-page .admin-card-skeleton {
+  background: linear-gradient(135deg, rgba(17, 24, 43, .96), rgba(10, 15, 31, .96)) !important;
+  border-color: var(--app-border) !important;
+}
+
+body.admin-page .admin-mini-spinner {
+  border-color: rgba(168, 85, 247, .18) !important;
+  border-top-color: var(--brand-2) !important;
+}
+
+body.admin-page .admin-loading-cell,
+body.admin-page .admin-loading-inline,
+body.admin-page .admin-list-state {
+  color: var(--app-muted) !important;
+}
+
+body.admin-page-nueva-membresia .success-modal {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(168, 85, 247, .18), transparent 52%),
+    linear-gradient(135deg, rgba(17, 24, 43, .98), rgba(10, 15, 31, .98)) !important;
+  border: 1px solid var(--app-border) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .34) !important;
+}
+
+body.admin-page-nueva-membresia .success-icon {
+  background: var(--ok-soft) !important;
+  border: 1px solid rgba(34, 197, 94, .32);
+  color: var(--ok) !important;
+}
+
+body.admin-page-nueva-membresia .success-icon svg,
+body.admin-page-nueva-membresia .success-code,
+body.admin-page-nueva-membresia .success-code-value {
+  color: var(--ok) !important;
+}
+
+body.admin-page-nueva-membresia .success-title,
+body.admin-page-nueva-membresia .success-code.success-code-list {
+  color: var(--app-text) !important;
+}
+
+body.admin-page-nueva-membresia .success-text,
+body.admin-page-nueva-membresia .success-code-label,
+body.admin-page-nueva-membresia .success-code-client {
+  color: var(--app-muted) !important;
+}
+
+body.admin-page-nueva-membresia .success-code-box,
+body.admin-page-nueva-membresia .success-code-item {
+  background: rgba(255, 255, 255, .035) !important;
+  border-color: var(--app-border) !important;
+}
+
+body.admin-page-validar .result-active-body,
+body.admin-page-validar .result-active-body-new,
+body.admin-page-validar .result-expired-body-new {
+  background: linear-gradient(135deg, rgba(17, 24, 43, .96), rgba(10, 15, 31, .96)) !important;
+  border-color: var(--app-border) !important;
+}
+
+body.admin-page-validar .validation-label,
+body.admin-page-validar .section-title,
+body.admin-page-validar .mini-label,
+body.admin-page-validar .active-data-label,
+body.admin-page-validar .expired-data-label,
+body.admin-page-validar .usage-summary {
+  color: var(--app-muted) !important;
+}
+
+body.admin-page-validar .vigencia-row,
+body.admin-page-validar .vigencia-row-expired,
+body.admin-page-validar .usage-summary {
+  border-color: var(--app-border) !important;
+}
+
+body.admin-page-validar .vigencia-row strong,
+body.admin-page-validar .active-data-value,
+body.admin-page-validar .expired-data-value,
+body.admin-page-validar .usage-summary strong {
+  color: var(--app-text) !important;
+}
+
+body.admin-page-validar .plan-big-badge svg,
+body.admin-page-validar .vigencia-icon svg {
+  stroke: var(--ok) !important;
+  color: var(--ok) !important;
+}
+
+body.admin-page-validar .days-simple {
+  border-color: rgba(34, 197, 94, .22) !important;
+  background: rgba(34, 197, 94, .06) !important;
+  color: var(--ok) !important;
+}
+
+body.admin-page-validar .days-note,
+body.admin-page-validar .vigencia-message {
+  background: rgba(34, 197, 94, .10) !important;
+  border: 1px solid rgba(34, 197, 94, .16);
+  color: var(--ok) !important;
+}
+
+body.admin-page-validar .result-expired-top {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(248, 113, 113, .30), rgba(127, 29, 29, .28) 42%, rgba(17, 24, 43, .92) 76%) !important;
+}
+
+body.admin-page-validar .plan-big-badge-expired svg,
+body.admin-page-validar .vigencia-icon-expired svg {
+  stroke: #F87171 !important;
+  color: #F87171 !important;
+}
+
+body.admin-page-validar .days-simple-expired {
+  border-color: rgba(248, 113, 113, .24) !important;
+  background: rgba(239, 68, 68, .07) !important;
+  color: #F87171 !important;
+}
+
+body.admin-page-validar .days-note-expired,
+body.admin-page-validar .renew-alert {
+  background: rgba(239, 68, 68, .11) !important;
+  border-color: rgba(248, 113, 113, .18) !important;
+  color: #F87171 !important;
+}
+
+body.admin-page-validar .btn-renew {
+  border-color: rgba(248, 113, 113, .38) !important;
+  background: rgba(239, 68, 68, .10) !important;
+  color: #FCA5A5 !important;
+}
+
+body.admin-page-validar .btn-renew:hover {
+  background: rgba(239, 68, 68, .24) !important;
+  color: #fff !important;
+}
+
+body.admin-page .modal-close,
+body.admin-page-configuracion .modal-close,
+body.admin-page-planes .modal-close {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--app-border) !important;
+  background: rgba(255, 255, 255, .045) !important;
+  color: var(--app-muted) !important;
+}
+
+body.admin-page .modal-close:hover,
+body.admin-page-configuracion .modal-close:hover,
+body.admin-page-planes .modal-close:hover {
+  border-color: rgba(168, 85, 247, .50) !important;
+  background: rgba(124, 58, 237, .16) !important;
+  color: #fff !important;
+}
+
+body.admin-page-configuracion .roles-system-section,
+body.admin-page-configuracion .role-summary-panel {
+  background: linear-gradient(135deg, rgba(17, 24, 43, .96), rgba(10, 15, 31, .96)) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text) !important;
+}
+
+body.admin-page-configuracion .roles-eyebrow {
+  color: var(--brand-2) !important;
+}
+
+body.admin-page-configuracion .roles-title,
+body.admin-page-configuracion .role-card-title,
+body.admin-page-configuracion .role-summary-title {
+  color: var(--app-text) !important;
+}
+
+body.admin-page-configuracion .roles-subtitle,
+body.admin-page-configuracion .role-card-description,
+body.admin-page-configuracion .role-summary-count,
+body.admin-page-configuracion .permission-option small {
+  color: var(--app-muted) !important;
+}
+
+body.admin-page-configuracion .role-card.is-inactive {
+  background: rgba(148, 163, 184, .06) !important;
+}
+
+body.admin-page-configuracion .role-card-metrics span,
+body.admin-page-configuracion .role-permiso-item,
+body.admin-page-configuracion .role-permiso-more {
+  border: 1px solid var(--app-border);
+  background: rgba(255, 255, 255, .045) !important;
+  color: var(--app-muted) !important;
+}
+
+body.admin-page-configuracion .role-metric-permisos,
+body.admin-page-configuracion .role-permiso-item {
+  color: var(--brand-2) !important;
+}
+
+body.admin-page-configuracion .role-card-actions .table-action-btn:disabled {
+  opacity: .42;
+}
+
 /* Fin de admin.css */
