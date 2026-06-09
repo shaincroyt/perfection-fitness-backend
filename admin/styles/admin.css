@@ -13387,6 +13387,7 @@ body.admin-page-nueva-membresia #formError {
     margin: auto 12px 14px !important;
     padding: 12px !important;
     gap: 8px !important;
+    column-gap: 12px !important;
   }
 
   body.admin-page .user-avatar,
