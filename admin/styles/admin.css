@@ -13702,12 +13702,23 @@ body.admin-page-clientes #clientsTable td:nth-child(4) {
 }
 
 /* Acciones más compactas */
-body.admin-page-clientes .actions-cell {
-  display: flex;
+body.admin-page-clientes #clientsTable .actions-cell {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
   flex-wrap: nowrap;
-  justify-content: flex-end;
+  white-space: nowrap;
+}
+body.admin-page-clientes #clientsTable th:nth-child(7),
+body.admin-page-clientes #clientsTable td:nth-child(7) {
+  width: 240px;
+  min-width: 240px;
+  text-align: center;
+}
+
+body.admin-page-clientes #clientsTable td:nth-child(7) {
+  overflow: visible;
 }
 
 body.admin-page-clientes .icon-btn {
