@@ -1330,7 +1330,7 @@ body.admin-page-clientes *::after {
 }
 
 body.admin-page-clientes {
-  --red: #7C3AED;
+  --red: var(--color-primario);
   --red-dark: #6D28D9;
   --red-deeper: #5B21B6;
   --yellow: #A78BFA;
