@@ -3360,7 +3360,9 @@ function validarDatosPlan(datos) {
 
 app.get('/api/planes', requirePermission('planes.ver'), async (req, res) => {
     try {
-        const [rows] = await pool.query(`
+        const empresaId = getEmpresaId(req);
+
+const [rows] = await pool.query(`
             SELECT
                 id,
                 nombre,
@@ -3376,7 +3378,7 @@ app.get('/api/planes', requirePermission('planes.ver'), async (req, res) => {
             FROM planes
             WHERE estado = 'activo' AND empresa_id = ?
             ORDER BY id ASC
-        `);
+        `, [empresaId]);
 
         res.json(rows);
 
@@ -4394,7 +4396,9 @@ async function sincronizarEstadosClientes() {
 
 app.get('/api/planes/todos', requirePermission('planes.ver'), async (req, res) => {
     try {
-        const [rows] = await pool.query(`
+        const empresaId = getEmpresaId(req);
+
+const [rows] = await pool.query(`
             SELECT
                 id,
                 nombre,
@@ -4410,7 +4414,7 @@ app.get('/api/planes/todos', requirePermission('planes.ver'), async (req, res) =
             FROM planes
             WHERE empresa_id = ?
             ORDER BY id ASC
-        `);
+        `, [empresaId]);
 
         res.json(rows);
 
