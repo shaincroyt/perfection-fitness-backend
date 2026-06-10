@@ -4607,7 +4607,7 @@ app.put('/api/planes/:id/desactivar', requirePermission('planes.eliminar'), asyn
         await crearNotificacion({
     tipo: 'plan_eliminado',
     titulo: 'Plan eliminado',
-    mensaje: `Se eliminó o desactivó el plan con ID ${id}.`,
+    mensaje: `Se eliminó o desactivó el plan ${plan.nombre}.`,
     entidad: 'plan',
     entidad_id: id,
     ...adminNotificacion(req),
