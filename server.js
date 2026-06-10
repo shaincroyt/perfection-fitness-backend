@@ -4440,32 +4440,36 @@ app.put('/api/clientes/:id/desactivar', requirePermission('clientes.eliminar'), 
     }
 });
 
-app.get('/api/sidebar', async (req, res) => {
+app.get('/api/sidebar', requireAdminSession, async (req, res) => {
     try {
+        const empresaId = getEmpresaId(req);
 
         const [[clientes]] = await pool.query(`
             SELECT COUNT(*) AS total
             FROM clientes
-        `);
+            WHERE empresa_id = ?
+        `, [empresaId]);
 
         const [[membresias]] = await pool.query(`
             SELECT COUNT(*) AS total
             FROM membresias
-            WHERE estado = 'activa'
+            WHERE empresa_id = ?
+            AND estado = 'activa'
             AND (
                 asistencias_totales IS NULL
                 OR COALESCE(asistencias_usadas, 0) < asistencias_totales
             )
-        `);
+        `, [empresaId]);
 
         const [[porVencer]] = await pool.query(`
             SELECT COUNT(*) AS total
             FROM membresias
-            WHERE estado = 'activa'
+            WHERE empresa_id = ?
+            AND estado = 'activa'
             AND COALESCE(duracion_unidad, 'meses') != 'usos'
             AND fecha_fin BETWEEN CURDATE()
             AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
-        `);
+        `, [empresaId]);
 
         res.json({
             clientes: clientes.total,
