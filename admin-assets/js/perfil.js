@@ -174,13 +174,14 @@
 
       .profile-secondary-btn {
         color: var(--text-1, #1a1a1a);
-        background: var(--bg, #f4f5f7);
+        background: var(--boton-sec);
         border: 1px solid var(--border, #e8e9ec);
       }
 
       .profile-danger-btn {
         color: #fff;
-        background: var(--boton-sec);
+        background: var(--brand);
+        box-shadow: rgba(124, 58, 237, 0.32) 0px 11px 26px;
       }
 
       .profile-error {
