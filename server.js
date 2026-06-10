@@ -404,7 +404,8 @@ async function crearNotificacion({
     entidad_id,
     usuario_id = null,
     usuario_nombre = null,
-    evento_key = 'default'
+    evento_key = 'default',
+    empresa_id = 1
 }, conn = pool) {
     try {
         const usarEventoKey = await tieneColumnaEventoKey(conn);
@@ -412,9 +413,10 @@ async function crearNotificacion({
         if (usarEventoKey) {
             await conn.query(
                 `INSERT IGNORE INTO notificaciones
-                 (tipo, titulo, mensaje, entidad, entidad_id, usuario_id, usuario_nombre, evento_key)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                (empresa_id, tipo, titulo, mensaje, entidad, entidad_id, usuario_id, usuario_nombre, evento_key)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
+                    empresa_id,
                     tipo,
                     titulo,
                     mensaje,
@@ -449,6 +451,8 @@ async function crearNotificacion({
 
 function adminNotificacion(req) {
     return {
+
+        empresa_id: getEmpresaId(req),
         usuario_id: req.session && req.session.adminId ? req.session.adminId : null,
         usuario_nombre: req.session && req.session.adminNombre ? req.session.adminNombre : null
     };
@@ -4086,7 +4090,7 @@ app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) =
 
 app.get('/api/notificaciones', requirePermission('notificaciones.ver'), async (req, res) => {
     try {
-        await sincronizarNotificacionesVencimiento();
+        const empresaId = getEmpresaId(req);
 
         const [rows] = await pool.query(`
             SELECT
@@ -4101,15 +4105,17 @@ app.get('/api/notificaciones', requirePermission('notificaciones.ver'), async (r
                 leida,
                 fecha_creacion
             FROM notificaciones
+            WHERE empresa_id = ?
             ORDER BY fecha_creacion DESC
             LIMIT 50
-        `);
+        `, [empresaId]);
 
         const [[contador]] = await pool.query(`
             SELECT COUNT(*) AS total
             FROM notificaciones
             WHERE leida = 0
-        `);
+            AND empresa_id = ?
+        `, [empresaId]);
 
         return res.json({
             notificaciones: rows,
@@ -4120,6 +4126,81 @@ app.get('/api/notificaciones', requirePermission('notificaciones.ver'), async (r
         console.error(error);
         return res.status(500).json({
             error: 'Error al obtener notificaciones'
+        });
+    }
+});
+
+app.put('/api/notificaciones/:id/leida', requirePermission('notificaciones.marcar_leida'), async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+        const { id } = req.params;
+
+        const [result] = await pool.query(
+            `UPDATE notificaciones
+             SET leida = 1
+             WHERE id = ?
+             AND empresa_id = ?`,
+            [id, empresaId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                error: 'Notificacion no encontrada'
+            });
+        }
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: 'Error al marcar notificacion'
+        });
+    }
+});
+
+app.put('/api/notificaciones/leidas', requirePermission('notificaciones.marcar_leida'), async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+
+        await pool.query(`
+            UPDATE notificaciones
+            SET leida = 1
+            WHERE leida = 0
+            AND empresa_id = ?
+        `, [empresaId]);
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: 'Error al marcar notificaciones'
+        });
+    }
+});
+
+app.delete('/api/notificaciones/:id', requirePermission('notificaciones.eliminar'), async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+        const { id } = req.params;
+
+        const [result] = await pool.query(
+            `DELETE FROM notificaciones
+             WHERE id = ?
+             AND empresa_id = ?`,
+            [id, empresaId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                error: 'Notificacion no encontrada'
+            });
+        }
+
+        return res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: 'Error al eliminar notificacion'
         });
     }
 });
