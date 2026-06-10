@@ -1,3 +1,57 @@
+/* ==================================================
+   IDENTIDAD VISUAL DEL SISTEMA
+================================================== */
+
+:root {
+  --color-primario: #7C3AED;
+  --color-secundario: #6D28D9;
+  --color-acento: #A78BFA;
+
+  --bg-principal: #0F0F1A;
+  --bg-secundario: #161627;
+
+  --text-principal: #F0EFFF;
+  --text-secundario: rgba(200,196,240,.75);
+
+  --border-color: rgba(255,255,255,.07);
+
+  --success-color: #22c55e;
+  --warning-color: #f97316;
+  --danger-color: #ef4444;
+}
+/* ==================================================
+   VARIABLES INTERNAS / COMPATIBILIDAD
+================================================== */
+
+body[class*="admin-page-"] {
+  --red: var(--color-primario);
+  --red-dark: var(--color-secundario);
+  --red-deeper: #5B21B6;
+  --yellow: var(--color-acento);
+
+  --bg: var(--bg-principal);
+  --surface: var(--bg-secundario);
+  --border: var(--border-color);
+
+  --text-1: var(--text-principal);
+  --text-2: var(--text-secundario);
+  --text-3: rgba(200,196,240,.42);
+
+  --green: var(--success-color);
+  --green-bg: rgba(34,197,94,.15);
+  --orange: var(--warning-color);
+  --orange-bg: rgba(249,115,22,.15);
+  --blue: #818CF8;
+  --blue-bg: rgba(129,140,248,.15);
+
+  --sidebar-w: 240px;
+  --header-h: 64px;
+  --radius: 12px;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.25);
+  --shadow-md: 0 4px 20px rgba(0,0,0,.40);
+  --t: .2s cubic-bezier(.4,0,.2,1);
+}
+
 /* ==============================
 1. Variables globales
 ============================== */
@@ -263,20 +317,20 @@ body.admin-page-dashboard *::after {
 }
 
 body.admin-page-dashboard {
-  --red:        #7C3AED;
-  --red-dark:   #6D28D9;
+  --red:        var(--color-primario);
+  --red-dark:   var(--color-secundario);
   --red-deeper: #5B21B6;
-  --yellow:     #A78BFA;
+  --yellow:     var(--color-acento);
   --white:      #FFFFFF;
-  --bg:         #0F0F1A;
-  --surface:    #161627;
-  --border:     rgba(255,255,255,.07);
-  --text-1:     #F0EFFF;
-  --text-2:     rgba(200,196,240,.75);
+  --bg:         var(--bg-principal);
+  --surface:    var(--bg-secundario);
+  --border:     var(--border-color);
+  --text-1:     var(--text-principal);
+  --text-2:     var(--text-secundario);
   --text-3:     rgba(200,196,240,.42);
-  --green:      #22c55e;
+  --green:      var(--success-color);
   --green-bg:   rgba(34,197,94,.15);
-  --orange:     #f97316;
+  --orange:     var(--warning-color);
   --orange-bg:  rgba(249,115,22,.15);
   --blue:       #818CF8;
   --blue-bg:    rgba(129,140,248,.15);
