@@ -154,8 +154,9 @@ body {
 }
 
 .logout-modal-header {
+  color: var(--text-1);
   padding: 22px 24px 16px;
-  border-bottom: 1px solid #E8E9EC;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .logout-modal-title {
