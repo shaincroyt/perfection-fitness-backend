@@ -6,10 +6,6 @@
    IDENTIDAD VISUAL DEL SISTEMA
 ================================================== */
 
-/* ==================================================
-   IDENTIDAD VISUAL DEL SISTEMA
-================================================== */
-
 :root {
   --color-primario: #7C3AED;
   --color-secundario: #A855F7;
@@ -17,7 +13,6 @@
 
   --bg-principal: #070A14;
   --bg-secundario: #0B1020;
-
   --surface-principal: #101628;
   --surface-secundario: #161627;
 
@@ -32,94 +27,6 @@
   --warning-color: #F59E0B;
   --danger-color: #EF4444;
   --info-color: #3B82F6;
-}
-/* ==================================================
-   TEMA NIX ADMIN
-================================================== */
-
-body.admin-page {
-
-  /* ---------- Marca ---------- */
-
-  --brand: var(--color-primario);
-  --brand-2: var(--color-secundario);
-  --brand-dark: #5B21B6;
-
-  --brand-soft: rgba(124, 58, 237, .18);
-
-  /* ---------- Fondos ---------- */
-
-  --app-bg: var(--bg-principal);
-  --app-bg-2: var(--bg-secundario);
-
-  --app-surface: var(--surface-principal);
-  --app-surface-2: var(--surface-secundario);
-
-  /* ---------- Bordes ---------- */
-
-  --app-border: var(--border-color);
-  --app-border-strong: var(--border-strong);
-
-  /* ---------- Texto ---------- */
-
-  --app-text: var(--text-principal);
-  --app-muted: var(--text-secundario);
-  --app-faint: var(--text-faint);
-
-  /* ---------- Estados ---------- */
-
-  --ok: var(--success-color);
-  --ok-soft: rgba(34, 197, 94, .15);
-
-  --warn: var(--warning-color);
-  --warn-soft: rgba(245, 158, 11, .15);
-
-  --bad: var(--danger-color);
-  --bad-soft: rgba(239, 68, 68, .15);
-
-  --info: var(--info-color);
-  --info-soft: rgba(59, 130, 246, .15);
-
-  /* ---------- Layout ---------- */
-
-  --sidebar-w: 302px;
-  --header-h: 88px;
-
-  --radius: 12px;
-
-  --shadow-sm: 0 1px 4px rgba(0, 0, 0, .25);
-  --shadow-md: 0 18px 45px rgba(0, 0, 0, .35);
-
-  /* ---------- Compatibilidad Legacy ---------- */
-
-  --red: var(--brand);
-  --red-dark: var(--brand-dark);
-  --red-deeper: #3B147F;
-
-  --yellow: var(--color-acento);
-
-  --bg: var(--app-bg);
-  --surface: var(--app-surface);
-
-  --border: var(--app-border);
-
-  --text-1: var(--app-text);
-  --text-2: var(--app-muted);
-  --text-3: var(--app-faint);
-
-  --green: var(--ok);
-  --green-bg: var(--ok-soft);
-
-  --orange: var(--warn);
-  --orange-bg: var(--warn-soft);
-
-  --blue: var(--info);
-  --blue-bg: var(--info-soft);
-
-  /* ---------- Base ---------- */
-
-  background: var(--app-bg);
-  color: var(--app-text);
 }
 
 /* ==================================================
@@ -12710,7 +12617,56 @@ body.admin-page-clientes .admin-actions-toggle {
   }
 }
 
+/* ==============================
+Tema unificado NIX Admin
+============================== */
 
+body.admin-page {
+  --brand: #7C3AED;
+  --brand-2: #A855F7;
+  --brand-dark: #5B21B6;
+  --brand-soft: rgba(124, 58, 237, .18);
+  --app-bg: #070A14;
+  --app-bg-2: #0B1020;
+  --app-surface: #101628;
+  --app-surface-2: #161627;
+  --app-border: rgba(255, 255, 255, .09);
+  --app-border-strong: rgba(167, 139, 250, .24);
+  --app-text: #F0EFFF;
+  --app-muted: rgba(200, 196, 240, .72);
+  --app-faint: rgba(200, 196, 240, .45);
+  --ok: #22C55E;
+  --ok-soft: rgba(34, 197, 94, .15);
+  --warn: #F59E0B;
+  --warn-soft: rgba(245, 158, 11, .15);
+  --bad: #EF4444;
+  --bad-soft: rgba(239, 68, 68, .15);
+  --info: #3B82F6;
+  --info-soft: rgba(59, 130, 246, .15);
+  --sidebar-w: 302px;
+  --header-h: 88px;
+  --radius: 12px;
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, .25);
+  --shadow-md: 0 18px 45px rgba(0, 0, 0, .35);
+  --red: var(--brand);
+  --red-dark: var(--brand-dark);
+  --red-deeper: #3B147F;
+  --yellow: #A78BFA;
+  --bg: var(--app-bg);
+  --surface: var(--app-surface);
+  --border: var(--app-border);
+  --text-1: var(--app-text);
+  --text-2: var(--app-muted);
+  --text-3: var(--app-faint);
+  --green: var(--ok);
+  --green-bg: var(--ok-soft);
+  --orange: var(--warn);
+  --orange-bg: var(--warn-soft);
+  --blue: var(--info);
+  --blue-bg: var(--info-soft);
+  background: var(--app-bg);
+  color: var(--app-text);
+}
 
 body.admin-page .shell {
   padding-left: var(--sidebar-w);
