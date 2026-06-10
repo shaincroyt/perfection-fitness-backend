@@ -13690,7 +13690,8 @@ body.admin-page-clientes #clientsTable td:nth-child(6) {
 
 body.admin-page-clientes #clientsTable th:nth-child(7),
 body.admin-page-clientes #clientsTable td:nth-child(7) {
-  width: 14%;
+  width: 190px;
+  min-width: 190px;
 }
 
 /* Correo largo no debe romper la tabla */
