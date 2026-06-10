@@ -169,6 +169,7 @@
         font-size: 13px;
         font-weight: 800;
         cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
       }
 
       .profile-secondary-btn {
@@ -179,7 +180,7 @@
 
       .profile-danger-btn {
         color: #fff;
-        background: var(--red, #DD0F0D);
+        background: var(--boton-sec);
       }
 
       .profile-error {
