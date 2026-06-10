@@ -3609,6 +3609,8 @@ app.get('/api/validar-legacy/:codigo', requirePermission('validacion.usar'), asy
 
 app.get('/api/asistencias', requirePermission('asistencias.ver'), async (req, res) => {
     try {
+        const empresaId = getEmpresaId(req);
+
         const [rows] = await pool.query(`
             SELECT
                 a.id,
@@ -3621,11 +3623,18 @@ app.get('/api/asistencias', requirePermission('asistencias.ver'), async (req, re
                 c.dni,
                 p.nombre AS plan
             FROM asistencias a
-            LEFT JOIN clientes c ON a.cliente_id = c.id
-            LEFT JOIN membresias m ON a.membresia_id = m.id
-            LEFT JOIN planes p ON m.plan_id = p.id
+            LEFT JOIN clientes c 
+                ON a.cliente_id = c.id
+                AND c.empresa_id = a.empresa_id
+            LEFT JOIN membresias m 
+                ON a.membresia_id = m.id
+                AND m.empresa_id = a.empresa_id
+            LEFT JOIN planes p 
+                ON m.plan_id = p.id
+                AND p.empresa_id = a.empresa_id
+            WHERE a.empresa_id = ?
             ORDER BY a.fecha_hora DESC
-        `);
+        `, [empresaId]);
 
         res.json(rows);
 
