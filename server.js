@@ -3749,6 +3749,8 @@ app.delete('/api/asistencias/:id', requirePermission('asistencias.eliminar'), as
 
 app.get('/api/exportar/clientes', requirePermission('exportar.clientes'), async (req, res) => {
     try {
+        const empresaId = getEmpresaId(req);
+
         const [rows] = await pool.query(`
             SELECT
                 id,
@@ -3759,8 +3761,9 @@ app.get('/api/exportar/clientes', requirePermission('exportar.clientes'), async 
                 estado,
                 fecha_registro
             FROM clientes
+            WHERE empresa_id = ?
             ORDER BY id ASC
-        `);
+        `, [empresaId]);
 
         res.json(rows);
 
@@ -3812,6 +3815,8 @@ app.get('/api/exportar/membresias', requirePermission('exportar.membresias'), as
 
 app.get('/api/exportar/asistencias', requirePermission('exportar.asistencias'), async (req, res) => {
     try {
+        const empresaId = getEmpresaId(req);
+
         const [rows] = await pool.query(`
             SELECT
                 a.id,
@@ -3824,11 +3829,18 @@ app.get('/api/exportar/asistencias', requirePermission('exportar.asistencias'), 
                 a.cuenta_como_uso,
                 a.fecha_hora
             FROM asistencias a
-            LEFT JOIN clientes c ON a.cliente_id = c.id
-            LEFT JOIN membresias m ON a.membresia_id = m.id
-            LEFT JOIN planes p ON m.plan_id = p.id
+            LEFT JOIN clientes c
+                ON a.cliente_id = c.id
+                AND c.empresa_id = a.empresa_id
+            LEFT JOIN membresias m
+                ON a.membresia_id = m.id
+                AND m.empresa_id = a.empresa_id
+            LEFT JOIN planes p
+                ON m.plan_id = p.id
+                AND p.empresa_id = a.empresa_id
+            WHERE a.empresa_id = ?
             ORDER BY a.fecha_hora ASC, a.id ASC
-        `);
+        `, [empresaId]);
 
         res.json(rows);
 
