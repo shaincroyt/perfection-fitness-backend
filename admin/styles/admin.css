@@ -13618,5 +13618,135 @@ body.admin-page-configuracion .role-permiso-item {
 body.admin-page-configuracion .role-card-actions .table-action-btn:disabled {
   opacity: .42;
 }
+/* ==============================
+   FIX TABLA CLIENTES - SIN SCROLL HORIZONTAL
+============================== */
+
+body.admin-page-clientes .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+body.admin-page-clientes .table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body.admin-page-clientes #clientsTable {
+  width: 100%;
+  min-width: 0 !important;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+body.admin-page-clientes #clientsTable th,
+body.admin-page-clientes #clientsTable td {
+  padding: 12px 10px;
+  font-size: 13px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.admin-page-clientes #clientsTable th {
+  font-size: 11px;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+/* Anchos por columna */
+body.admin-page-clientes #clientsTable th:nth-child(1),
+body.admin-page-clientes #clientsTable td:nth-child(1) {
+  width: 22%;
+}
+
+body.admin-page-clientes #clientsTable th:nth-child(2),
+body.admin-page-clientes #clientsTable td:nth-child(2) {
+  width: 10%;
+}
+
+body.admin-page-clientes #clientsTable th:nth-child(3),
+body.admin-page-clientes #clientsTable td:nth-child(3) {
+  width: 11%;
+}
+
+body.admin-page-clientes #clientsTable th:nth-child(4),
+body.admin-page-clientes #clientsTable td:nth-child(4) {
+  width: 20%;
+}
+
+body.admin-page-clientes #clientsTable th:nth-child(5),
+body.admin-page-clientes #clientsTable td:nth-child(5) {
+  width: 12%;
+}
+
+body.admin-page-clientes #clientsTable th:nth-child(6),
+body.admin-page-clientes #clientsTable td:nth-child(6) {
+  width: 11%;
+}
+
+body.admin-page-clientes #clientsTable th:nth-child(7),
+body.admin-page-clientes #clientsTable td:nth-child(7) {
+  width: 14%;
+}
+
+/* Correo largo no debe romper la tabla */
+body.admin-page-clientes #clientsTable td:nth-child(4) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Acciones más compactas */
+body.admin-page-clientes .actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+body.admin-page-clientes .icon-btn {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+}
+
+body.admin-page-clientes .icon-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+body.admin-page-clientes .btn-sm {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  border-radius: 7px;
+}
+
+/* Avatar y texto más compacto */
+body.admin-page-clientes .avatar-cell {
+  gap: 8px;
+  min-width: 0;
+}
+
+body.admin-page-clientes .avatar-cell > div:last-child {
+  min-width: 0;
+}
+
+body.admin-page-clientes .client-name,
+body.admin-page-clientes .client-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.admin-page-clientes .avatar-sm {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
 
 /* Fin de admin.css */
