@@ -45,6 +45,7 @@
 
       .profile-modal-head {
         display: flex;
+        width: 100%;
         align-items: center;
         gap: 12px;
         padding: 18px 20px;
@@ -83,12 +84,13 @@
         width: 32px;
         height: 32px;
         border: 1px solid var(--border, #e8e9ec);
-        background: #fff;
+        background: rgba(255, 255, 255, 0.035) !important;
         border-radius: 8px;
         cursor: pointer;
-        color: var(--text-2, #555560);
+        color: var(--text-2);
         font-size: 20px;
         line-height: 1;
+        flex-shrink: 0;
       }
 
       .profile-modal-close:hover {
