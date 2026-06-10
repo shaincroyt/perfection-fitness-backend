@@ -52,6 +52,9 @@
         border-bottom: 1px solid var(--border, #e8e9ec);
         justify-content: space-between;
       }
+        .profile-modal-head > div:nth-child(2) {
+            flex: 1;
+        }
 
       .profile-modal-avatar {
         width: 44px;
