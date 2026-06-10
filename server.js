@@ -132,19 +132,19 @@ async function obtenerUsuarioSesion(req) {
     }
 
     const [rows] = await pool.query(
-        `SELECT id, usuario, nombre, estado, rol, session_id, ultimo_login, fecha_creacion
-         FROM usuarios_admin
-         WHERE id = ?
-         LIMIT 1`,
+        `SELECT id, empresa_id, usuario, nombre, estado, rol, session_id, ultimo_login, fecha_creacion
+        FROM usuarios_admin
+        WHERE id = ?
+        LIMIT 1`,
         [req.session.adminId]
     );
 
     return rows[0] || null;
 }
 
-async function rolSesionActivo(rol) {
+async function rolSesionActivo(rol, empresaId = 1) {
     try {
-        const registro = await obtenerRolAdmin(rol);
+        const registro = await obtenerRolAdmin(rol, empresaId);
         return !registro || registro.estado === 'activo';
     } catch (error) {
         if (tablaRolesNoExiste(error)) {
@@ -178,7 +178,7 @@ async function requireAdminSession(req, res, next) {
             return responderSesionInvalida(req, res);
         }
 
-        if (!await rolSesionActivo(admin.rol || 'recepcion')) {
+        if (!await rolSesionActivo(admin.rol || 'recepcion', admin.empresa_id || 1)) {
             await destruirSesion(req);
             res.clearCookie('connect.sid');
             return responderSesionInvalida(req, res, 'Rol desactivado');
@@ -194,8 +194,13 @@ async function requireAdminSession(req, res, next) {
         req.session.adminId = admin.id;
         req.session.adminNombre = admin.nombre;
         req.session.adminUsuario = admin.usuario;
+
         req.session.adminRol = admin.rol || 'recepcion';
+        req.session.empresa_id = admin.empresa_id || 1;
+        
         req.adminUser = admin;
+
+        req.empresaId = req.session.empresa_id;
 
         return next();
     } catch (error) {
@@ -234,7 +239,7 @@ function permisosFallbackPorRol(rol) {
     return rol === 'admin' ? TODOS_LOS_PERMISOS : PERMISOS_RECEPCION_DEFAULT;
 }
 
-async function obtenerCodigosPermisosRol(rol, conn = pool) {
+async function obtenerCodigosPermisosRol(rol, empresaId, conn = pool) {
     rol = normalizarCodigoRol(rol);
 
     if (rol === 'admin') {
@@ -246,9 +251,9 @@ async function obtenerCodigosPermisosRol(rol, conn = pool) {
             `SELECT p.codigo
              FROM roles_permisos rp
              INNER JOIN permisos_admin p ON p.id = rp.permiso_id
-             WHERE rp.rol_codigo = ?
+             WHERE rp.rol_codigo = ? AND rp.empresa_id = ?
              ORDER BY p.categoria ASC, p.codigo ASC`,
-            [rol]
+            [rol, empresaId]
         );
 
         return rows.map(row => row.codigo);
@@ -266,7 +271,7 @@ async function obtenerCodigosPermisosUsuario(admin, conn = pool) {
         return TODOS_LOS_PERMISOS;
     }
 
-    return obtenerCodigosPermisosRol(admin && admin.rol ? admin.rol : 'recepcion', conn);
+    return obtenerCodigosPermisosRol(admin && admin.rol ? admin.rol : 'recepcion', admin.empresa_id || 1, conn);
 }
 
 async function tienePermiso(admin, codigo) {
@@ -314,7 +319,7 @@ function agruparPermisos(permisos) {
     }, {});
 }
 
-async function obtenerPermisosVersionRol(rol) {
+async function obtenerPermisosVersionRol(rol, empresaId) {
     rol = normalizarCodigoRol(rol);
 
     if (rol === 'admin') {
@@ -326,8 +331,8 @@ async function obtenerPermisosVersionRol(rol) {
             `SELECT COALESCE(CRC32(COALESCE(GROUP_CONCAT(p.codigo ORDER BY p.codigo SEPARATOR ','), '')), 0) AS version
              FROM roles_permisos rp
              INNER JOIN permisos_admin p ON p.id = rp.permiso_id
-             WHERE rp.rol_codigo = ?`,
-            [rol]
+             WHERE rp.rol_codigo = ? AND rp.empresa_id = ?`,
+            [rol, empresaId]
         );
 
         return Number(row.version || 0);
@@ -347,6 +352,9 @@ function getSessionAdmin(req) {
         usuario: req.session.adminUsuario,
         rol: req.session.adminRol || 'recepcion'
     };
+}
+function getEmpresaId(req) {
+    return Number(req.session?.empresa_id || req.adminUser?.empresa_id || 1);
 }
 
 function formatearMoneda(valor) {
@@ -474,41 +482,42 @@ function tablaRolesNoExiste(error) {
     return error && error.code === 'ER_NO_SUCH_TABLE';
 }
 
-async function obtenerRolAdmin(codigo, conn = pool) {
+async function obtenerRolAdmin(codigo, empresaId, conn = pool) {
     const [rows] = await conn.query(
         `SELECT codigo, nombre, descripcion, estado, sistema
          FROM roles_admin
-         WHERE codigo = ?
+         WHERE codigo = ? AND empresa_id = ?
          LIMIT 1`,
-        [normalizarCodigoRol(codigo)]
+        [normalizarCodigoRol(codigo), empresaId]
     );
 
     return rows[0] || null;
 }
 
-async function asegurarRolesBase(conn = pool) {
+async function asegurarRolesBase(empresaId, conn = pool) {
     try {
         await conn.query(
-            `INSERT INTO roles_admin (codigo, nombre, descripcion, estado, sistema)
+            `INSERT INTO roles_admin (empresa_id, codigo, nombre, descripcion, estado, sistema)
              VALUES
-             ('admin', 'Administrador', 'Acceso total al sistema y configuracion del gimnasio.', 'activo', 1),
-             ('recepcion', 'Recepcion', 'Gestiona ingresos, clientes y atencion al cliente.', 'activo', 1)
+             (?, 'admin', 'Administrador', 'Acceso total al sistema y configuracion del gimnasio.', 'activo', 1),
+             (?, 'recepcion', 'Recepcion', 'Gestiona ingresos, clientes y atencion al cliente.', 'activo', 1)
              ON DUPLICATE KEY UPDATE
                 sistema = 1,
-                estado = CASE WHEN codigo IN ('admin', 'recepcion') THEN estado ELSE VALUES(estado) END`
+                estado = CASE WHEN codigo IN ('admin', 'recepcion') THEN estado ELSE VALUES(estado) END`,
+             [empresaId, empresaId]
         );
     } catch (error) {
         if (!tablaRolesNoExiste(error)) throw error;
     }
 }
 
-async function generarCodigoRolUnico(nombre, conn = pool, excluir = null) {
+async function generarCodigoRolUnico(nombre, empresaId, conn = pool, excluir = null) {
     const base = generarCodigoRol(nombre);
     let codigo = base;
     let contador = 2;
 
     while (true) {
-        const params = [codigo];
+        const params = [codigo, empresaId];
         let filtro = '';
         if (excluir) {
             filtro = 'AND codigo <> ?';
@@ -518,7 +527,7 @@ async function generarCodigoRolUnico(nombre, conn = pool, excluir = null) {
         const [[row]] = await conn.query(
             `SELECT COUNT(*) AS total
              FROM roles_admin
-             WHERE codigo = ?
+             WHERE codigo = ? AND empresa_id = ?
              ${filtro}`,
             params
         );
@@ -532,9 +541,9 @@ async function generarCodigoRolUnico(nombre, conn = pool, excluir = null) {
     }
 }
 
-async function asignarPermisosARol(conn, rol, permisos) {
+async function asignarPermisosARol(conn, rol, empresaId, permisos) {
     const codigos = Array.from(new Set((permisos || []).map(limpiarTexto).filter(Boolean)));
-    await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ?', [rol]);
+    await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ? AND empresa_id = ?', [rol, empresaId]);
 
     if (codigos.length === 0) {
         return [];
@@ -549,16 +558,16 @@ async function asignarPermisosARol(conn, rol, permisos) {
 
     if (permisosValidos.length > 0) {
         await conn.query(
-            `INSERT INTO roles_permisos (rol_codigo, permiso_id)
-             VALUES ${permisosValidos.map(() => '(?, ?)').join(', ')}`,
-            permisosValidos.flatMap(permiso => [rol, permiso.id])
+            `INSERT INTO roles_permisos (empresa_id, rol_codigo, permiso_id)
+             VALUES ${permisosValidos.map(() => '(?, ?, ?)').join(', ')}`,
+            permisosValidos.flatMap(permiso => [empresaId, rol, permiso.id])
         );
     }
 
     return permisosValidos.map(permiso => permiso.codigo);
 }
 
-async function permisosBaseParaNuevoRol(basadoEn, conn = pool) {
+async function permisosBaseParaNuevoRol(basadoEn, empresaId, conn = pool) {
     const base = normalizarCodigoRol(basadoEn || 'vacio');
 
     if (!base || base === 'vacio') {
@@ -577,7 +586,7 @@ async function permisosBaseParaNuevoRol(basadoEn, conn = pool) {
         ]));
     }
 
-    return obtenerCodigosPermisosRol(base, conn);
+    return obtenerCodigosPermisosRol(base, empresaId, conn);
 }
 
 async function crearNotificacionAuditoriaUsuario(req, {
@@ -734,10 +743,10 @@ app.post('/api/login', async (req, res) => {
         }
 
         const [rows] = await pool.query(
-            `SELECT id, usuario, password_hash, nombre, estado, rol
-             FROM usuarios_admin
-             WHERE usuario = ?
-             LIMIT 1`,
+            `SELECT id, empresa_id, usuario, password_hash, nombre, estado, rol
+            FROM usuarios_admin
+            WHERE usuario = ?
+            LIMIT 1`,
             [String(usuario).trim()]
         );
 
@@ -750,7 +759,7 @@ app.post('/api/login', async (req, res) => {
             });
         }
 
-        if (!await rolSesionActivo(admin.rol || 'recepcion')) {
+        if (!await rolSesionActivo(admin.rol || 'recepcion', admin.empresa_id || 1)) {
             return res.status(401).json({
                 ok: false,
                 error: 'Rol desactivado'
@@ -776,6 +785,7 @@ app.post('/api/login', async (req, res) => {
         req.session.adminNombre = admin.nombre;
         req.session.adminUsuario = admin.usuario;
         req.session.adminRol = admin.rol || 'recepcion';
+        req.session.empresa_id = admin.empresa_id || 1;
         req.session.loginAt = new Date().toISOString();
 
         await pool.query(
@@ -855,6 +865,7 @@ app.get('/api/verificar-sesion', async (req, res) => {
         }
 
         req.session.adminRol = admin.rol || 'recepcion';
+        req.session.empresa_id = admin.empresa_id || 1;
 
         return res.json({
             logueado: true,
@@ -888,11 +899,14 @@ app.get('/api/auth/session', async (req, res) => {
         }
 
         req.session.adminRol = admin.rol || 'recepcion';
+        req.empresaId = req.session.empresa_id;
+        req.session.empresa_id = admin.empresa_id || 1;
         const permisos = await obtenerCodigosPermisosUsuario(admin);
 
         const adminSesion = {
             id: admin.id,
             nombre: admin.nombre,
+            empresa_id: admin.empresa_id || 1,
             usuario: admin.usuario,
             rol: admin.rol || 'recepcion',
             rol_id: admin.rol || 'recepcion',
@@ -927,7 +941,7 @@ app.get('/api/auth/heartbeat', async (req, res) => {
             return res.status(401).json({ valid: false, reason: 'user_disabled' });
         }
 
-        if (!await rolSesionActivo(admin.rol || 'recepcion')) {
+        if (!await rolSesionActivo(admin.rol || 'recepcion', admin.empresa_id || 1)) {
             await destruirSesion(req);
             res.clearCookie('connect.sid');
             return res.status(401).json({ valid: false, reason: 'role_disabled' });
@@ -941,10 +955,12 @@ app.get('/api/auth/heartbeat', async (req, res) => {
 
         req.session.adminRol = admin.rol || 'recepcion';
 
+        req.session.empresa_id = admin.empresa_id || 1;
+
         return res.json({
             valid: true,
             session_id: req.sessionID,
-            permissions_version: await obtenerPermisosVersionRol(admin.rol || 'recepcion')
+            permissions_version: await obtenerPermisosVersionRol(admin.rol || 'recepcion', admin.empresa_id || 1)
         });
     } catch (error) {
         console.error(error);
@@ -1088,7 +1104,7 @@ app.get('/api/admin/permisos', requirePermission('roles.asignar_permisos'), asyn
 
 app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => {
     try {
-        await asegurarRolesBase();
+        await asegurarRolesBase(req.empresaId);
 
         const [columns] = await pool.query(`
             SELECT COLUMN_NAME
@@ -1117,8 +1133,9 @@ app.get('/api/admin/roles', requirePermission('roles.ver'), async (req, res) => 
                 COUNT(DISTINCT u.id) AS usuarios,
                 COUNT(DISTINCT rp.permiso_id) AS permisos
             FROM roles_admin r
-            LEFT JOIN usuarios_admin u ON u.rol = r.codigo
-            LEFT JOIN roles_permisos rp ON rp.rol_codigo = r.codigo
+            LEFT JOIN usuarios_admin u ON u.rol = r.codigo AND u.empresa_id = r.empresa_id
+            LEFT JOIN roles_permisos rp ON rp.rol_codigo = r.codigo AND rp.empresa_id = r.empresa_id
+            WHERE r.empresa_id = req.empresaId
             GROUP BY
                 r.codigo,
                 r.nombre,
@@ -1169,17 +1186,17 @@ app.post('/api/admin/roles', requirePermission('roles.crear'), async (req, res) 
         }
 
         await conn.beginTransaction();
-        await asegurarRolesBase(conn);
+        await asegurarRolesBase(req.empresaId, conn);
 
-        const codigo = await generarCodigoRolUnico(nombre, conn);
+        const codigo = await generarCodigoRolUnico(nombre, req.empresaId, conn);
         await conn.query(
-            `INSERT INTO roles_admin (codigo, nombre, descripcion, estado, sistema)
-             VALUES (?, ?, ?, 'activo', 0)`,
-            [codigo, nombre, descripcion || null]
+            `INSERT INTO roles_admin (empresa_id, codigo, nombre, descripcion, estado, sistema)
+             VALUES (?, ?, ?, ?, 'activo', 0)`,
+            [req.empresaId, codigo, nombre, descripcion || null]
         );
 
-        const permisos = await permisosBaseParaNuevoRol(basadoEn, conn);
-        const permisosAsignados = await asignarPermisosARol(conn, codigo, permisos);
+        const permisos = await permisosBaseParaNuevoRol(basadoEn, req.empresaId, conn);
+        const permisosAsignados = await asignarPermisosARol(conn, codigo, req.empresaId, permisos);
 
         await crearNotificacionAuditoriaUsuario(req, {
             tipo: 'rol_creado',
@@ -1223,8 +1240,8 @@ app.post('/api/admin/roles/:id/duplicar', requirePermission('roles.crear'), asyn
 
     try {
         const origenCodigo = normalizarCodigoRol(req.params.id);
-        await asegurarRolesBase(conn);
-        const origen = await obtenerRolAdmin(origenCodigo, conn);
+        await asegurarRolesBase(req.empresaId, conn);
+        const origen = await obtenerRolAdmin(origenCodigo, req.empresaId, conn);
 
         if (!origen && !validarRol(origenCodigo)) {
             return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
@@ -1235,15 +1252,15 @@ app.post('/api/admin/roles/:id/duplicar', requirePermission('roles.crear'), asyn
 
         await conn.beginTransaction();
 
-        const codigo = await generarCodigoRolUnico(nombreBase, conn);
+        const codigo = await generarCodigoRolUnico(nombreBase, req.empresaId, conn);
         await conn.query(
             `INSERT INTO roles_admin (codigo, nombre, descripcion, estado, sistema)
              VALUES (?, ?, ?, 'activo', 0)`,
             [codigo, nombreBase, descripcion || null]
         );
 
-        const permisos = await obtenerCodigosPermisosRol(origenCodigo, conn);
-        const permisosAsignados = await asignarPermisosARol(conn, codigo, permisos);
+        const permisos = await obtenerCodigosPermisosRol(origenCodigo, req.empresaId, conn);
+        const permisosAsignados = await asignarPermisosARol(conn, codigo, req.empresaId, permisos);
 
         await crearNotificacionAuditoriaUsuario(req, {
             tipo: 'rol_duplicado',
@@ -1307,8 +1324,8 @@ app.put('/api/admin/roles/:id', requirePermission('roles.editar'), async (req, r
             return res.status(400).json({ ok: false, error: 'No se pueden modificar permisos del rol admin' });
         }
 
-        await asegurarRolesBase(conn);
-        const rol = await obtenerRolAdmin(codigo, conn);
+        await asegurarRolesBase(req.empresaId, conn);
+        const rol = await obtenerRolAdmin(codigo, req.empresaId, conn);
         if (!rol) {
             return res.status(404).json({ ok: false, error: 'Rol no encontrado' });
         }
@@ -1318,8 +1335,8 @@ app.put('/api/admin/roles/:id', requirePermission('roles.editar'), async (req, r
         await conn.query(
             `UPDATE roles_admin
              SET nombre = ?, descripcion = ?, estado = COALESCE(?, estado)
-             WHERE codigo = ?`,
-            [nombre, descripcion || null, estado, codigo]
+             WHERE codigo = ? AND empresa_id = ?`,
+             [nombre, descripcion || null, estado, codigo, req.empresaId]
         );
 
         let permisosAsignados = null;
@@ -1348,8 +1365,8 @@ app.put('/api/admin/roles/:id', requirePermission('roles.editar'), async (req, r
             await conn.query(
                 `UPDATE usuarios_admin
                  SET session_id = NULL
-                 WHERE rol = ?`,
-                [codigo]
+                 WHERE rol = ? AND empresa_id = ?`,
+                [codigo, req.empresaId]
             );
         }
 
@@ -1398,7 +1415,7 @@ app.patch('/api/admin/roles/:id/estado', requirePermission('roles.eliminar'), as
         }
 
         if (estado !== 'activo') {
-            const permisos = await obtenerCodigosPermisosRol(codigo);
+            const permisos = await obtenerCodigosPermisosRol(codigo, req.empresaId);
             const tieneControlTotal = TODOS_LOS_PERMISOS.every(permiso => permisos.includes(permiso));
 
             if (tieneControlTotal) {
@@ -1406,6 +1423,7 @@ app.patch('/api/admin/roles/:id/estado', requirePermission('roles.eliminar'), as
                     `SELECT COUNT(*) AS total
                      FROM roles_admin r
                      WHERE r.codigo <> ?
+                       AND r.empresa_id = ?
                        AND r.estado = 'activo'
                        AND NOT EXISTS (
                          SELECT 1
@@ -1414,6 +1432,7 @@ app.patch('/api/admin/roles/:id/estado', requirePermission('roles.eliminar'), as
                            SELECT 1
                            FROM roles_permisos rp
                            WHERE rp.rol_codigo = r.codigo
+                             AND rp.empresa_id = r.empresa_id
                              AND rp.permiso_id = p.id
                          )
                        )`,
@@ -1429,8 +1448,8 @@ app.patch('/api/admin/roles/:id/estado', requirePermission('roles.eliminar'), as
         const [result] = await pool.query(
             `UPDATE roles_admin
              SET estado = ?
-             WHERE codigo = ?`,
-            [estado, codigo]
+             WHERE codigo = ? AND empresa_id = ?`,
+            [estado, codigo, req.empresaId]
         );
 
         if (result.affectedRows === 0) {
@@ -1441,8 +1460,8 @@ app.patch('/api/admin/roles/:id/estado', requirePermission('roles.eliminar'), as
             await pool.query(
                 `UPDATE usuarios_admin
                  SET session_id = NULL
-                 WHERE rol = ?`,
-                [codigo]
+                 WHERE rol = ? AND empresa_id = ?`,
+                [codigo, req.empresaId]
             );
         }
 
@@ -1474,8 +1493,8 @@ app.delete('/api/admin/roles/:id', requirePermission('roles.eliminar'), async (r
         const [[usuarios]] = await conn.query(
             `SELECT COUNT(*) AS total
              FROM usuarios_admin
-             WHERE rol = ?`,
-            [codigo]
+             WHERE rol = ? AND empresa_id = ?`,
+            [codigo, req.empresaId]
         );
 
         if (Number(usuarios.total || 0) > 0) {
@@ -1487,8 +1506,8 @@ app.delete('/api/admin/roles/:id', requirePermission('roles.eliminar'), async (r
         }
 
         await conn.beginTransaction();
-        await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ?', [codigo]);
-        const [result] = await conn.query('DELETE FROM roles_admin WHERE codigo = ? AND sistema = 0', [codigo]);
+        await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ? AND empresa_id = ?', [codigo, req.empresaId]);
+        const [result] = await conn.query('DELETE FROM roles_admin WHERE codigo = ? AND empresa_id = ? AND sistema = 0', [codigo, req.empresaId]);
 
         if (result.affectedRows === 0) {
             await conn.rollback();
@@ -1524,7 +1543,7 @@ app.get('/api/admin/roles/:id/permisos', requirePermission('roles.asignar_permis
         return res.json({
             ok: true,
             rol,
-            permisos: await obtenerCodigosPermisosRol(rol)
+            permisos: await obtenerCodigosPermisosRol(rol, req.empresaId)
         });
     } catch (error) {
         console.error(error);
@@ -1575,23 +1594,23 @@ app.put('/api/admin/roles/:id/permisos', requirePermission('roles.asignar_permis
             });
         }
 
-        const permisosAntes = await obtenerCodigosPermisosRol(rol, conn);
+        const permisosAntes = await obtenerCodigosPermisosRol(rol, req.empresaId, conn);
 
-        await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ?', [rol]);
+        await conn.query('DELETE FROM roles_permisos WHERE rol_codigo = ? AND empresa_id = ?', [rol, req.empresaId]);
 
         if (permisosValidos.length > 0) {
             await conn.query(
-                `INSERT INTO roles_permisos (rol_codigo, permiso_id)
-                 VALUES ${permisosValidos.map(() => '(?, ?)').join(', ')}`,
-                permisosValidos.flatMap(permiso => [rol, permiso.id])
+                `INSERT INTO roles_permisos (empresa_id, rol_codigo, permiso_id)
+             VALUES ${permisosValidos.map(() => '(?, ?, ?)').join(', ')}`,
+            permisosValidos.flatMap(permiso => [req.empresaId, rol, permiso.id])
             );
         }
 
         await conn.query(
             `UPDATE roles_admin
              SET fecha_actualizacion = CURRENT_TIMESTAMP
-             WHERE codigo = ?`,
-            [rol]
+             WHERE codigo = ? AND empresa_id = ?`,
+            [rol, req.empresaId]
         );
 
         const anteriores = new Set(permisosAntes);
@@ -1763,8 +1782,8 @@ function validarPayloadCliente({ nombre, dni, correo }) {
     return null;
 }
 
-async function existeDniCliente(dni, excluirId = null, conn = pool) {
-    const params = [normalizarDni(dni)];
+async function existeDniCliente(dni, empresaId, excluirId = null, conn = pool) {
+    const params = [normalizarDni(dni), empresaId];
     let filtroId = '';
 
     if (excluirId) {
@@ -1776,6 +1795,7 @@ async function existeDniCliente(dni, excluirId = null, conn = pool) {
         `SELECT COUNT(*) AS total
          FROM clientes
          WHERE dni = ?
+         AND empresa_id = ?
          ${filtroId}`,
         params
     );
@@ -1783,11 +1803,11 @@ async function existeDniCliente(dni, excluirId = null, conn = pool) {
     return Number(row.total || 0) > 0;
 }
 
-async function existeCorreoCliente(correo, excluirId = null, conn = pool) {
+async function existeCorreoCliente(correo, empresaId, excluirId = null, conn = pool) {
     const correoNormalizado = normalizarCorreo(correo);
     if (!correoNormalizado) return false;
 
-    const params = [correoNormalizado];
+    const params = [correoNormalizado, empresaId];
     let filtroId = '';
 
     if (excluirId) {
@@ -1799,6 +1819,7 @@ async function existeCorreoCliente(correo, excluirId = null, conn = pool) {
         `SELECT COUNT(*) AS total
          FROM clientes
          WHERE LOWER(TRIM(correo)) = ?
+         AND empresa_id = ?
          ${filtroId}`,
         params
     );
@@ -1825,10 +1846,10 @@ async function existeOtroUsuarioConNombre(usuario, id = null) {
 
     const [[row]] = await pool.query(
         `SELECT COUNT(*) AS total
-         FROM usuarios_admin
-         WHERE usuario = ?
-         ${filtroId}`,
-        params
+             FROM usuarios_admin
+             WHERE usuario = ? AND empresa_id = ?
+             ${filtroId}`,
+            [...params.slice(0, 1), req.empresaId, ...params.slice(1)]
     );
 
     return Number(row.total || 0) > 0;
@@ -1841,11 +1862,12 @@ async function quedariaSinAdminActivo(id, nuevoRol, nuevoEstado) {
 
     const [[row]] = await pool.query(
         `SELECT COUNT(*) AS total
-         FROM usuarios_admin
-         WHERE rol = 'admin'
-         AND estado = 'activo'
-         AND id <> ?`,
-        [id]
+             FROM usuarios_admin
+             WHERE rol = 'admin'
+             AND estado = 'activo'
+             AND empresa_id = ?
+             AND id <> ?`,
+            [req.empresaId, id]
     );
 
     return Number(row.total || 0) === 0;
@@ -1864,8 +1886,9 @@ app.get('/api/admin/usuarios', requirePermission('usuarios.ver'), async (req, re
                 fecha_creacion,
                 fecha_actualizacion
             FROM usuarios_admin
+            WHERE empresa_id = ?
             ORDER BY fecha_creacion DESC, id DESC
-        `);
+        `, [req.empresaId]);
 
         return res.json({
             ok: true,
@@ -1923,9 +1946,9 @@ app.post('/api/admin/usuarios', requirePermission('usuarios.crear'), async (req,
 
         const passwordHash = await generarHashPassword(password);
         const [result] = await pool.query(
-            `INSERT INTO usuarios_admin (nombre, usuario, password_hash, rol, estado)
-             VALUES (?, ?, ?, ?, ?)`,
-            [nombre, usuario, passwordHash, rol, estado]
+            `INSERT INTO usuarios_admin (empresa_id, nombre, usuario, password_hash, rol, estado)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [req.empresaId, nombre, usuario, passwordHash, rol, estado]
         );
 
         await crearNotificacionAuditoriaUsuario(req, {
@@ -1987,9 +2010,9 @@ app.put('/api/admin/usuarios/:id', requirePermission('usuarios.editar'), async (
         const [[actual]] = await pool.query(
             `SELECT id, nombre, usuario, rol, estado
              FROM usuarios_admin
-             WHERE id = ?
+             WHERE id = ? AND empresa_id = ?
              LIMIT 1`,
-            [id]
+            [id, req.empresaId]
         );
 
         if (!actual) {
@@ -2031,8 +2054,8 @@ app.put('/api/admin/usuarios/:id', requirePermission('usuarios.editar'), async (
         await pool.query(
             `UPDATE usuarios_admin
              SET ${campos.join(', ')}
-             WHERE id = ?`,
-            valores
+             WHERE id = ? AND empresa_id = ?`,
+            [...valores, req.empresaId]
         );
 
         await crearNotificacionAuditoriaUsuario(req, {
@@ -2073,9 +2096,9 @@ app.patch('/api/admin/usuarios/:id/estado', requirePermission('usuarios.desactiv
         const [[actual]] = await pool.query(
             `SELECT id, nombre, rol, estado
              FROM usuarios_admin
-             WHERE id = ?
+             WHERE id = ? AND empresa_id = ?
              LIMIT 1`,
-            [id]
+            [id, req.empresaId]
         );
 
         if (!actual) {
@@ -2094,8 +2117,8 @@ app.patch('/api/admin/usuarios/:id/estado', requirePermission('usuarios.desactiv
             `UPDATE usuarios_admin
              SET estado = ?,
                  session_id = CASE WHEN ? = 'inactivo' THEN NULL ELSE session_id END
-             WHERE id = ?`,
-            [estado, estado, id]
+             WHERE id = ? AND empresa_id = ?`,
+            [estado, estado, id, req.empresaId]
         );
 
         await crearNotificacionAuditoriaUsuario(req, {
@@ -2144,6 +2167,7 @@ app.use(express.static(publicDir));
 app.get('/api/clientes', requirePermission('clientes.ver'), async (req, res) => {
     try {
         //await sincronizarEstadosClientes();
+        const empresaId = getEmpresaId(req);
         const [rows] = await pool.query(`
             SELECT
                 c.*,
@@ -2164,11 +2188,13 @@ app.get('/api/clientes', requirePermission('clientes.ver'), async (req, res) => 
                 SELECT mm.id
                 FROM membresias mm
                 WHERE mm.cliente_id = c.id
+                AND mm.empresa_id = c.empresa_id
                 ORDER BY (mm.estado = 'activa') DESC, mm.fecha_fin DESC, mm.id DESC
                 LIMIT 1
             )
+            WHERE c.empresa_id = ?
             ORDER BY c.id DESC
-        `);
+        `, [empresaId]);
         res.json(rows);
     } catch (error) {
         console.error(error);
@@ -2180,6 +2206,7 @@ app.get('/api/clientes', requirePermission('clientes.ver'), async (req, res) => 
 
 app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) => {
     try {
+        const empresaId = getEmpresaId(req);
         const nombre = limpiarTexto(req.body.nombre);
         const dni = normalizarDni(req.body.dni);
         const telefono = limpiarTexto(req.body.telefono);
@@ -2191,18 +2218,18 @@ app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) 
             return res.status(400).json({ error: errorCliente });
         }
 
-        if (await existeDniCliente(dni)) {
+        if (await existeDniCliente(dni, empresaId)) {
             return res.status(409).json({ error: 'Ya existe un cliente registrado con este DNI.' });
         }
 
-        if (await existeCorreoCliente(correo)) {
+        if (await existeCorreoCliente(correo, empresaId)) {
             return res.status(409).json({ error: 'Ya existe un cliente registrado con este correo.' });
         }
 
         const [result] = await pool.query(
-            `INSERT INTO clientes (nombre, dni, telefono, correo, estado)
-             VALUES (?, ?, ?, ?, ?)`,
-            [nombre, dni, telefono, correo || null, estado]
+            `INSERT INTO clientes (empresa_id, nombre, dni, telefono, correo, estado)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [empresaId, nombre, dni, telefono, correo || null, estado]
         );
 
         await crearNotificacion({
@@ -2227,6 +2254,7 @@ app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) 
 
 app.put('/api/clientes/:id', requirePermission('clientes.editar'), async (req, res) => {
     try {
+        const empresaId = getEmpresaId(req);
         const id = Number(req.params.id);
         const nombre = limpiarTexto(req.body.nombre);
         const dni = normalizarDni(req.body.dni);
@@ -2242,20 +2270,33 @@ app.put('/api/clientes/:id', requirePermission('clientes.editar'), async (req, r
             return res.status(400).json({ error: errorCliente });
         }
 
-        if (await existeDniCliente(dni, id)) {
+        if (await existeDniCliente(dni, empresaId, id)) {
             return res.status(409).json({ error: 'Ya existe otro cliente con ese DNI.' });
         }
 
-        if (await existeCorreoCliente(correo, id)) {
+        if (await existeCorreoCliente(correo, empresaId, id)) {
             return res.status(409).json({ error: 'Ya existe un cliente registrado con este correo.' });
         }
 
-        await pool.query(
+        const [result] = await pool.query(
             `UPDATE clientes
-             SET nombre = ?, dni = ?, telefono = ?, correo = ?
-             WHERE id = ?`,
-            [nombre, dni, telefono, correo || null, id]
+            SET nombre = ?, dni = ?, telefono = ?, correo = ?
+            WHERE id = ? AND empresa_id = ?`,
+            [
+                nombre,
+                dni,
+                telefono,
+                correo || null,
+                id,
+                empresaId
+            ]
         );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                error: 'Cliente no encontrado'
+            });
+        }
 
         res.json({
             mensaje: 'Cliente actualizado correctamente'
@@ -2310,8 +2351,8 @@ async function generarCodigoUnico(conn = pool) {
         }
 
         const [rows] = await conn.query(
-            'SELECT id FROM membresias WHERE codigo = ?',
-            [codigo]
+            'SELECT id FROM membresias WHERE codigo = ? AND empresa_id = ?',
+            [codigo, req.empresaId]
         );
 
         existe = rows.length > 0;
@@ -2451,9 +2492,9 @@ async function obtenerPlanParaMembresia(planId, conn = pool) {
             asistencias_incluidas,
             COALESCE(es_ilimitado, 0) AS es_ilimitado
          FROM planes
-         WHERE id = ?
+         WHERE id = ? AND empresa_id = ?
          LIMIT 1`,
-        [planId]
+        [planId, req.empresaId]
     );
 
     return plan || null;
@@ -2802,11 +2843,11 @@ async function obtenerMembresiasPorCodigo(codigo) {
             c.estado AS estado_cliente,
             p.nombre AS plan
         FROM membresias m
-        INNER JOIN clientes c ON m.cliente_id = c.id
-        INNER JOIN planes p ON m.plan_id = p.id
-        WHERE m.codigo = ?
+        INNER JOIN clientes c ON m.cliente_id = c.id AND m.empresa_id = c.empresa_id
+        INNER JOIN planes p ON m.plan_id = p.id AND m.empresa_id = p.empresa_id
+        WHERE m.codigo = ? AND m.empresa_id = ?
         ORDER BY m.id ASC
-    `, [hoyPeru, hoyPeru, hoyPeru, hoyPeru, hoyPeru, codigo]);
+    `, [hoyPeru, hoyPeru, hoyPeru, hoyPeru, hoyPeru, codigo, req.empresaId]);
 
     return rows;
 }
@@ -2845,10 +2886,11 @@ app.get('/api/membresias', requirePermission('membresias.ver'), async (req, res)
                     ELSE 'inactiva'
                 END AS estado_visual
             FROM membresias m
-            INNER JOIN clientes c ON m.cliente_id = c.id
-            INNER JOIN planes p ON m.plan_id = p.id
+            INNER JOIN clientes c ON m.cliente_id = c.id AND m.empresa_id = c.empresa_id
+            INNER JOIN planes p ON m.plan_id = p.id AND m.empresa_id = p.empresa_id
+            WHERE m.empresa_id = ?
             ORDER BY m.id DESC
-        `);
+        `, [req.empresaId]);
 
         res.json(rows);
 
@@ -2915,7 +2957,7 @@ app.post('/api/membresias', requirePermission('membresias.crear'), async (req, r
         const [membresiaExistente] = await pool.query(
             `SELECT *
              FROM membresias
-             WHERE cliente_id = ?
+             WHERE cliente_id = ? AND empresa_id = ?
              AND (
                 estado <> 'activa'
                 OR DATE(fecha_fin) < CURDATE()
@@ -2923,7 +2965,7 @@ app.post('/api/membresias', requirePermission('membresias.crear'), async (req, r
              )
              ORDER BY id DESC
              LIMIT 1`,
-            [cliente_id]
+            [cliente_id, req.empresaId]
         );
 
 if (membresiaExistente.length > 0) {
@@ -2946,7 +2988,7 @@ if (membresiaExistente.length > 0) {
              promocion_id = NULL,
              estado = 'activa',
              origen = ?
-         WHERE id = ?`,
+         WHERE id = ? AND empresa_id = ?`,
         [
             plan_id,
             codigo,
@@ -2961,7 +3003,8 @@ if (membresiaExistente.length > 0) {
             asistenciasTotalesFinal,
             asistenciasUsadasFinal,
             origen || 'presencial',
-            membresia.id
+            membresia.id,
+            req.empresaId
         ]
     );
 
@@ -2993,9 +3036,10 @@ if (membresiaExistente.length > 0) {
 
         const [result] = await pool.query(
             `INSERT INTO membresias
-            (cliente_id, plan_id, codigo, meses, precio_total, promocion, fecha_inicio, fecha_fin, duracion_unidad, usos_totales, usos_restantes, asistencias_totales, asistencias_usadas, estado, origen)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?)`,
+            (empresa_id, cliente_id, plan_id, codigo, meses, precio_total, promocion, fecha_inicio, fecha_fin, duracion_unidad, usos_totales, usos_restantes, asistencias_totales, asistencias_usadas, estado, origen)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?)`,
             [
+                req.empresaId,
                 cliente_id,
                 plan_id,
                 codigo,
@@ -3330,7 +3374,7 @@ app.get('/api/planes', requirePermission('planes.ver'), async (req, res) => {
                 asistencias_incluidas,
                 COALESCE(es_ilimitado, 0) AS es_ilimitado
             FROM planes
-            WHERE estado = 'activo'
+            WHERE estado = 'activo' AND empresa_id = ?
             ORDER BY id ASC
         `);
 
@@ -3735,10 +3779,11 @@ app.get('/api/exportar/membresias', requirePermission('exportar.membresias'), as
                 m.fecha_fin,
                 m.estado
             FROM membresias m
-            LEFT JOIN clientes c ON m.cliente_id = c.id
-            LEFT JOIN planes p ON m.plan_id = p.id
+            LEFT JOIN clientes c ON m.cliente_id = c.id AND m.empresa_id = c.empresa_id
+            LEFT JOIN planes p ON m.plan_id = p.id AND m.empresa_id = p.empresa_id
+            WHERE m.empresa_id = ?
             ORDER BY m.id ASC
-        `);
+        `, [req.empresaId]);
 
         res.json(rows);
 
@@ -4078,8 +4123,8 @@ app.delete('/api/notificaciones/:id', requirePermission('notificaciones.eliminar
         const { id } = req.params;
 
         const [result] = await pool.query(
-            `DELETE FROM notificaciones WHERE id = ?`,
-            [id]
+            `DELETE FROM notificaciones WHERE id = ? AND empresa_id = ?`,
+            [id, req.empresaId]
         );
 
         if (result.affectedRows === 0) {
@@ -4155,9 +4200,9 @@ app.delete('/api/membresias/:id', requirePermission('membresias.eliminar'), asyn
                 m.cliente_id,
                 c.nombre AS cliente
              FROM membresias m
-             INNER JOIN clientes c ON c.id = m.cliente_id
-             WHERE m.id = ?`,
-            [id]
+             INNER JOIN clientes c ON c.id = m.cliente_id AND m.empresa_id = c.empresa_id
+             WHERE m.id = ? AND m.empresa_id = ?`,
+            [id, req.empresaId]
         );
 
         if (!membresia) {
@@ -4176,8 +4221,8 @@ app.delete('/api/membresias/:id', requirePermission('membresias.eliminar'), asyn
         );
 
         await pool.query(
-            `DELETE FROM membresias WHERE id = ?`,
-            [id]
+            `DELETE FROM membresias WHERE id = ? AND empresa_id = ?`,
+            [id, req.empresaId]
         );
 
         await crearNotificacion({
@@ -4354,6 +4399,7 @@ app.get('/api/planes/todos', requirePermission('planes.ver'), async (req, res) =
                 asistencias_incluidas,
                 COALESCE(es_ilimitado, 0) AS es_ilimitado
             FROM planes
+            WHERE empresa_id = ?
             ORDER BY id ASC
         `);
 
@@ -4377,9 +4423,10 @@ app.post('/api/planes', requirePermission('planes.crear'), async (req, res) => {
         }
 
         const [result] = await pool.query(
-            `INSERT INTO planes (nombre, precio_mensual, tipo, descripcion, estado, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO planes (empresa_id, nombre, precio_mensual, tipo, descripcion, estado, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
+                req.empresaId,
                 datos.nombre,
                 datos.precio,
                 datos.tipo,
@@ -4418,7 +4465,7 @@ app.put('/api/planes/:id', requirePermission('planes.editar'), async (req, res) 
         await pool.query(
             `UPDATE planes
              SET nombre = ?, precio_mensual = ?, descripcion = ?, estado = ?, duracion_valor = ?, duracion_unidad = ?, asistencias_incluidas = ?, es_ilimitado = ?
-             WHERE id = ?`,
+             WHERE id = ? AND empresa_id = ?`,
             [
                 datos.nombre,
                 datos.precio,
@@ -4428,7 +4475,8 @@ app.put('/api/planes/:id', requirePermission('planes.editar'), async (req, res) 
                 datos.duracion_unidad,
                 datos.asistencias_incluidas,
                 datos.es_ilimitado ? 1 : 0,
-                id
+                id,
+                req.empresaId
             ]
         );
 
@@ -4451,8 +4499,8 @@ app.put('/api/planes/:id/desactivar', requirePermission('planes.eliminar'), asyn
         const [result] = await pool.query(
             `UPDATE planes
              SET estado = 'inactivo'
-             WHERE id = ?`,
-            [id]
+             WHERE id = ? AND empresa_id = ?`,
+            [id, req.empresaId]
         );
 
         if (result.affectedRows === 0) {
