@@ -154,7 +154,7 @@ body {
 }
 
 .logout-modal-header {
-  color: var(--text-1);
+ 
   padding: 22px 24px 16px;
   border-bottom: 1px solid var(--app-border);
 }
@@ -163,7 +163,7 @@ body {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 24px;
   letter-spacing: .04em;
-  color: #1A1A1A;
+  color: var(--text-1);
   line-height: 1;
 }
 
