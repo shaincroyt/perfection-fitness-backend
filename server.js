@@ -3873,19 +3873,42 @@ function calcularPorcentajeComparacion(actual, anterior) {
 
 app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) => {
     console.time('dashboard');
+
     try {
-        //await actualizarMembresiasVencidas();
-        //await sincronizarEstadosClientes();
+        const empresaId = getEmpresaId(req);
 
         const [
-  [[clientesActivos]],
-  [[membresiasActivas]],
-  [[porVencer]]
-] = await Promise.all([
-  pool.query(`SELECT COUNT(*) AS total FROM clientes WHERE estado='activo'`),
-  pool.query(`SELECT COUNT(*) AS total FROM membresias WHERE estado='activa' AND (asistencias_totales IS NULL OR COALESCE(asistencias_usadas, 0) < asistencias_totales)`),
-  pool.query(`SELECT COUNT(*) AS total FROM membresias WHERE estado='activa' AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)`)
-]);
+            [[clientesActivos]],
+            [[membresiasActivas]],
+            [[porVencer]]
+        ] = await Promise.all([
+            pool.query(
+                `SELECT COUNT(*) AS total
+                 FROM clientes
+                 WHERE estado = 'activo'
+                 AND empresa_id = ?`,
+                [empresaId]
+            ),
+            pool.query(
+                `SELECT COUNT(*) AS total
+                 FROM membresias
+                 WHERE estado = 'activa'
+                 AND empresa_id = ?
+                 AND (
+                    asistencias_totales IS NULL
+                    OR COALESCE(asistencias_usadas, 0) < asistencias_totales
+                 )`,
+                [empresaId]
+            ),
+            pool.query(
+                `SELECT COUNT(*) AS total
+                 FROM membresias
+                 WHERE estado = 'activa'
+                 AND empresa_id = ?
+                 AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)`,
+                [empresaId]
+            )
+        ]);
 
         const [[clientesComparacion]] = await pool.query(`
             SELECT
@@ -3900,7 +3923,8 @@ app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) =
                     THEN 1 ELSE 0
                 END), 0) AS anterior
             FROM clientes
-        `);
+            WHERE empresa_id = ?
+        `, [empresaId]);
 
         const [[membresiasComparacion]] = await pool.query(`
             SELECT
@@ -3915,7 +3939,8 @@ app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) =
                     THEN 1 ELSE 0
                 END), 0) AS anterior
             FROM membresias
-        `);
+            WHERE empresa_id = ?
+        `, [empresaId]);
 
         const [[ingresosComparacion]] = await pool.query(`
             SELECT
@@ -3930,7 +3955,8 @@ app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) =
                     THEN precio_total ELSE 0
                 END), 0) AS anterior
             FROM membresias
-        `);
+            WHERE empresa_id = ?
+        `, [empresaId]);
 
         const clientesMesActual = Number(clientesComparacion.actual) || 0;
         const clientesMesAnterior = Number(clientesComparacion.anterior) || 0;
@@ -3942,8 +3968,11 @@ app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) =
         const [[totalClientes]] = await pool.query(`
             SELECT COUNT(*) AS total
             FROM clientes
-        `);
-            console.time('vencimientos');
+            WHERE empresa_id = ?
+        `, [empresaId]);
+
+        console.time('vencimientos');
+
         const [vencimientos] = await pool.query(`
             SELECT
                 c.nombre,
@@ -3962,16 +3991,20 @@ app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) =
                     ELSE 'inactiva'
                 END AS estado_visual
             FROM membresias m
-            INNER JOIN clientes c ON m.cliente_id = c.id
-            INNER JOIN planes p ON m.plan_id = p.id
-            WHERE m.fecha_fin <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+            INNER JOIN clientes c
+                ON m.cliente_id = c.id
+                AND c.empresa_id = m.empresa_id
+            INNER JOIN planes p
+                ON m.plan_id = p.id
+                AND p.empresa_id = m.empresa_id
+            WHERE m.empresa_id = ?
+            AND m.fecha_fin <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
             AND COALESCE(m.duracion_unidad, 'meses') != 'usos'
             ORDER BY m.fecha_fin ASC
             LIMIT 5
-        `);
+        `, [empresaId]);
 
         console.timeEnd('vencimientos');
-
         console.time('ultimosClientes');
 
         const [ultimosClientes] = await pool.query(`
@@ -4004,39 +4037,44 @@ app.get('/api/dashboard', requirePermission('dashboard.ver'), async (req, res) =
                 SELECT mm.id
                 FROM membresias mm
                 WHERE mm.cliente_id = c.id
+                AND mm.empresa_id = c.empresa_id
                 ORDER BY (mm.estado = 'activa') DESC, mm.fecha_fin DESC, mm.id DESC
                 LIMIT 1
             )
-            LEFT JOIN planes p ON m.plan_id = p.id
+            LEFT JOIN planes p
+                ON m.plan_id = p.id
+                AND p.empresa_id = c.empresa_id
+            WHERE c.empresa_id = ?
             ORDER BY c.fecha_registro DESC
             LIMIT 5
-        `);
+        `, [empresaId]);
+
         console.timeEnd('ultimosClientes');
         console.timeEnd('dashboard');
 
         res.json({
-    clientes_activos: clientesActivos.total,
-    membresias_activas: membresiasActivas.total,
-    por_vencer: porVencer.total,
-    ingresos_mes: ingresosMesActual,
+            clientes_activos: clientesActivos.total,
+            membresias_activas: membresiasActivas.total,
+            por_vencer: porVencer.total,
+            ingresos_mes: ingresosMesActual,
 
-    clientes_mes: clientesMesActual,
-    total_clientes: totalClientes.total,
+            clientes_mes: clientesMesActual,
+            total_clientes: totalClientes.total,
 
-    clientes_mes_actual: clientesMesActual,
-    clientes_mes_anterior: clientesMesAnterior,
-    membresias_mes_actual: membresiasMesActual,
-    membresias_mes_anterior: membresiasMesAnterior,
-    ingresos_mes_actual: ingresosMesActual,
-    ingresos_mes_anterior: ingresosMesAnterior,
+            clientes_mes_actual: clientesMesActual,
+            clientes_mes_anterior: clientesMesAnterior,
+            membresias_mes_actual: membresiasMesActual,
+            membresias_mes_anterior: membresiasMesAnterior,
+            ingresos_mes_actual: ingresosMesActual,
+            ingresos_mes_anterior: ingresosMesAnterior,
 
-    porcentaje_clientes_mes: calcularPorcentajeComparacion(clientesMesActual, clientesMesAnterior),
-    porcentaje_membresias_mes: calcularPorcentajeComparacion(membresiasMesActual, membresiasMesAnterior),
-    porcentaje_ingresos_mes: calcularPorcentajeComparacion(ingresosMesActual, ingresosMesAnterior),
+            porcentaje_clientes_mes: calcularPorcentajeComparacion(clientesMesActual, clientesMesAnterior),
+            porcentaje_membresias_mes: calcularPorcentajeComparacion(membresiasMesActual, membresiasMesAnterior),
+            porcentaje_ingresos_mes: calcularPorcentajeComparacion(ingresosMesActual, ingresosMesAnterior),
 
-    vencimientos,
-    ultimos_clientes: ultimosClientes
-});
+            vencimientos,
+            ultimos_clientes: ultimosClientes
+        });
 
     } catch (error) {
         console.error(error);
