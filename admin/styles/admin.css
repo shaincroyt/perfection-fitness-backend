@@ -147,7 +147,7 @@ body {
 .logout-modal {
   width: 100%;
   max-width: 420px;
-  background: #fff;
+  background: var(--app-surface-2);
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
   overflow: hidden;
@@ -172,7 +172,7 @@ body {
 
 .logout-modal-text {
   font-size: 14px;
-  color: #555560;
+  color: var(--app-text);
   line-height: 1.5;
 }
 
@@ -211,23 +211,23 @@ body {
 }
 
 .logout-cancel-btn {
-  background: #F4F5F7;
-  color: #555560;
-  border: 1px solid #E8E9EC;
+  background: rgba(255, 255, 255, 0.035) !important;
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
 }
 
-.logout-cancel-btn:hover {
-  background: #eceef2;
-}
+
 
 .logout-confirm-btn {
-  background: #DD0F0D;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(221, 15, 13, .25);
+  background: var(--brand);
+  color: var(
+    --app-text
+  );
+  box-shadow:rgba(124, 58, 237, 0.32) 0px 11px 26px;
 }
 
 .logout-confirm-btn:hover {
-  background: #B50C0A;
+  background: var(--brand);
   transform: translateY(-1px);
 }
 
