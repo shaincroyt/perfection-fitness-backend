@@ -1004,6 +1004,42 @@ app.get('/api/auth/heartbeat', async (req, res) => {
 
 app.use('/api', requireAdminSession);
 
+app.get('/api/empresa/tema', async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+
+        const [[empresa]] = await pool.query(
+            `SELECT
+                id,
+                nombre,
+                slug,
+                logo_url,
+                color_primario,
+                color_secundario,
+                color_acento,
+                fondo_login
+             FROM empresas
+             WHERE id = ?
+             LIMIT 1`,
+            [empresaId]
+        );
+
+        if (!empresa) {
+            return res.status(404).json({
+                error: 'Empresa no encontrada'
+            });
+        }
+
+        return res.json(empresa);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: 'Error al cargar tema de empresa'
+        });
+    }
+});
+
 app.get('/api/admin/perfil', async (req, res) => {
     try {
         if (!req.session || !req.session.admin || !req.session.adminId) {
