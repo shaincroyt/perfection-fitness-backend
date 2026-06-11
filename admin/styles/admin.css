@@ -12646,7 +12646,7 @@ body.admin-page-clientes .loading-value {
 body.admin-page-clientes .admin-menu-toggle,
 body.admin-page-clientes .admin-actions-toggle {
   border-color: rgba(255, 255, 255, .10);
-  background: rgba(10, 15, 31, .70);
+  background: var(--btn-secundario-bg);
   color: var(--text-2);
 }
 
