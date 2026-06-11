@@ -15088,4 +15088,253 @@ body.admin-page-validar .usage-summary {
     }
 }
 
+/* ==================================================
+   FIX RESPONSIVE ROLES MODAL
+   Mantener desktop. Scroll interno en mobile/tablet.
+================================================== */
+body.admin-page-configuracion.modal-open,
+body.modal-open {
+    overflow: hidden !important;
+}
+
+body.admin-page-configuracion .config-modal-overlay.open {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+body.admin-page-configuracion #roleModal .config-modal.role-modal-wide {
+    width: min(820px, calc(100vw - 32px)) !important;
+    max-width: 820px !important;
+    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+body.admin-page-configuracion #roleModal .config-modal-header,
+body.admin-page-configuracion #permissionsModal .config-modal-header,
+body.admin-page-configuracion #permissionsModal .permissions-toolbar,
+body.admin-page-configuracion #roleModal .config-modal-actions,
+body.admin-page-configuracion #permissionsModal .config-modal-actions {
+    flex: 0 0 auto !important;
+}
+
+body.admin-page-configuracion #roleModal #roleForm {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+body.admin-page-configuracion #roleModal .config-modal-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 5 !important;
+    background: var(--theme-surface) !important;
+    border-top: 1px solid var(--theme-border) !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-perms-section {
+    min-width: 0 !important;
+    min-height: 0 !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-perms-grid {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: min(46vh, 460px) !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+    gap: 12px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 4px !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+body.admin-page-configuracion #roleModal .modal-perm-category,
+body.admin-page-configuracion #permissionsModal .permission-category {
+    min-width: 0 !important;
+    overflow: visible !important;
+    background: var(--theme-surface) !important;
+    border-color: var(--theme-border) !important;
+}
+
+body.admin-page-configuracion #roleModal .modal-perm-category-head {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+}
+
+body.admin-page-configuracion #roleModal .modal-perm-category-name {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+}
+
+body.admin-page-configuracion #roleModal .modal-perm-category-actions {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+}
+
+body.admin-page-configuracion #roleModal .modal-perm-cat-btn {
+    border-color: var(--theme-border) !important;
+    color: var(--theme-muted) !important;
+}
+
+body.admin-page-configuracion #roleModal .modal-perm-list,
+body.admin-page-configuracion #permissionsModal .permission-list {
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+body.admin-page-configuracion #roleModal .permission-option,
+body.admin-page-configuracion #permissionsModal .permission-option {
+    min-width: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    white-space: normal !important;
+}
+
+body.admin-page-configuracion #roleModal .permission-option input,
+body.admin-page-configuracion #permissionsModal .permission-option input {
+    flex: 0 0 auto !important;
+    margin-top: 3px !important;
+}
+
+body.admin-page-configuracion #roleModal .perm-text,
+body.admin-page-configuracion #permissionsModal .perm-text {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+body.admin-page-configuracion #roleModal .perm-text strong,
+body.admin-page-configuracion #permissionsModal .perm-text strong,
+body.admin-page-configuracion #roleModal .perm-desc,
+body.admin-page-configuracion #permissionsModal .perm-desc {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    text-align: left !important;
+}
+
+body.admin-page-configuracion #permissionsModal .config-modal.permissions-modal {
+    max-height: calc(100vh - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+body.admin-page-configuracion #permissionsModal .permissions-layout {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.admin-page-configuracion #permissionsModal .permissions-grid {
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+    gap: 12px !important;
+    max-height: min(60vh, 520px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+body.admin-page-configuracion #permissionsModal .permission-category-title {
+    min-width: 0 !important;
+    gap: 8px !important;
+}
+
+@media (max-width: 768px) {
+    body.admin-page-configuracion .config-modal-overlay.open {
+        padding: 10px !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    body.admin-page-configuracion #roleModal .config-modal.role-modal-wide,
+    body.admin-page-configuracion #permissionsModal .config-modal.permissions-modal {
+        width: 100% !important;
+        max-width: calc(100vw - 20px) !important;
+        max-height: calc(100vh - 20px) !important;
+        max-height: calc(100dvh - 20px) !important;
+    }
+
+    body.admin-page-configuracion #roleModal #roleForm {
+        max-height: calc(100vh - 96px) !important;
+        max-height: calc(100dvh - 96px) !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-fields,
+    body.admin-page-configuracion #roleModal .role-modal-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-perms-grid,
+    body.admin-page-configuracion #permissionsModal .permissions-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-perms-grid {
+        max-height: 42vh !important;
+    }
+
+    body.admin-page-configuracion #permissionsModal .permissions-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-page-configuracion #roleModal .config-modal-actions,
+    body.admin-page-configuracion #permissionsModal .config-modal-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    body.admin-page-configuracion #roleModal .config-modal-actions .btn,
+    body.admin-page-configuracion #roleModal .config-modal-actions button,
+    body.admin-page-configuracion #permissionsModal .config-modal-actions .btn,
+    body.admin-page-configuracion #permissionsModal .config-modal-actions button {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body.admin-page-configuracion #roleModal .modal-perm-category-head {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    body.admin-page-configuracion #roleModal .modal-perm-category-actions {
+        width: 100% !important;
+    }
+
+    body.admin-page-configuracion #roleModal .modal-perm-cat-btn {
+        flex: 1 1 0 !important;
+    }
+}
+
 /* Fin de admin.css */
