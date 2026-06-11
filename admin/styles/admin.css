@@ -7261,7 +7261,7 @@ body.admin-page-validar .validation-panel:last-child {
 
 body.admin-page-validar .usage-summary {
   margin-top: 12px;
-  padding-top: 12px;
+  padding: 12px;
   border-top: 1px solid var(--border);
   display: grid;
   gap: 5px;
@@ -7347,7 +7347,7 @@ body.admin-page-validar .vigencia-row {
   grid-template-columns: 44px 1fr;
   gap: 14px;
   align-items: center;
-  padding: 12px 0;
+  padding: 12px 6px;
   border-bottom: 1px solid var(--theme-border);
 }
 
@@ -14679,77 +14679,6 @@ body.admin-page-validar .usage-summary {
     word-break: break-word;
 }
 
-body.admin-page-configuracion .config-modal-overlay {
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-body.admin-page-configuracion .config-modal,
-body.admin-page-configuracion .role-modal-wide,
-body.admin-page-configuracion .permissions-modal {
-    display: flex;
-    flex-direction: column;
-    width: min(100%, calc(100vw - 24px));
-    max-width: calc(100vw - 24px);
-    max-height: calc(100vh - 24px);
-    min-width: 0;
-    overflow: hidden;
-}
-
-body.admin-page-configuracion .config-modal-body,
-body.admin-page-configuracion .role-modal-wide > form,
-body.admin-page-configuracion .permissions-layout {
-    min-width: 0;
-    min-height: 0;
-}
-
-body.admin-page-configuracion .permissions-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
-    gap: 16px;
-    overflow: visible;
-}
-
-body.admin-page-configuracion .permissions-grid,
-body.admin-page-configuracion .role-modal-perms-grid,
-body.admin-page-configuracion .permission-list {
-    min-width: 0;
-    overflow: visible;
-}
-
-body.admin-page-configuracion .permission-category,
-body.admin-page-configuracion .permission-category-title,
-body.admin-page-configuracion .permission-option,
-body.admin-page-configuracion .perm-text,
-body.admin-page-configuracion .perm-desc,
-body.admin-page-configuracion .role-summary-panel,
-body.admin-page-configuracion .role-summary-list,
-body.admin-page-configuracion .role-permisos-preview,
-body.admin-page-configuracion .role-permiso-item {
-    min-width: 0;
-    max-width: 100%;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-body.admin-page-configuracion .permission-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    white-space: normal;
-    overflow: visible;
-}
-
-body.admin-page-configuracion .permission-option input {
-    flex: 0 0 auto;
-}
-
-body.admin-page-configuracion .role-summary-panel {
-    max-height: min(52vh, 520px);
-    overflow-y: auto;
-}
-
 @media (max-width: 900px) {
     body.admin-page-validar .result-active-body,
     body.admin-page-validar .result-active-body-new,
@@ -14759,13 +14688,110 @@ body.admin-page-configuracion .role-summary-panel {
         gap: 14px;
     }
 
+    body.admin-page-configuracion .config-modal-overlay {
+        align-items: flex-start;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 12px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.admin-page-configuracion .config-modal,
+    body.admin-page-configuracion .role-modal,
+    body.admin-page-configuracion .role-modal-wide,
+    body.admin-page-configuracion .permissions-modal {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px);
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    body.admin-page-configuracion .config-modal-header {
+        flex-shrink: 0;
+    }
+
+    body.admin-page-configuracion .config-modal-body,
+    body.admin-page-configuracion .role-modal-body,
+    body.admin-page-configuracion .permissions-modal-body,
+    body.admin-page-configuracion .role-modal-wide > form {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.admin-page-configuracion .config-modal-actions {
+        flex-shrink: 0;
+    }
+
     body.admin-page-configuracion .permissions-layout {
+        display: grid;
         grid-template-columns: 1fr;
+        min-width: 0;
+        min-height: 0;
+        overflow: visible;
     }
 
     body.admin-page-configuracion .role-summary-panel {
         order: 2;
-        max-height: 220px;
+        max-height: none;
+    }
+
+    body.admin-page-configuracion .permissions-grid,
+    body.admin-page-configuracion .role-modal-perms-grid,
+    body.admin-page-configuracion .permission-list {
+        min-width: 0;
+        overflow: visible;
+    }
+
+    body.admin-page-configuracion .permission-category {
+        min-width: 0;
+        overflow: visible;
+    }
+
+    body.admin-page-configuracion .permission-category-title {
+        min-width: 0;
+        gap: 8px;
+    }
+
+    body.admin-page-configuracion .permission-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        min-width: 0;
+        white-space: normal;
+        overflow: visible;
+    }
+
+    body.admin-page-configuracion .permission-option input {
+        flex: 0 0 auto;
+        margin-top: 3px;
+    }
+
+    body.admin-page-configuracion .perm-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    body.admin-page-configuracion .permission-category,
+    body.admin-page-configuracion .permission-category-title,
+    body.admin-page-configuracion .permission-option,
+    body.admin-page-configuracion .perm-text,
+    body.admin-page-configuracion .perm-text strong,
+    body.admin-page-configuracion .perm-desc,
+    body.admin-page-configuracion .role-summary-panel,
+    body.admin-page-configuracion .role-summary-list,
+    body.admin-page-configuracion .role-permisos-preview,
+    body.admin-page-configuracion .role-permiso-item {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: normal;
     }
 }
 
@@ -14789,16 +14815,20 @@ body.admin-page-configuracion .role-summary-panel {
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     body.admin-page-configuracion .config-modal,
+    body.admin-page-configuracion .role-modal,
     body.admin-page-configuracion .role-modal-wide,
     body.admin-page-configuracion .permissions-modal {
-        width: calc(100vw - 20px);
-        max-width: calc(100vw - 20px);
-        max-height: calc(100vh - 20px);
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px);
     }
 
     body.admin-page-configuracion .config-modal-body,
+    body.admin-page-configuracion .role-modal-body,
+    body.admin-page-configuracion .permissions-modal-body,
     body.admin-page-configuracion .role-modal-wide > form,
     body.admin-page-configuracion .permissions-layout {
         overflow-y: auto;
@@ -14808,6 +14838,11 @@ body.admin-page-configuracion .role-summary-panel {
     body.admin-page-configuracion .role-modal-perms-grid,
     body.admin-page-configuracion .permission-list {
         grid-template-columns: 1fr;
+    }
+
+    body.admin-page-configuracion .role-summary-list {
+        max-height: 220px;
+        overflow-y: auto;
     }
 
     body.admin-page-configuracion .config-modal-actions,
