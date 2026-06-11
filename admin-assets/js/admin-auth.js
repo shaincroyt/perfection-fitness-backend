@@ -18,7 +18,7 @@
   const API_BASE = '/api';
   const sessionUrl = `${API_BASE}/auth/session`;
   const heartbeatUrl = `${API_BASE}/auth/heartbeat`;
-  const loginUrl = '/admin/login.html';
+  const loginUrl = '/admin/';
   const originalFetch = window.fetch.bind(window);
   let redirecting = false;
   let sessionData = null;

@@ -75,7 +75,7 @@
         throw new Error('Logout failed');
       }
 
-      window.location.href = '/admin/login.html';
+      window.location.href = '/admin/';
     } catch (err) {
       console.error(err);
       if (error) error.classList.add('visible');

@@ -324,7 +324,7 @@
       const res = await fetch(API_PERFIL, { credentials: 'include' });
 
       if (res.status === 401) {
-        window.location.href = '/admin/login.html';
+        window.location.href = '/admin/';
         return;
       }
 

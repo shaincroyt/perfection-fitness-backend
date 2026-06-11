@@ -184,7 +184,7 @@ function generarCssTemaEmpresa(empresa = {}) {
 
 function responderSesionInvalida(req, res, mensaje = 'Sesion no activa') {
     if (req.originalUrl.startsWith('/admin')) {
-        return res.redirect('/admin/login.html');
+        return res.redirect('/admin/');
     }
 
     return res.status(401).json({
@@ -2369,7 +2369,7 @@ app.patch('/api/admin/usuarios/:id/estado', requirePermission('usuarios.desactiv
 });
 
 app.get('/admin/login.html', (req, res) => {
-    res.sendFile(path.join(adminDir, 'login.html'));
+    res.redirect('/admin/');
 });
 
 app.get(['/admin', '/admin/'], requireAdminSession, (req, res) => {

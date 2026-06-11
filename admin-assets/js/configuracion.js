@@ -230,7 +230,7 @@
     const res = await fetch(`${API_URL}/admin/me`, { credentials: 'include' });
 
     if (res.status === 401) {
-      window.location.href = '/admin/login.html';
+      window.location.href = '/admin/';
       return null;
     }
 
