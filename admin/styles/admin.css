@@ -15622,4 +15622,78 @@ body.admin-page-configuracion #roleModal .permission-option .perm-desc {
     }
 }
 
+/* Ajuste vertical: permisos con mas alto util */
+body.admin-page-configuracion #roleModal .config-modal.role-modal-wide {
+    max-height: calc(100vh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+}
+
+body.admin-page-configuracion #roleModal #roleForm {
+    max-height: none !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-section:not(.role-modal-perms-section) {
+    padding-top: 16px !important;
+    padding-bottom: 16px !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-section-label {
+    margin-bottom: 12px !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-fields {
+    gap: 12px !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-perms-section {
+    min-height: 420px !important;
+    padding-bottom: 16px !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-perms-grid {
+    height: clamp(420px, 62vh, 680px) !important;
+    max-height: none !important;
+}
+
+@media (max-width: 900px) {
+    body.admin-page-configuracion #roleModal .role-modal-perms-section {
+        min-height: 380px !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-perms-grid {
+        height: clamp(380px, 58vh, 620px) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    body.admin-page-configuracion #roleModal #roleForm {
+        max-height: calc(100vh - 92px) !important;
+        max-height: calc(100dvh - 92px) !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-perms-section {
+        min-height: 360px !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-perms-grid {
+        height: clamp(360px, 56vh, 560px) !important;
+        max-height: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body.admin-page-configuracion #roleModal .role-modal-section:not(.role-modal-perms-section) {
+        padding-top: 14px !important;
+        padding-bottom: 14px !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-perms-section {
+        min-height: 340px !important;
+    }
+
+    body.admin-page-configuracion #roleModal .role-modal-perms-grid {
+        height: clamp(340px, 54vh, 520px) !important;
+    }
+}
+
 /* Fin de admin.css */
