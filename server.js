@@ -1010,45 +1010,26 @@ app.get('/api/empresa/tema', async (req, res) => {
 
         const [[empresa]] = await pool.query(
     `SELECT
-        id,
-        nombre,
-        slug,
-        logo_url,
-        color_primario,
-        color_secundario,
-        color_acento,
-        fondo_login,
+    id,
+    nombre,
+    slug,
+    logo_url,
+    color_primario,
+    color_secundario,
+    color_acento,
+    fondo_login,
 
-        bg_body,
-        bg_sidebar,
-        bg_header,
-        bg_card,
-        bg_modal,
+    bg_body,
+    bg_card,
 
-        text_principal,
-        text_secundario,
-        text_sidebar,
-        text_header,
+    text_principal,
+    text_secundario,
 
-        btn_primario_bg,
-        btn_primario_text,
-        btn_secundario_bg,
-        btn_secundario_text,
-
-        table_header_bg,
-        table_border,
-
-        input_bg,
-        input_border,
-
-        success_color,
-        warning_color,
-        danger_color,
-        info_color,
-        theme_glow
-     FROM empresas
-     WHERE id = ?
-     LIMIT 1`,
+    table_border,
+    theme_glow
+ FROM empresas
+ WHERE id = ?
+ LIMIT 1`,
     [empresaId]
 );
 
