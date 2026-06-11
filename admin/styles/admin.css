@@ -15359,12 +15359,12 @@ body.admin-page-configuracion #roleModal .role-modal-perms-section {
 
 body.admin-page-configuracion #roleModal .role-modal-perms-toolbar,
 body.admin-page-configuracion #roleModal .role-modal-perms-grid {
-    background: var(--role-perms-section-bg) !important;
+    background: var(--theme-surface) !important;
 }
 
 body.admin-page-configuracion #permissionsModal .permission-category,
 body.admin-page-configuracion #roleModal .modal-perm-category {
-    background: var(--role-perms-panel-bg) !important;
+    background: var(--theme-surface) !important;
     border-color: var(--theme-border) !important;
     color: var(--theme-text) !important;
 }
@@ -15492,6 +15492,59 @@ body.admin-page-configuracion #roleModal .modal-perm-cat-btn:disabled {
     color: var(--theme-muted) !important;
     border-color: var(--theme-border) !important;
     opacity: .45 !important;
+}
+
+/* Ajuste responsive: campos de datos del rol */
+body.admin-page-configuracion #roleModal .role-modal-section:not(.role-modal-perms-section),
+body.admin-page-configuracion #roleModal .role-modal-fields,
+body.admin-page-configuracion #roleModal .role-modal-row,
+body.admin-page-configuracion #roleModal .form-group {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-fields {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    overflow: visible !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    width: 100% !important;
+}
+
+body.admin-page-configuracion #roleModal .form-label {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+}
+
+body.admin-page-configuracion #roleModal .form-input,
+body.admin-page-configuracion #roleModal select.form-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+body.admin-page-configuracion #roleModal .form-input::placeholder {
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+    body.admin-page-configuracion #roleModal .role-modal-row {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body.admin-page-configuracion #roleModal .role-modal-section:not(.role-modal-perms-section) {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
 }
 
 /* Fin de admin.css */
