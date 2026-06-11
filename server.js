@@ -2520,23 +2520,73 @@ app.delete('/api/clientes/:id', requirePermission('clientes.eliminar'), async (r
     }
 });
 
-async function generarCodigoUnico(conn = pool) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let codigo;
-    let existe = true;
+function normalizarCodigoPrefijo(valor) {
+    const prefijo = String(valor || '')
+        .replace(/\s+/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g, '');
 
-    while (existe) {
-        codigo = 'PFS-';
-        for (let i = 0; i < 6; i++) {
-            codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+    return prefijo || 'PFS';
+}
+
+function normalizarCodigoLongitud(valor) {
+    const longitud = Number.parseInt(valor, 10);
+    if (!Number.isFinite(longitud)) return 4;
+    return Math.min(Math.max(longitud, 3), 8);
+}
+
+async function obtenerConfigCodigoEmpresa(empresaId, conn = pool) {
+    try {
+        const [[empresa]] = await conn.query(
+            `SELECT codigo_prefijo, codigo_longitud
+             FROM empresas
+             WHERE id = ?
+             LIMIT 1`,
+            [empresaId]
+        );
+
+        return {
+            prefijo: normalizarCodigoPrefijo(empresa && empresa.codigo_prefijo),
+            longitud: normalizarCodigoLongitud(empresa && empresa.codigo_longitud)
+        };
+    } catch (error) {
+        if (error && error.code === 'ER_BAD_FIELD_ERROR') {
+            return {
+                prefijo: 'PFS',
+                longitud: 4
+            };
         }
 
+        throw error;
+    }
+}
+
+async function generarCodigoUnico(empresaId, conn = pool) {
+    const { prefijo, longitud } = await obtenerConfigCodigoEmpresa(empresaId, conn);
+    const maximo = 10 ** longitud;
+    let codigo;
+    let existe = true;
+    let intentos = 0;
+
+    while (existe) {
+        const numero = Math.floor(Math.random() * maximo);
+        codigo = `${prefijo}-${String(numero).padStart(longitud, '0')}`;
+
         const [rows] = await conn.query(
-            'SELECT id FROM membresias WHERE codigo = ? AND empresa_id = ?',
-            [codigo, req.empresaId]
+            `SELECT id
+             FROM membresias
+             WHERE empresa_id = ?
+             AND codigo = ?
+             LIMIT 1`,
+            [empresaId, codigo]
         );
 
         existe = rows.length > 0;
+        intentos += 1;
+
+        if (intentos > 100) {
+            throw new Error('No se pudo generar un codigo unico de membresia');
+        }
     }
 
     return codigo;
@@ -2663,7 +2713,7 @@ function esPlanIlimitado(plan) {
     return Number(plan && plan.es_ilimitado) === 1 || plan?.asistencias_incluidas === null;
 }
 
-async function obtenerPlanParaMembresia(planId, conn = pool) {
+async function obtenerPlanParaMembresia(planId, empresaId, conn = pool) {
     const [[plan]] = await conn.query(
         `SELECT
             id,
@@ -2675,7 +2725,7 @@ async function obtenerPlanParaMembresia(planId, conn = pool) {
          FROM planes
          WHERE id = ? AND empresa_id = ?
          LIMIT 1`,
-        [planId, req.empresaId]
+        [planId, empresaId]
     );
 
     return plan || null;
@@ -3183,7 +3233,7 @@ AND empresa_id = ?`,
         const usosTotalesFinal = asistenciasTotalesFinal;
         const usosRestantesFinal = asistenciasTotalesFinal;
 
-        const codigo = await generarCodigoUnico();
+        const codigo = await generarCodigoUnico(req.empresaId);
 
         const [membresiaExistente] = await pool.query(
             `SELECT *
@@ -3246,7 +3296,7 @@ WHERE id = ? AND empresa_id = ?`,
         [cliente_id, req.empresaId]
     );
 
-    const resumen = await obtenerResumenMembresia(membresia.id);
+    const resumen = await obtenerResumenMembresia(membresia.id, req.empresaId);
     if (resumen) {
         await crearNotificacion({
             tipo: 'membresia_creada',
@@ -3291,7 +3341,7 @@ WHERE id = ? AND empresa_id = ?`,
     `UPDATE clientes
      SET estado = 'activo'
      WHERE id = ? AND empresa_id = ?`,
-    [clienteId, empresaId]
+    [cliente_id, req.empresaId]
 );
 
         const resumen = await obtenerResumenMembresia(result.insertId, req.empresaId);
@@ -3387,7 +3437,7 @@ app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async 
 
         await conn.beginTransaction();
 
-        const plan = await obtenerPlanParaMembresia(plan_id, conn);
+        const plan = await obtenerPlanParaMembresia(plan_id, empresaId, conn);
         if (!plan) {
             throw new Error('Plan no valido');
         }
@@ -3470,7 +3520,7 @@ VALUES (?, ?, ?, ?, ?, 'activo')`,
             }
 
             const precioRegistro = i === 0 ? Number(precio_total || 0) : 0;
-            const codigoPersona = await generarCodigoUnico(conn);
+            const codigoPersona = await generarCodigoUnico(empresaId, conn);
 
             const [membresiaCreada] = await conn.query(
                 `INSERT INTO membresias
@@ -3500,7 +3550,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?)`,
                 `UPDATE clientes
 SET estado = 'activo'
 WHERE id = ? AND empresa_id = ?`,
-                [cliente_id, req.empresaId]
+                [clienteId, empresaId]
             );
 
             if (clienteNuevo) {
@@ -3514,7 +3564,7 @@ WHERE id = ? AND empresa_id = ?`,
                 }, conn);
             }
 
-            const resumen = await obtenerResumenMembresia(membresiaCreada.insertId, req.empresaId, conn);
+            const resumen = await obtenerResumenMembresia(membresiaCreada.insertId, empresaId, conn);
             if (resumen) {
                 await crearNotificacion({
                     tipo: 'membresia_creada',
