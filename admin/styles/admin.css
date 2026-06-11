@@ -15342,14 +15342,29 @@ body.admin-page-configuracion #permissionsModal .permission-category-title {
 }
 
 /* Theme simple: permisos en roles */
+body.admin-page-configuracion {
+    --role-perms-section-bg: color-mix(in srgb, var(--theme-bg) 88%, var(--theme-surface));
+    --role-perms-panel-bg: color-mix(in srgb, var(--theme-bg) 72%, var(--theme-surface));
+}
+
 body.admin-page-configuracion #permissionsModal .permissions-grid,
 body.admin-page-configuracion #roleModal .role-modal-perms-grid {
     color: var(--theme-text) !important;
 }
 
+body.admin-page-configuracion #roleModal .role-modal-perms-section {
+    background: var(--role-perms-section-bg) !important;
+    color: var(--theme-text) !important;
+}
+
+body.admin-page-configuracion #roleModal .role-modal-perms-toolbar,
+body.admin-page-configuracion #roleModal .role-modal-perms-grid {
+    background: var(--role-perms-section-bg) !important;
+}
+
 body.admin-page-configuracion #permissionsModal .permission-category,
 body.admin-page-configuracion #roleModal .modal-perm-category {
-    background: var(--theme-surface) !important;
+    background: var(--role-perms-panel-bg) !important;
     border-color: var(--theme-border) !important;
     color: var(--theme-text) !important;
 }
