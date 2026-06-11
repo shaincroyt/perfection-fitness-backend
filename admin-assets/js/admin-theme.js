@@ -24,7 +24,8 @@
                 '--theme-surface': tema.bg_card,
                 '--theme-text': tema.text_principal,
                 '--theme-muted': tema.text_secundario,
-                '--theme-border': tema.table_border
+                '--theme-border': tema.table_border,
+                '--theme-glow': tema.theme_glow
             };
 
             Object.entries(variablesTema).forEach(([variable, valor]) => {

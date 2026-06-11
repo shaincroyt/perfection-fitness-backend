@@ -34,7 +34,7 @@ VARIABLES PRINCIPALES:
   --theme-muted: rgba(200,196,240,.72);
 
   --theme-border: rgba(255,255,255,.09);
-  --theme-glow: rgba(22,163,74,.30);
+  --theme-glow: rgba(124, 58, 237, 0.32) 0px 11px 26px;
 
   /* Estados semanticos */
   --success: #22C55E;
@@ -272,7 +272,7 @@ body {
   color: var(
     --app-text
   );
-  box-shadow:rgba(124, 58, 237, 0.32) 0px 11px 26px;
+  box-shadow: var(--theme-glow);
 }
 
 .logout-confirm-btn:hover {
@@ -1554,7 +1554,7 @@ body.admin-page-clientes .nav-item.active {
   background: linear-gradient(90deg, rgba(124, 58, 237, .90), rgba(91, 33, 182, .70));
   color: var(--white);
   font-weight: 800;
-  box-shadow: 0 10px 26px rgba(124, 58, 237, .34);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-clientes .nav-item.active::before {
@@ -1779,13 +1779,13 @@ body.admin-page-clientes .btn-primary {
   */
   background: var(--btn-primario-bg, linear-gradient(135deg, #7C3AED, #A855F7));
   color: var(--btn-primario-text, white);
-  box-shadow: 0 11px 26px rgba(124, 58, 237, .35);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-clientes .btn-primary:hover {
   background: var(--red-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(221, 15, 13, .35);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-clientes .btn-outline {
@@ -3099,13 +3099,13 @@ body.admin-page-membresias .btn svg {
 body.admin-page-membresias .btn-primary {
   background: var(--btn-primario-bg, var(--red));
   color: var(--btn-primario-text, white);
-  box-shadow: 0 2px 8px rgba(221, 15, 13, .25);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-membresias .btn-primary:hover {
   background: var(--red-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(221, 15, 13, .35);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-membresias .btn-outline {
@@ -4520,13 +4520,13 @@ body.admin-page-nueva-membresia .btn svg {
 body.admin-page-nueva-membresia .btn-primary {
   background: var(--btn-primario-bg, var(--red));
   color: var(--btn-primario-text, white);
-  box-shadow: 0 2px 8px rgba(221, 15, 13, .25);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .btn-primary:hover {
   background: var(--red-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(221, 15, 13, .35);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .btn-outline {
@@ -4706,7 +4706,7 @@ body.admin-page-nueva-membresia .client-tab:hover {
 body.admin-page-nueva-membresia .client-tab.active {
   background: var(--red);
   color: var(--white);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .client-panel {
@@ -4739,6 +4739,7 @@ body.admin-page-nueva-membresia .client-selected-card.loaded {
   background: var(--red);
   color: white;
   border: none;
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .client-selected-card.loaded .client-selected-title {
@@ -4899,6 +4900,7 @@ body.admin-page-nueva-membresia .payment-opt:hover {
 body.admin-page-nueva-membresia .payment-opt.selected {
   border-color: var(--red);
   background: rgba(221, 15, 13, .07);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .payment-opt.selected::after {
@@ -5048,7 +5050,7 @@ body.admin-page-nueva-membresia .mem-credential {
   color: white;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(221, 15, 13, .35);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .mem-credential::before {
@@ -6187,7 +6189,7 @@ body.admin-page-validar .btn-validate {
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 2px 10px rgba(221, 15, 13, .30);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-validar .btn-validate svg {
@@ -6198,7 +6200,7 @@ body.admin-page-validar .btn-validate svg {
 body.admin-page-validar .btn-validate:hover {
   background: var(--red-dark);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(221, 15, 13, .40);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-validar .btn-validate:active {
@@ -9079,13 +9081,13 @@ body.admin-page-planes .btn svg {
 body.admin-page-planes .btn-primary {
   background: var(--btn-primario-bg, var(--red));
   color: var(--btn-primario-text, white);
-  box-shadow: 0 2px 8px rgba(221, 15, 13, .25);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-planes .btn-primary:hover {
   background: var(--red-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(221, 15, 13, .35);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-planes .btn-outline {
@@ -9196,7 +9198,7 @@ body.admin-page-planes .plan-card:hover::before {
 /* Highlight card (ej. Semestral) */
 body.admin-page-planes .plan-card.highlight {
   border-color: var(--yellow);
-  box-shadow: 0 8px 24px rgba(246, 212, 46, .15);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-planes .plan-card.highlight::before {
@@ -10121,7 +10123,7 @@ body.admin-page-configuracion .btn {
 body.admin-page-configuracion .btn-primary {
   background: var(--btn-primario-bg, var(--red));
   color: var(--btn-primario-text, white);
-  box-shadow: 0 2px 8px rgba(221, 15, 13, .25);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-configuracion .btn-primary:hover {
@@ -12539,7 +12541,7 @@ body.admin-page-membresias .client-tab {
 body.admin-page-membresias .client-tab.active {
   background: var(--red);
   color: var(--white);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-membresias .quick-client-new,
@@ -12827,7 +12829,7 @@ body.admin-page .nav-item:hover {
 body.admin-page .nav-item.active {
   background: linear-gradient(90deg, rgba(124, 58, 237, .92), rgba(91, 33, 182, .74)) !important;
   color: #fff;
-  box-shadow: 0 10px 26px rgba(124, 58, 237, .28);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page .nav-item.active::before {
@@ -12857,7 +12859,7 @@ body.admin-page .user-avatar {
   height: 48px;
   background: linear-gradient(135deg, var(--brand, #7C3AED), var(--brand-dark, #5B21B6));
   color: #fff;
-  box-shadow: 0 10px 24px rgba(124, 58, 237, .28);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page .user-name {
@@ -13011,7 +13013,7 @@ body.admin-page .btn-validate {
   */
   background: var(--btn-primario-bg, linear-gradient(135deg, var(--brand, #7C3AED), var(--brand-2, #A855F7))) !important;
   color: var(--btn-primario-text, #fff) !important;
-  box-shadow: 0 11px 26px rgba(124, 58, 237, .32);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page .btn-outline,
@@ -13161,7 +13163,7 @@ body.admin-page-planes .plan-card.inactive {
 
 body.admin-page-planes .plan-card::after {
   background: var(--plan-accent) !important;
-  box-shadow: 0 0 18px color-mix(in srgb, var(--plan-accent) 58%, transparent);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-planes .plan-duration {
@@ -13362,7 +13364,7 @@ body.admin-page-nueva-membresia .person-type .client-tab.active {
   border-color: rgba(168, 85, 247, .60) !important;
   background: linear-gradient(135deg, var(--brand, #7C3AED), var(--brand-dark, #5B21B6)) !important;
   color: #fff !important;
-  box-shadow: 0 10px 24px rgba(124, 58, 237, .24);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .group-controls {
@@ -13415,7 +13417,7 @@ body.admin-page-nueva-membresia .payment-opt.selected {
 
 body.admin-page-nueva-membresia .payment-opt.selected::after {
   background: var(--brand-2) !important;
-  box-shadow: 0 0 16px rgba(168, 85, 247, .48);
+  box-shadow: var(--theme-glow);
 }
 
 body.admin-page-nueva-membresia .payment-icon {
@@ -13446,7 +13448,7 @@ body.admin-page-nueva-membresia .mem-credential {
     radial-gradient(circle at 100% 0%, rgba(168, 85, 247, .45), transparent 34%),
     linear-gradient(135deg, #2E1065 0%, #5B21B6 48%, #7C3AED 100%) !important;
   border: 1px solid rgba(168, 85, 247, .32);
-  box-shadow: 0 24px 70px rgba(124, 58, 237, .22) !important;
+  box-shadow: var(--theme-glow) !important;
 }
 
 body.admin-page-nueva-membresia .copy-row {
@@ -14006,6 +14008,7 @@ body[class*="admin-page-"] .person-type .client-tab.active {
   background: var(--theme-primary) !important;
   color: #fff !important;
   border-color: var(--theme-primary) !important;
+  box-shadow: var(--theme-glow) !important;
 }
 
 body[class*="admin-page-"] .nav-item.active::before,
@@ -14097,6 +14100,7 @@ body[class*="admin-page-"] .profile-primary-btn {
   background: var(--theme-primary) !important;
   color: #fff !important;
   border-color: var(--theme-primary) !important;
+  box-shadow: var(--theme-glow) !important;
 }
 
 body[class*="admin-page-"] .btn-outline,
@@ -14120,6 +14124,7 @@ body[class*="admin-page-"] .icon-btn:hover,
 body[class*="admin-page-"] .page-btn:hover {
   border-color: var(--theme-primary) !important;
   color: var(--theme-primary) !important;
+  box-shadow: var(--theme-glow) !important;
 }
 
 body[class*="admin-page-"] thead th,
@@ -14206,6 +14211,7 @@ body[class*="admin-page-"] .payment-opt.selected,
 body[class*="admin-page-"] .client-selected-card.loaded {
   border-color: var(--theme-primary) !important;
   background: color-mix(in srgb, var(--theme-primary) 18%, var(--theme-surface)) !important;
+  box-shadow: var(--theme-glow) !important;
 }
 
 /* Fin de admin.css */

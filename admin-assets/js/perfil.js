@@ -181,7 +181,7 @@
       .profile-danger-btn {
         color: #fff;
         background: var(--brand);
-        box-shadow: rgba(124, 58, 237, 0.32) 0px 11px 26px;
+        box-shadow: var(--theme-glow);
       }
 
       .profile-error {

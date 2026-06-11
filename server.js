@@ -1044,7 +1044,8 @@ app.get('/api/empresa/tema', async (req, res) => {
         success_color,
         warning_color,
         danger_color,
-        info_color
+        info_color,
+        theme_glow
      FROM empresas
      WHERE id = ?
      LIMIT 1`,
