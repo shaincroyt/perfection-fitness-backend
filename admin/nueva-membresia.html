@@ -897,6 +897,52 @@ async function cargarPlanes() {
     }[char]));
   }
 
+  function codigoPrefijoEmpresa() {
+    const tema = window.EMPRESA_TEMA || {};
+    const prefijo = document.documentElement.dataset.codigoPrefijo || tema.codigo_prefijo || 'PFS';
+    return String(prefijo)
+      .replace(/\s+/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9-]/g, '') || 'PFS';
+  }
+
+  function codigoLongitudEmpresa() {
+    const tema = window.EMPRESA_TEMA || {};
+    const longitud = parseInt(document.documentElement.dataset.codigoLongitud || tema.codigo_longitud, 10);
+    if (!Number.isFinite(longitud)) return 4;
+    return Math.min(Math.max(longitud, 3), 8);
+  }
+
+  function codigoPlaceholderEmpresa() {
+    return `${codigoPrefijoEmpresa()}-${'X'.repeat(codigoLongitudEmpresa())}`;
+  }
+
+  function codigoPreviewEmpresa() {
+    return `${codigoPrefijoEmpresa()}-PREVIA`;
+  }
+
+  function actualizarTextosCodigoEmpresa() {
+    const preview = codigoPreviewEmpresa();
+    const placeholder = codigoPlaceholderEmpresa();
+    const credCode = document.getElementById('credCode');
+    const copyCodeText = document.getElementById('copyCodeText');
+    const detCodigo = document.getElementById('detCodigo');
+    const successCode = document.getElementById('successCode');
+
+    if (credCode && (!credCode.textContent || /^(PFS|GYM|PDP)-/.test(credCode.textContent.trim()))) {
+      credCode.textContent = preview;
+    }
+    if (copyCodeText && /^(PFS|GYM|PDP)-/.test(copyCodeText.textContent.trim())) {
+      copyCodeText.textContent = preview;
+    }
+    if (detCodigo && /^(PFS|GYM|PDP)-/.test(detCodigo.textContent.trim())) {
+      detCodigo.textContent = preview;
+    }
+    if (successCode && (!successCode.textContent.trim() || /^(PFS|GYM|PDP)-X+$/.test(successCode.textContent.trim()))) {
+      successCode.textContent = placeholder;
+    }
+  }
+
   function mostrarErrorGeneral(titulo, mensaje) {
     if (window.AdminAuth?.showError) {
       window.AdminAuth.showError(titulo, mensaje);
@@ -933,7 +979,7 @@ async function cargarPlanes() {
     box.classList.toggle('success-code-list', codigos.length > 1);
 
     if (codigos.length <= 1) {
-      box.textContent = codigos[0]?.codigo || 'PFS-XXXXXX';
+      box.textContent = codigos[0]?.codigo || codigoPlaceholderEmpresa();
       return;
     }
 
@@ -1063,7 +1109,7 @@ if (unidad === 'dias') {
 const fechaInicioSQL = inicio.toLocaleDateString('en-CA');
 const fechaFinSQL = fin.toLocaleDateString('en-CA');
 
-    const codigo = 'PFS-PREVIA';
+    const codigo = codigoPreviewEmpresa();
 
 membresiaPendiente = {
   tipoCliente,
@@ -1222,7 +1268,7 @@ async function generarMembresia() {
 
 const fechaInicioSQL = fechaLocalSQL(inicio);
 const fechaFinSQL = fechaLocalSQL(fin);
-    const codigo = 'PFS-PREVIA';
+    const codigo = codigoPreviewEmpresa();
     const etiquetaPromocion = promocionTipo || (descuento > 0 ? `Descuento ${descuento}%` : null);
 
     membresiaPendiente = {
@@ -1467,6 +1513,8 @@ async function confirmarMembresia() {
 }
 
 iniciarPagina();
+actualizarTextosCodigoEmpresa();
+window.addEventListener('empresa-theme-loaded', actualizarTextosCodigoEmpresa);
 
 document.getElementById('plan')?.addEventListener('change', actualizarCamposDuracion);
 document.getElementById('promocion')?.addEventListener('change', () => {
@@ -1534,7 +1582,7 @@ cargarSidebar();
       </span>
 
       <div id="successCode" class="success-code">
-        PFS-XXXXXX
+        PFS-XXXX
       </div>
     </div>
 

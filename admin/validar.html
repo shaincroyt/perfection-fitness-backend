@@ -149,7 +149,7 @@
                 type="text"
                 class="code-input"
                 id="codeInput"
-                placeholder="PFS-XXXXXX"
+                placeholder="PFS-XXXX"
                 maxlength="10"
                 autocomplete="off"
                 autofocus
@@ -227,7 +227,7 @@
   <div class="validation-panel plan-panel">
     <div class="validation-label">Plan</div>
     <div class="plan-big-badge" id="activePlan">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#087a2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
   </svg>
   <span>Día Libre</span>
@@ -405,6 +405,35 @@
 
   /* ── Base de datos ficticia ── */
   const API_URL = '/api';
+
+  function codigoPrefijoEmpresa() {
+    const tema = window.EMPRESA_TEMA || {};
+    const prefijo = document.documentElement.dataset.codigoPrefijo || tema.codigo_prefijo || 'PFS';
+    return String(prefijo)
+      .replace(/\s+/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9-]/g, '') || 'PFS';
+  }
+
+  function codigoLongitudEmpresa() {
+    const tema = window.EMPRESA_TEMA || {};
+    const longitud = parseInt(document.documentElement.dataset.codigoLongitud || tema.codigo_longitud, 10);
+    if (!Number.isFinite(longitud)) return 4;
+    return Math.min(Math.max(longitud, 3), 8);
+  }
+
+  function codigoPlaceholderEmpresa() {
+    return `${codigoPrefijoEmpresa()}-${'X'.repeat(codigoLongitudEmpresa())}`;
+  }
+
+  function actualizarPlaceholderCodigo() {
+    const input = document.getElementById('codeInput');
+    if (!input) return;
+
+    const placeholder = codigoPlaceholderEmpresa();
+    input.placeholder = placeholder;
+    input.maxLength = placeholder.length;
+  }
 
   async function cargarHistorialReal() {
   const container = document.getElementById('historyList');
@@ -850,6 +879,9 @@ await cargarHistorialReal();
   }
 
   /* ── Enter para validar ── */
+  actualizarPlaceholderCodigo();
+  window.addEventListener('empresa-theme-loaded', actualizarPlaceholderCodigo);
+
   document.getElementById('codeInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') validar();
   });

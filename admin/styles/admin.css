@@ -7261,12 +7261,12 @@ body.admin-page-validar .usage-summary strong {
 }
 
 body.admin-page-validar .usage-note {
-  color: var(--green-dark);
+  color: var(--theme-accent);
   font-weight: 700;
 }
 
 body.admin-page-validar .plan-panel {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--theme-border);
   border-radius: 16px;
   min-height: 220px;
 }
@@ -7278,7 +7278,7 @@ body.admin-page-validar .mini-label {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .12em;
-  color: #64748b;
+  color: var(--theme-muted);
 }
 
 body.admin-page-validar .section-title {
@@ -7297,8 +7297,8 @@ body.admin-page-validar .plan-big-badge {
   margin-top: 24px;
   padding: 14px 20px;
   border-radius: 12px;
-  background: #dcfce7;
-  color: #087a2f;
+  background: color-mix(in srgb, var(--theme-primary) 14%, transparent);
+  color: var(--theme-accent);
   font-size: 18px;
   font-weight: 800;
 }
@@ -7310,20 +7310,20 @@ body.admin-page-validar .plan-big-badge {
   margin-top: 24px;
   padding: 14px 20px;
   border-radius: 12px;
-  background: #dcfce7;
-  color: #087a2f;
+  background: color-mix(in srgb, var(--theme-primary) 14%, transparent);
+  color: var(--theme-accent);
   font-size: 18px;
   font-weight: 800;
 }
 
 body.admin-page-validar .plan-big-badge svg {
-  stroke: #087a2f;
-  color: #087a2f;
+  stroke: currentColor;
+  color: currentColor;
 }
 
 body.admin-page-validar .plan-note {
   margin-top: 28px;
-  color: #475569;
+  color: var(--theme-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -7334,29 +7334,29 @@ body.admin-page-validar .vigencia-row {
   gap: 14px;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #eef2f7;
+  border-bottom: 1px solid var(--theme-border);
 }
 
 body.admin-page-validar .vigencia-icon {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #dcfce7;
+  background: color-mix(in srgb, var(--theme-primary) 14%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #059669;
+  color: var(--theme-accent);
 }
 
 body.admin-page-validar .vigencia-icon svg {
-  stroke: #059669;
-  color: #059669;
+  stroke: currentColor;
+  color: currentColor;
 }
 
 body.admin-page-validar .vigencia-row strong {
   display: block;
   margin-top: 3px;
-  color: #087a2f;
+  color: var(--theme-accent);
   font-size: 20px;
 }
 
@@ -7364,8 +7364,8 @@ body.admin-page-validar .vigencia-message {
   margin-top: 18px;
   padding: 14px 16px;
   border-radius: 12px;
-  background: #f0fdf4;
-  color: #14532d;
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+  color: var(--theme-text);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.45;
@@ -7376,12 +7376,12 @@ body.admin-page-validar .days-simple {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  border: 12px solid #dcfce7;
+  border: 12px solid color-mix(in srgb, var(--theme-primary) 18%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  color: #087a2f;
+  color: var(--theme-accent);
 }
 
 body.admin-page-validar .days-simple strong {
@@ -7397,8 +7397,8 @@ body.admin-page-validar .days-simple span {
 
 body.admin-page-validar .days-note {
   text-align: center;
-  background: #f0fdf4;
-  color: #087a2f;
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+  color: var(--theme-accent);
   padding: 12px 16px;
   border-radius: 12px;
   font-weight: 800;
@@ -7412,7 +7412,7 @@ body.admin-page-validar .days-note {
 
   body.admin-page-validar .validation-panel {
     border-right: none;
-    border-bottom: 1px solid #d1fae5;
+    border-bottom: 1px solid var(--theme-border);
   }
 
   body.admin-page-validar .validation-panel:last-child {
@@ -7425,7 +7425,7 @@ body.admin-page-validar .estado-activo {
   width: fit-content;
   padding: 6px 14px;
   border-radius: 999px;
-  background: #087a2f;
+  background: var(--theme-primary);
   color: white !important;
   font-size: 14px !important;
   font-weight: 900;
@@ -14212,6 +14212,256 @@ body[class*="admin-page-"] .client-selected-card.loaded {
   border-color: var(--theme-primary) !important;
   background: color-mix(in srgb, var(--theme-primary) 18%, var(--theme-surface)) !important;
   box-shadow: var(--theme-glow) !important;
+}
+
+/* ==================================================
+   THEME SIMPLE: credencial, validacion y roles
+   Gana sobre estilos legacy sin cambiar layout.
+================================================== */
+
+body.admin-page-nueva-membresia .mem-credential {
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--theme-primary) 28%, transparent), transparent 34%),
+    linear-gradient(145deg, var(--theme-surface), color-mix(in srgb, var(--theme-bg) 88%, var(--theme-primary) 12%)) !important;
+  border: 1px solid var(--theme-border) !important;
+  color: var(--theme-text) !important;
+  box-shadow: var(--theme-glow) !important;
+}
+
+body.admin-page-nueva-membresia .mem-credential::before,
+body.admin-page-nueva-membresia .mem-credential::after {
+  background: color-mix(in srgb, var(--theme-primary) 22%, transparent) !important;
+}
+
+body.admin-page-nueva-membresia .cred-top,
+body.admin-page-nueva-membresia .cred-divider {
+  border-color: var(--theme-border) !important;
+}
+
+body.admin-page-nueva-membresia .cred-brand,
+body.admin-page-nueva-membresia .cred-code,
+body.admin-page-nueva-membresia .cred-info-value {
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-nueva-membresia .cred-tag {
+  background: color-mix(in srgb, var(--theme-primary) 18%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 38%, transparent) !important;
+  color: var(--theme-accent) !important;
+}
+
+body.admin-page-nueva-membresia .cred-code-label,
+body.admin-page-nueva-membresia .cred-info-label {
+  color: var(--theme-muted) !important;
+}
+
+body.admin-page-validar .result-active {
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  color: var(--theme-text) !important;
+  box-shadow: var(--theme-glow) !important;
+}
+
+body.admin-page-validar .result-active-top {
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-primary) 24%, transparent), transparent 58%),
+    var(--theme-surface) !important;
+  border-color: var(--theme-border) !important;
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-validar .result-active-body,
+body.admin-page-validar .result-active-body-new {
+  background: var(--theme-bg) !important;
+  border-color: var(--theme-border) !important;
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-validar .validation-panel,
+body.admin-page-validar .plan-panel,
+body.admin-page-validar .vigencia-panel,
+body.admin-page-validar .days-panel {
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: 8px !important;
+  color: var(--theme-text) !important;
+  box-shadow: none !important;
+}
+
+body.admin-page-validar .active-check,
+body.admin-page-validar .vigencia-icon {
+  background: color-mix(in srgb, var(--theme-primary) 18%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 34%, transparent) !important;
+  color: var(--theme-accent) !important;
+}
+
+body.admin-page-validar .active-status,
+body.admin-page-validar .plan-big-badge,
+body.admin-page-validar .estado-activo,
+body.admin-page-validar .days-simple strong,
+body.admin-page-validar .vigencia-row strong,
+body.admin-page-validar .usage-summary strong {
+  color: var(--theme-accent) !important;
+}
+
+body.admin-page-validar .active-name,
+body.admin-page-validar .active-code-text,
+body.admin-page-validar .section-title,
+body.admin-page-validar .plan-big-badge span,
+body.admin-page-validar .days-simple,
+body.admin-page-validar .usage-summary {
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-validar .active-code-row {
+  background: color-mix(in srgb, var(--theme-primary) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 28%, transparent) !important;
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-validar .plan-note,
+body.admin-page-validar .mini-label,
+body.admin-page-validar .days-note,
+body.admin-page-validar .usage-note,
+body.admin-page-validar .validation-subdetail {
+  color: var(--theme-muted) !important;
+}
+
+body.admin-page-validar .plan-big-badge {
+  background: color-mix(in srgb, var(--theme-primary) 14%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 30%, transparent) !important;
+}
+
+body.admin-page-validar .plan-big-badge svg {
+  stroke: currentColor !important;
+  color: currentColor !important;
+}
+
+body.admin-page-validar .vigencia-row,
+body.admin-page-validar .usage-summary {
+  background: color-mix(in srgb, var(--theme-bg) 70%, var(--theme-surface) 30%) !important;
+  border: 1px solid var(--theme-border) !important;
+}
+
+body.admin-page-configuracion .config-modal-overlay {
+  align-items: center !important;
+  overflow-y: auto !important;
+  padding: 18px !important;
+}
+
+body.admin-page-configuracion .config-modal,
+body.admin-page-configuracion .role-modal-wide,
+body.admin-page-configuracion .permissions-modal {
+  max-height: calc(100vh - 36px) !important;
+  overflow: hidden !important;
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-configuracion .role-modal-wide > form,
+body.admin-page-configuracion .permissions-modal {
+  min-height: 0 !important;
+}
+
+body.admin-page-configuracion .config-modal-body,
+body.admin-page-configuracion .role-modal-wide > form,
+body.admin-page-configuracion .permissions-layout {
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
+
+body.admin-page-configuracion .role-modal-row,
+body.admin-page-configuracion .role-modal-fields {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+}
+
+body.admin-page-configuracion .permissions-grid,
+body.admin-page-configuracion .role-modal-perms-grid,
+body.admin-page-configuracion .modal-perm-list,
+body.admin-page-configuracion .permission-list {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: 10px !important;
+}
+
+body.admin-page-configuracion .role-modal-perms-grid {
+  overflow-y: auto !important;
+  max-height: min(48vh, 520px) !important;
+}
+
+body.admin-page-configuracion .permission-item,
+body.admin-page-configuracion .modal-perm-item,
+body.admin-page-configuracion .permission-option,
+body.admin-page-configuracion .role-permiso-item {
+  min-height: 44px !important;
+  align-items: flex-start !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-configuracion .permission-item strong,
+body.admin-page-configuracion .modal-perm-item strong,
+body.admin-page-configuracion .permission-option strong {
+  color: var(--theme-text) !important;
+  white-space: normal !important;
+}
+
+body.admin-page-configuracion .permission-item span,
+body.admin-page-configuracion .modal-perm-item span,
+body.admin-page-configuracion .permission-option span,
+body.admin-page-configuracion .perm-text,
+body.admin-page-configuracion .perm-desc,
+body.admin-page-configuracion .permission-desc {
+  color: var(--theme-muted) !important;
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+body.admin-page-configuracion .permission-item input,
+body.admin-page-configuracion .modal-perm-item input,
+body.admin-page-configuracion .permission-option input {
+  flex: 0 0 auto !important;
+  margin-top: 3px !important;
+  accent-color: var(--theme-primary) !important;
+}
+
+body.admin-page-configuracion .permission-option.is-checked {
+  border-color: color-mix(in srgb, var(--theme-primary) 44%, transparent) !important;
+  background: color-mix(in srgb, var(--theme-primary) 12%, var(--theme-surface)) !important;
+}
+
+body.admin-page-configuracion .permission-category,
+body.admin-page-configuracion .modal-perm-category {
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  color: var(--theme-text) !important;
+}
+
+body.admin-page-configuracion .permission-category-title,
+body.admin-page-configuracion .modal-perm-category-head {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+}
+
+@media (max-width: 720px) {
+  body.admin-page-configuracion .config-modal-overlay {
+    align-items: flex-start !important;
+    padding: 10px !important;
+  }
+
+  body.admin-page-configuracion .config-modal,
+  body.admin-page-configuracion .role-modal-wide,
+  body.admin-page-configuracion .permissions-modal {
+    width: min(100%, 680px) !important;
+    max-height: calc(100vh - 20px) !important;
+  }
+
+  body.admin-page-configuracion .role-modal-perms-grid {
+    max-height: 42vh !important;
+  }
 }
 
 /* Fin de admin.css */

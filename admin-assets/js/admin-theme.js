@@ -9,6 +9,16 @@
             if (!response.ok) return;
 
             const tema = await response.json();
+            window.EMPRESA_TEMA = tema;
+
+            const prefijo = String(tema.codigo_prefijo || 'PFS')
+                .replace(/\s+/g, '')
+                .toUpperCase()
+                .replace(/[^A-Z0-9-]/g, '') || 'PFS';
+            const longitud = Math.min(Math.max(parseInt(tema.codigo_longitud, 10) || 4, 3), 8);
+
+            document.documentElement.dataset.codigoPrefijo = prefijo;
+            document.documentElement.dataset.codigoLongitud = String(longitud);
 
             document.querySelectorAll('[data-company-name]').forEach(el => {
                 el.textContent = tema.nombre || el.textContent;
@@ -20,6 +30,14 @@
                     img.style.display = '';
                 }
             });
+
+            window.dispatchEvent(new CustomEvent('empresa-theme-loaded', {
+                detail: {
+                    ...tema,
+                    codigo_prefijo: prefijo,
+                    codigo_longitud: longitud
+                }
+            }));
 
         } catch (error) {
             console.warn('Tema de empresa no disponible');

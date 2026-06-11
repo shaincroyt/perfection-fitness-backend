@@ -1096,6 +1096,7 @@ app.get('/api/empresa/tema', async (req, res) => {
     `SELECT
     id,
     nombre,
+    slug,
     logo_url,
     color_primario,
     color_secundario,
@@ -1109,7 +1110,9 @@ app.get('/api/empresa/tema', async (req, res) => {
     text_secundario,
 
     table_border,
-    theme_glow
+    theme_glow,
+    codigo_prefijo,
+    codigo_longitud
  FROM empresas
  WHERE id = ?
  LIMIT 1`,
