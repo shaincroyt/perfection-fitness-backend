@@ -858,7 +858,7 @@ app.post('/api/login', async (req, res) => {
         const [rows] = await pool.query(
             `SELECT id, empresa_id, usuario, password_hash, nombre, estado, rol
             FROM usuarios_admin
-            WHERE usuario = ?
+            WHERE BINARY usuario = BINARY ?
             LIMIT 1`,
             [String(usuario).trim()]
         );

@@ -15353,7 +15353,7 @@ body.admin-page-configuracion #roleModal .role-modal-perms-grid {
 }
 
 body.admin-page-configuracion #roleModal .role-modal-perms-section {
-    background: var(--role-perms-section-bg) !important;
+    background: var(--theme-surface) !important;
     color: var(--theme-text) !important;
 }
 
