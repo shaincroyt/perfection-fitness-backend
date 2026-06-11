@@ -98,6 +98,53 @@ const PERMISOS_RECEPCION_DEFAULT = [
     'notificaciones.ver',
     'notificaciones.marcar_leida'
 ];
+const TEMA_EMPRESA_DEFAULT = {
+    color_primario: '#7C3AED',
+    color_secundario: '#A855F7',
+    color_acento: '#A78BFA',
+    bg_body: '#070A14',
+    bg_card: '#161627',
+    text_principal: '#F0EFFF',
+    text_secundario: 'rgba(200,196,240,.72)',
+    table_border: 'rgba(255,255,255,.09)',
+    theme_glow: 'rgba(124, 58, 237, 0.32) 0px 11px 26px'
+};
+
+function valorCssSeguro(valor, fallback) {
+    const normalizado = String(valor || fallback || '').trim();
+    if (!normalizado || /[{};]/.test(normalizado)) {
+        return fallback;
+    }
+
+    return normalizado;
+}
+
+function generarCssTemaEmpresa(empresa = {}) {
+    const tema = {
+        color_primario: valorCssSeguro(empresa.color_primario, TEMA_EMPRESA_DEFAULT.color_primario),
+        color_secundario: valorCssSeguro(empresa.color_secundario, TEMA_EMPRESA_DEFAULT.color_secundario),
+        color_acento: valorCssSeguro(empresa.color_acento, TEMA_EMPRESA_DEFAULT.color_acento),
+        bg_body: valorCssSeguro(empresa.bg_body, TEMA_EMPRESA_DEFAULT.bg_body),
+        bg_card: valorCssSeguro(empresa.bg_card, TEMA_EMPRESA_DEFAULT.bg_card),
+        text_principal: valorCssSeguro(empresa.text_principal, TEMA_EMPRESA_DEFAULT.text_principal),
+        text_secundario: valorCssSeguro(empresa.text_secundario, TEMA_EMPRESA_DEFAULT.text_secundario),
+        table_border: valorCssSeguro(empresa.table_border, TEMA_EMPRESA_DEFAULT.table_border),
+        theme_glow: valorCssSeguro(empresa.theme_glow, TEMA_EMPRESA_DEFAULT.theme_glow)
+    };
+
+    return `:root {
+  --theme-primary: ${tema.color_primario};
+  --theme-secondary: ${tema.color_secundario};
+  --theme-accent: ${tema.color_acento};
+  --theme-bg: ${tema.bg_body};
+  --theme-surface: ${tema.bg_card};
+  --theme-text: ${tema.text_principal};
+  --theme-muted: ${tema.text_secundario};
+  --theme-border: ${tema.table_border};
+  --theme-glow: ${tema.theme_glow};
+}
+`;
+}
 
 function responderSesionInvalida(req, res, mensaje = 'Sesion no activa') {
     if (req.originalUrl.startsWith('/admin')) {
@@ -1002,6 +1049,43 @@ app.get('/api/auth/heartbeat', async (req, res) => {
     }
 });
 
+app.get('/empresa-theme.css', async (req, res) => {
+    res.type('text/css');
+    res.set('Cache-Control', 'no-store');
+
+    try {
+        const empresaId = req.session && req.session.empresa_id
+            ? Number(req.session.empresa_id)
+            : null;
+
+        if (!empresaId) {
+            return res.send(generarCssTemaEmpresa());
+        }
+
+        const [[empresa]] = await pool.query(
+            `SELECT
+                color_primario,
+                color_secundario,
+                color_acento,
+                bg_body,
+                bg_card,
+                text_principal,
+                text_secundario,
+                table_border,
+                theme_glow
+             FROM empresas
+             WHERE id = ?
+             LIMIT 1`,
+            [empresaId]
+        );
+
+        return res.send(generarCssTemaEmpresa(empresa));
+    } catch (error) {
+        console.error('Error generando CSS de tema:', error);
+        return res.send(generarCssTemaEmpresa());
+    }
+});
+
 app.use('/api', requireAdminSession);
 
 app.get('/api/empresa/tema', async (req, res) => {
@@ -1012,7 +1096,6 @@ app.get('/api/empresa/tema', async (req, res) => {
     `SELECT
     id,
     nombre,
-    slug,
     logo_url,
     color_primario,
     color_secundario,
