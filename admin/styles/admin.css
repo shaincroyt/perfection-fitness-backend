@@ -14487,6 +14487,10 @@ body.admin-page-configuracion .role-permiso-item {
   color: var(--theme-text) !important;
 }
 
+.role-permiso-item{
+  padding: 5px !important;
+}
+
 body.admin-page-configuracion .permission-item strong,
 body.admin-page-configuracion .modal-perm-item strong,
 body.admin-page-configuracion .permission-option strong {
