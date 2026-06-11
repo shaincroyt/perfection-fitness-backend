@@ -18,31 +18,28 @@ VARIABLES PRINCIPALES:
 */
 
 /* ==================================================
-   IDENTIDAD VISUAL DEL SISTEMA
-   PERSONALIZAR
+   THEME SIMPLE GLOBAL
+   Cambiar solo estas variables para personalizar empresa
 ================================================== */
 
 :root {
-  --theme-primary-default: #7C3AED;
-  --theme-secondary-default: #A855F7;
-  --theme-accent-default: #A78BFA;
+  --theme-primary: #7C3AED;
+  --theme-secondary: #A855F7;
+  --theme-accent: #A78BFA;
 
-  --theme-bg-main-default: #070A14;
-  --theme-bg-panel-default: #0B1020;
-  --theme-surface-main-default: #101628;
-  --theme-surface-panel-default: #161627;
+  --theme-bg: #070A14;
+  --theme-surface: #161627;
 
-  --theme-text-main-default: #F0EFFF;
-  --theme-text-muted-default: rgba(200,196,240,.72);
-  --theme-text-faint-default: rgba(200,196,240,.45);
+  --theme-text: #F0EFFF;
+  --theme-muted: rgba(200,196,240,.72);
 
-  --theme-border-default: rgba(255,255,255,.09);
-  --theme-border-strong-default: rgba(167,139,250,.24);
+  --theme-border: rgba(255,255,255,.09);
 
-  --theme-success-default: #22C55E;
-  --theme-warning-default: #F59E0B;
-  --theme-danger-default: #EF4444;
-  --theme-info-default: #3B82F6;
+  /* Estados semanticos */
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
 }
 
 
@@ -315,22 +312,22 @@ body.admin-page-dashboard *::after {
 
 /* Variables Dashboard */
 body.admin-page-dashboard {
-  --red:        var(--color-primario, #7C3AED);
-  --red-dark:   var(--color-secundario, #A855F7);
+  --red:        var(--theme-primary, #7C3AED);
+  --red-dark:   var(--theme-secondary, #A855F7);
   --red-deeper: var(--color-primario-profundo, #5B21B6);
-  --yellow:     var(--color-acento, #A78BFA);
+  --yellow:     var(--theme-accent, #A78BFA);
   --white:      #FFFFFF;
-  --bg:         var(--bg-body, #070A14);
-  --surface:    var(--bg-card, #0B1020);
-  --border:     var(--table-border, rgba(255,255,255,.09));
-  --text-1:     var(--theme-text-principal, #F0EFFF);
-  --text-2:     var(--theme-text-secundario, rgba(200,196,240,.72));
+  --bg:         var(--theme-bg, #070A14);
+  --surface:    var(--theme-surface, #0B1020);
+  --border:     var(--theme-border, rgba(255,255,255,.09));
+  --text-1:     var(--theme-text, #F0EFFF);
+  --text-2:     var(--theme-muted, rgba(200,196,240,.72));
   --text-3:     var(--text-faint, rgba(200,196,240,.42));
-  --green:      var(--theme-success-color, #22C55E);
+  --green:      var(--success, #22C55E);
   --green-bg:   var(--success-bg-color, rgba(34,197,94,.15));
-  --orange:     var(--theme-warning-color, #F59E0B);
+  --orange:     var(--warning, #F59E0B);
   --orange-bg:  var(--warning-bg-color, rgba(249,115,22,.15));
-  --blue:       var(--theme-info-color, #818CF8);
+  --blue:       var(--info, #818CF8);
   --blue-bg:    var(--info-bg-color, rgba(129,140,248,.15));
   --sidebar-w:  240px;
   --header-h:   64px;
@@ -1358,22 +1355,22 @@ body.admin-page-clientes *::after {
 
 /* Variables Clientes */
 body.admin-page-clientes {
-  --red: var(--color-primario, #7C3AED);
-  --red-dark: var(--color-secundario, #6D28D9);
+  --red: var(--theme-primary, #7C3AED);
+  --red-dark: var(--theme-secondary, #6D28D9);
   --red-deeper: var(--color-primario-profundo, #5B21B6);
-  --yellow: var(--color-acento, #A78BFA);
+  --yellow: var(--theme-accent, #A78BFA);
   --white: #FFFFFF;
-  --bg: var(--bg-body, #0F0F1A);
-  --surface: var(--bg-card, #161627);
-  --border: var(--table-border, rgba(255, 255, 255, .07));
-  --text-1: var(--theme-text-principal, #F0EFFF);
-  --text-2: var(--theme-text-secundario, rgba(200, 196, 240, .75));
+  --bg: var(--theme-bg, #0F0F1A);
+  --surface: var(--theme-surface, #161627);
+  --border: var(--theme-border, rgba(255, 255, 255, .07));
+  --text-1: var(--theme-text, #F0EFFF);
+  --text-2: var(--theme-muted, rgba(200, 196, 240, .75));
   --text-3: var(--text-faint, rgba(200, 196, 240, .42));
-  --green: var(--theme-success-color, #22c55e);
+  --green: var(--success, #22c55e);
   --green-bg: var(--success-bg-color, rgba(34, 197, 94, .15));
-  --orange: var(--theme-warning-color, #f59e0b);
+  --orange: var(--warning, #f59e0b);
   --orange-bg: var(--warning-bg-color, rgba(245, 158, 11, .15));
-  --blue: var(--theme-info-color, #818CF8);
+  --blue: var(--info, #818CF8);
   --blue-bg: var(--info-bg-color, rgba(129, 140, 248, .15));
   --sidebar-w: 302px;
   --header-h: 108px;
@@ -2704,22 +2701,22 @@ body.admin-page-membresias *::after {
 
 /* Variables Membresias */
 body.admin-page-membresias {
-  --red: var(--color-primario, #DD0F0D);
-  --red-dark: var(--color-secundario, #B50C0A);
+  --red: var(--theme-primary, #DD0F0D);
+  --red-dark: var(--theme-secondary, #B50C0A);
   --red-deeper: var(--color-primario-profundo, #8C0908);
-  --yellow: var(--color-acento, #F6D42E);
+  --yellow: var(--theme-accent, #F6D42E);
   --white: #FFFFFF;
-  --bg: var(--bg-body, #F4F5F7);
-  --surface: var(--bg-card, #FFFFFF);
-  --border: var(--table-border, #E8E9EC);
-  --text-1: var(--theme-text-principal, #1A1A1A);
-  --text-2: var(--theme-text-secundario, #555560);
+  --bg: var(--theme-bg, #F4F5F7);
+  --surface: var(--theme-surface, #FFFFFF);
+  --border: var(--theme-border, #E8E9EC);
+  --text-1: var(--theme-text, #1A1A1A);
+  --text-2: var(--theme-muted, #555560);
   --text-3: var(--text-faint, #9999A8);
-  --green: var(--theme-success-color, #16a34a);
+  --green: var(--success, #16a34a);
   --green-bg: var(--success-bg-color, #dcfce7);
-  --orange: var(--theme-warning-color, #d97706);
+  --orange: var(--warning, #d97706);
   --orange-bg: var(--warning-bg-color, #fef3c7);
-  --blue: var(--theme-info-color, #2563eb);
+  --blue: var(--info, #2563eb);
   --blue-bg: var(--info-bg-color, #dbeafe);
   --sidebar-w: 240px;
   --header-h: 64px;
@@ -4126,22 +4123,22 @@ body.admin-page-nueva-membresia *::after {
 
 /* Variables Nueva membresia */
 body.admin-page-nueva-membresia {
-  --red: var(--color-primario, #DD0F0D);
-  --red-dark: var(--color-secundario, #B50C0A);
+  --red: var(--theme-primary, #DD0F0D);
+  --red-dark: var(--theme-secondary, #B50C0A);
   --red-deeper: var(--color-primario-profundo, #8C0908);
-  --yellow: var(--color-acento, #F6D42E);
+  --yellow: var(--theme-accent, #F6D42E);
   --white: #FFFFFF;
-  --bg: var(--bg-body, #F4F5F7);
-  --surface: var(--bg-card, #FFFFFF);
-  --border: var(--table-border, #E8E9EC);
-  --text-1: var(--theme-text-principal, #1A1A1A);
-  --text-2: var(--theme-text-secundario, #555560);
+  --bg: var(--theme-bg, #F4F5F7);
+  --surface: var(--theme-surface, #FFFFFF);
+  --border: var(--theme-border, #E8E9EC);
+  --text-1: var(--theme-text, #1A1A1A);
+  --text-2: var(--theme-muted, #555560);
   --text-3: var(--text-faint, #9999A8);
-  --green: var(--theme-success-color, #16a34a);
+  --green: var(--success, #16a34a);
   --green-bg: var(--success-bg-color, #dcfce7);
-  --orange: var(--theme-warning-color, #d97706);
+  --orange: var(--warning, #d97706);
   --orange-bg: var(--warning-bg-color, #fef3c7);
-  --blue: var(--theme-info-color, #2563eb);
+  --blue: var(--info, #2563eb);
   --blue-bg: var(--info-bg-color, #dbeafe);
   --sidebar-w: 240px;
   --header-h: 64px;
@@ -5702,23 +5699,23 @@ body.admin-page-validar *::after {
 
 /* Variables Validar */
 body.admin-page-validar {
-  --red: var(--color-primario, #DD0F0D);
-  --red-dark: var(--color-secundario, #B50C0A);
+  --red: var(--theme-primary, #DD0F0D);
+  --red-dark: var(--theme-secondary, #B50C0A);
   --red-deeper: var(--color-primario-profundo, #8C0908);
-  --yellow: var(--color-acento, #F6D42E);
+  --yellow: var(--theme-accent, #F6D42E);
   --white: #FFFFFF;
-  --bg: var(--bg-body, #F4F5F7);
-  --surface: var(--bg-card, #FFFFFF);
-  --border: var(--table-border, #E8E9EC);
-  --text-1: var(--theme-text-principal, #1A1A1A);
-  --text-2: var(--theme-text-secundario, #555560);
+  --bg: var(--theme-bg, #F4F5F7);
+  --surface: var(--theme-surface, #FFFFFF);
+  --border: var(--theme-border, #E8E9EC);
+  --text-1: var(--theme-text, #1A1A1A);
+  --text-2: var(--theme-muted, #555560);
   --text-3: var(--text-faint, #9999A8);
-  --green: var(--theme-success-color, #16a34a);
+  --green: var(--success, #16a34a);
   --green-bg: var(--success-bg-color, #dcfce7);
   --green-dark: var(--success-dark-color, #14532d);
-  --orange: var(--theme-warning-color, #d97706);
+  --orange: var(--warning, #d97706);
   --orange-bg: var(--warning-bg-color, #fef3c7);
-  --blue: var(--theme-info-color, #2563eb);
+  --blue: var(--info, #2563eb);
   --blue-bg: var(--info-bg-color, #dbeafe);
   --sidebar-w: 240px;
   --header-h: 64px;
@@ -7446,22 +7443,22 @@ body.admin-page-asistencias *::after {
 
 /* Variables Asistencias */
 body.admin-page-asistencias {
-  --red: var(--color-primario, #DD0F0D);
-  --red-dark: var(--color-secundario, #B50C0A);
+  --red: var(--theme-primary, #DD0F0D);
+  --red-dark: var(--theme-secondary, #B50C0A);
   --red-deeper: var(--color-primario-profundo, #8C0908);
-  --yellow: var(--color-acento, #F6D42E);
+  --yellow: var(--theme-accent, #F6D42E);
   --white: #FFFFFF;
-  --bg: var(--bg-body, #F4F5F7);
-  --surface: var(--bg-card, #FFFFFF);
-  --border: var(--table-border, #E8E9EC);
-  --text-1: var(--theme-text-principal, #1A1A1A);
-  --text-2: var(--theme-text-secundario, #555560);
+  --bg: var(--theme-bg, #F4F5F7);
+  --surface: var(--theme-surface, #FFFFFF);
+  --border: var(--theme-border, #E8E9EC);
+  --text-1: var(--theme-text, #1A1A1A);
+  --text-2: var(--theme-muted, #555560);
   --text-3: var(--text-faint, #9999A8);
-  --green: var(--theme-success-color, #16a34a);
+  --green: var(--success, #16a34a);
   --green-bg: var(--success-bg-color, #dcfce7);
-  --orange: var(--theme-warning-color, #d97706);
+  --orange: var(--warning, #d97706);
   --orange-bg: var(--warning-bg-color, #fef3c7);
-  --blue: var(--theme-info-color, #2563eb);
+  --blue: var(--info, #2563eb);
   --blue-bg: var(--info-bg-color, #dbeafe);
   --sidebar-w: 240px;
   --header-h: 64px;
@@ -8730,22 +8727,22 @@ body.admin-page-planes *::after {
 
 /* Variables Planes */
 body.admin-page-planes {
-  --red: var(--color-primario, #DD0F0D);
-  --red-dark: var(--color-secundario, #B50C0A);
+  --red: var(--theme-primary, #DD0F0D);
+  --red-dark: var(--theme-secondary, #B50C0A);
   --red-deeper: var(--color-primario-profundo, #8C0908);
-  --yellow: var(--color-acento, #F6D42E);
+  --yellow: var(--theme-accent, #F6D42E);
   --white: #FFFFFF;
-  --bg: var(--bg-body, #F4F5F7);
-  --surface: var(--bg-card, #FFFFFF);
-  --border: var(--table-border, #E8E9EC);
-  --text-1: var(--theme-text-principal, #1A1A1A);
-  --text-2: var(--theme-text-secundario, #555560);
+  --bg: var(--theme-bg, #F4F5F7);
+  --surface: var(--theme-surface, #FFFFFF);
+  --border: var(--theme-border, #E8E9EC);
+  --text-1: var(--theme-text, #1A1A1A);
+  --text-2: var(--theme-muted, #555560);
   --text-3: var(--text-faint, #9999A8);
-  --green: var(--theme-success-color, #16a34a);
+  --green: var(--success, #16a34a);
   --green-bg: var(--success-bg-color, #dcfce7);
-  --orange: var(--theme-warning-color, #d97706);
+  --orange: var(--warning, #d97706);
   --orange-bg: var(--warning-bg-color, #fef3c7);
-  --blue: var(--theme-info-color, #2563eb);
+  --blue: var(--info, #2563eb);
   --blue-bg: var(--info-bg-color, #dbeafe);
   --sidebar-w: 240px;
   --header-h: 64px;
@@ -9690,22 +9687,22 @@ body.admin-page-configuracion *::after {
 
 /* Variables Configuracion */
 body.admin-page-configuracion {
-  --red: var(--color-primario, #DD0F0D);
-  --red-dark: var(--color-secundario, #B50C0A);
+  --red: var(--theme-primary, #DD0F0D);
+  --red-dark: var(--theme-secondary, #B50C0A);
   --red-deeper: var(--color-primario-profundo, #8C0908);
-  --yellow: var(--color-acento, #F6D42E);
+  --yellow: var(--theme-accent, #F6D42E);
   --white: #FFFFFF;
-  --bg: var(--bg-body, #F4F5F7);
-  --surface: var(--bg-card, #FFFFFF);
-  --border: var(--table-border, #E8E9EC);
-  --text-1: var(--theme-text-principal, #1A1A1A);
-  --text-2: var(--theme-text-secundario, #555560);
+  --bg: var(--theme-bg, #F4F5F7);
+  --surface: var(--theme-surface, #FFFFFF);
+  --border: var(--theme-border, #E8E9EC);
+  --text-1: var(--theme-text, #1A1A1A);
+  --text-2: var(--theme-muted, #555560);
   --text-3: var(--text-faint, #9999A8);
-  --green: var(--theme-success-color, #16a34a);
+  --green: var(--success, #16a34a);
   --green-bg: var(--success-bg-color, #dcfce7);
-  --orange: var(--theme-warning-color, #d97706);
+  --orange: var(--warning, #d97706);
   --orange-bg: var(--warning-bg-color, #fef3c7);
-  --blue: var(--theme-info-color, #2563eb);
+  --blue: var(--info, #2563eb);
   --blue-bg: var(--info-bg-color, #dbeafe);
   --sidebar-w: 240px;
   --header-h: 64px;
@@ -12692,26 +12689,25 @@ PERSONALIZAR
 
 /* Variables Admin compartidas */
 body.admin-page {
-  --brand: var(--color-primario, #7C3AED);
-  --brand-2: var(--color-secundario, #A855F7);
-  --brand-dark: var(--color-primario-profundo, #5B21B6);
-  --brand-soft: var(--color-primario-soft, rgba(124, 58, 237, .18));
-  --app-bg: var(--bg-body, #070A14);
-  --app-bg-2: var(--bg-header, #0B1020);
-  --app-surface: var(--bg-card, #101628);
-  --app-surface-2: var(--bg-modal, #161627);
-  --app-border: var(--table-border, rgba(255, 255, 255, .09));
-  --app-border-strong: var(--border-strong, rgba(167, 139, 250, .24));
-  --app-text: var(--theme-text-principal, #F0EFFF);
-  --app-muted: var(--theme-text-secundario, rgba(200, 196, 240, .72));
-  --app-faint: var(--text-faint, rgba(200, 196, 240, .45));
-  --ok: var(--theme-success-color, #22C55E);
+  --brand: var(--theme-primary, #7C3AED);
+  --brand-2: var(--theme-secondary, #A855F7);
+  --brand-dark: var(--theme-secondary, #5B21B6);
+  --brand-soft: color-mix(in srgb, var(--theme-primary, #7C3AED) 18%, transparent);
+  --app-bg: var(--theme-bg, #070A14);
+  --app-bg-2: var(--theme-bg, #070A14);
+  --app-surface: var(--theme-surface, #161627);
+  --app-surface-2: var(--theme-surface, #161627);
+  --app-border: var(--theme-border, rgba(255, 255, 255, .09));
+  --app-border-strong: color-mix(in srgb, var(--theme-primary, #7C3AED) 24%, transparent);
+  --app-text: var(--theme-text, #F0EFFF);
+  --app-muted: var(--theme-muted, rgba(200, 196, 240, .72));
+  --app-faint: color-mix(in srgb, var(--theme-muted, rgba(200, 196, 240, .72)) 62%, transparent);
+  --ok: var(--success, #22C55E);
   --ok-soft: var(--success-bg-color, rgba(34, 197, 94, .15));
-  --warn: var(--theme-warning-color, #F59E0B);
+  --warn: var(--warning, #F59E0B);
   --warn-soft: var(--warning-bg-color, rgba(245, 158, 11, .15));
-  --bad: var(--theme-danger-color, #EF4444);
+  --bad: var(--danger, #EF4444);
   --bad-soft: var(--danger-bg-color, rgba(239, 68, 68, .15));
-  --info: var(--theme-info-color, #3B82F6);
   --info-soft: var(--info-bg-color, rgba(59, 130, 246, .15));
   --sidebar-w: 302px;
   --header-h: 88px;
@@ -12721,21 +12717,21 @@ body.admin-page {
   --red: var(--brand, #7C3AED);
   --red-dark: var(--brand-dark, #5B21B6);
   --red-deeper: var(--color-primario-profundo-2, #3B147F);
-  --yellow: var(--color-acento, #A78BFA);
-  --bg: var(--bg-body, #070A14);
-  --surface: var(--bg-card, #101628);
-  --border: var(--table-border, rgba(255, 255, 255, .09));
-  --text-1: var(--theme-text-principal, #F0EFFF);
-  --text-2: var(--theme-text-secundario, rgba(200, 196, 240, .72));
+  --yellow: var(--theme-accent, #A78BFA);
+  --bg: var(--theme-bg, #070A14);
+  --surface: var(--theme-surface, #101628);
+  --border: var(--theme-border, rgba(255, 255, 255, .09));
+  --text-1: var(--theme-text, #F0EFFF);
+  --text-2: var(--theme-muted, rgba(200, 196, 240, .72));
   --text-3: var(--app-faint, rgba(200, 196, 240, .45));
-  --green: var(--theme-success-color, #22C55E);
+  --green: var(--success, #22C55E);
   --green-bg: var(--ok-soft, rgba(34, 197, 94, .15));
-  --orange: var(--theme-warning-color, #F59E0B);
+  --orange: var(--warning, #F59E0B);
   --orange-bg: var(--warn-soft, rgba(245, 158, 11, .15));
-  --blue: var(--theme-info-color, #3B82F6);
+  --blue: var(--info, #3B82F6);
   --blue-bg: var(--info-soft, rgba(59, 130, 246, .15));
-  background: var(--bg-body, var(--app-bg));
-  color: var(--theme-text-principal, var(--app-text));
+  background: var(--theme-bg, var(--app-bg));
+  color: var(--theme-text, var(--app-text));
 }
 
 body.admin-page .shell {
@@ -12920,27 +12916,27 @@ body.admin-page .admin-logout-header-btn {
 
 body.admin-page .header-btn:hover,
 body.admin-page .admin-logout-header-btn:hover {
-  border-color: rgba(124, 58, 237, .72) !important;
-  background: rgba(124, 58, 237, .12) !important;
+  border-color: color-mix(in srgb, var(--theme-primary, #7C3AED) 72%, transparent) !important;
+  background: color-mix(in srgb, var(--theme-primary, #7C3AED) 12%, transparent) !important;
   color: var(--app-text) !important;
 }
 
 body.admin-page .main {
-  background: var(--bg-body, var(--app-bg));
+  background: var(--theme-bg, var(--app-bg));
 }
 
 body.admin-page .page-title,
 body.admin-page .section-title,
 body.admin-page .card-title,
 body.admin-page .roles-title {
-  color: var(--theme-text-principal, var(--app-text));
+  color: var(--theme-text, var(--app-text));
 }
 
 body.admin-page .page-subtitle,
 body.admin-page .card-sub,
 body.admin-page .card-subtitle,
 body.admin-page .roles-subtitle {
-  color: var(--theme-text-secundario, var(--app-muted));
+  color: var(--theme-muted, var(--app-muted));
 }
 
 /* THEMING: Cards y paneles
@@ -12964,10 +12960,10 @@ body.admin-page-validar .result-expired {
   /* Fallback visual original:
      background: linear-gradient(135deg, rgba(17, 24, 43, .96), rgba(10, 15, 31, .96)) !important;
   */
-  background: var(--bg-card, linear-gradient(135deg, rgba(17, 24, 43, .96), rgba(10, 15, 31, .96))) !important;
-  border: 1px solid var(--table-border, var(--app-border)) !important;
+  background: var(--theme-surface, var(--app-surface)) !important;
+  border: 1px solid var(--theme-border, var(--app-border)) !important;
   box-shadow: var(--shadow-sm);
-  color: var(--theme-text-principal, var(--app-text));
+  color: var(--theme-text, var(--app-text));
 }
 
 /* THEMING: Modales
@@ -12976,7 +12972,7 @@ body.admin-page-validar .result-expired {
 body.admin-page .config-modal,
 body.admin-page .modal,
 body.admin-page .modal-panel {
-  background: var(--bg-modal, var(--bg-card, linear-gradient(135deg, rgba(17, 24, 43, .96), rgba(10, 15, 31, .96)))) !important;
+  background: var(--theme-surface, var(--app-surface-2)) !important;
 }
 
 body.admin-page .stat-card:hover,
@@ -13000,7 +12996,7 @@ body.admin-page .role-card-icon,
 body.admin-page .result-empty-icon {
   background: var(--brand-soft) !important;
   color: var(--brand-2) !important;
-  border-color: rgba(124, 58, 237, .42) !important;
+  border-color: color-mix(in srgb, var(--theme-primary, #7C3AED) 42%, transparent) !important;
 }
 
 /* THEMING: Botones
@@ -13030,7 +13026,7 @@ body.admin-page .page-btn {
 body.admin-page .btn-danger,
 body.admin-page .btn-confirm-danger,
 body.admin-page .table-action-btn.danger {
-  border-color: var(--theme-danger-color, rgba(239, 68, 68, .32)) !important;
+  border-color: color-mix(in srgb, var(--danger, #EF4444) 32%, transparent) !important;
   background: rgba(239, 68, 68, .10) !important;
   color: #F87171 !important;
 }
@@ -13080,25 +13076,25 @@ body.admin-page .admin-users-table {
 */
 body.admin-page thead th,
 body.admin-page .admin-users-table th {
-  background: var(--table-header-bg, rgba(22, 22, 39, .62)) !important;
-  color: rgba(200, 196, 240, .58) !important;
-  border-color: var(--table-border, var(--app-border)) !important;
+  background: var(--theme-bg, var(--app-bg)) !important;
+  color: var(--theme-muted, var(--app-muted)) !important;
+  border-color: var(--theme-border, var(--app-border)) !important;
 }
 
 body.admin-page tbody tr,
 body.admin-page .admin-users-table td {
-  border-color: var(--table-border, var(--app-border)) !important;
+  border-color: var(--theme-border, var(--app-border)) !important;
 }
 
 body.admin-page tbody tr:hover {
-  background: rgba(124, 58, 237, .055) !important;
+  background: color-mix(in srgb, var(--theme-primary, #7C3AED) 5.5%, transparent) !important;
 }
 
 body.admin-page .admin-users-table-wrap {
   overflow: hidden;
-  border: 1px solid var(--table-border, var(--app-border));
+  border: 1px solid var(--theme-border, var(--app-border));
   border-radius: 12px;
-  background: var(--bg-card, linear-gradient(180deg, rgba(22, 22, 39, .86), rgba(10, 15, 31, .86)));
+  background: var(--theme-surface, var(--app-surface));
 }
 
 body.admin-page .badge.activa,
@@ -13133,9 +13129,9 @@ body.admin-page .badge.warning {
 
 /* Variables Planes - acentos de cards */
 body.admin-page-planes {
-  --plan-accent-1: var(--color-primario, #7C3AED);
-  --plan-accent-2: var(--success-color, #22C55E);
-  --plan-accent-3: var(--info-color, #3B82F6);
+  --plan-accent-1: var(--theme-primary, #7C3AED);
+  --plan-accent-2: var(--success, #22C55E);
+  --plan-accent-3: var(--info, #3B82F6);
   --plan-accent-4: var(--plan-neutral-color, #94A3B8);
 }
 
@@ -13946,6 +13942,269 @@ body.admin-page-clientes .avatar-sm {
   width: 30px;
   height: 30px;
   font-size: 11px;
+}
+
+/* ==================================================
+   THEME SIMPLE OVERRIDES
+   No mover. Gana por cascada.
+================================================== */
+
+body[class*="admin-page-"] {
+  --color-primario: var(--theme-primary);
+  --color-secundario: var(--theme-secondary);
+  --color-acento: var(--theme-accent);
+  --bg-body: var(--theme-bg);
+  --bg-header: var(--theme-bg);
+  --bg-sidebar: var(--theme-surface);
+  --bg-card: var(--theme-surface);
+  --bg-modal: var(--theme-surface);
+  --table-border: var(--theme-border);
+  --input-bg: var(--theme-bg);
+  --input-border: var(--theme-border);
+  --btn-primario-bg: var(--theme-primary);
+  --btn-primario-text: #fff;
+  --btn-secundario-bg: transparent;
+  --btn-secundario-text: var(--theme-text);
+  --theme-text-principal: var(--theme-text);
+  --theme-text-secundario: var(--theme-muted);
+  --theme-success-color: var(--success);
+  --theme-warning-color: var(--warning);
+  --theme-danger-color: var(--danger);
+  --theme-info-color: var(--info);
+  background: var(--theme-bg) !important;
+  color: var(--theme-text) !important;
+}
+
+body[class*="admin-page-"] .main {
+  background: var(--theme-bg) !important;
+}
+
+body[class*="admin-page-"] .sidebar {
+  background: var(--theme-surface) !important;
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+}
+
+body[class*="admin-page-"] .header {
+  background: var(--theme-bg) !important;
+  color: var(--theme-text) !important;
+  border-bottom-color: var(--theme-border) !important;
+}
+
+body[class*="admin-page-"] .nav-item {
+  color: var(--theme-muted) !important;
+}
+
+body[class*="admin-page-"] .nav-item:hover {
+  color: var(--theme-text) !important;
+}
+
+body[class*="admin-page-"] .nav-item.active,
+body[class*="admin-page-"] .client-tab.active,
+body[class*="admin-page-"] .person-type .client-tab.active {
+  background: var(--theme-primary) !important;
+  color: #fff !important;
+  border-color: var(--theme-primary) !important;
+}
+
+body[class*="admin-page-"] .nav-item.active::before,
+body[class*="admin-page-"] .section-title::before,
+body[class*="admin-page-"] .payment-opt.selected::after {
+  background: var(--theme-accent) !important;
+}
+
+body[class*="admin-page-"] .nav-badge {
+  background: var(--theme-accent) !important;
+  color: var(--theme-bg) !important;
+}
+
+body[class*="admin-page-"] .card,
+body[class*="admin-page-"] .card-body,
+body[class*="admin-page-"] .stat-card,
+body[class*="admin-page-"] .table-wrap,
+body[class*="admin-page-"] .toolbar,
+body[class*="admin-page-"] .table-footer,
+body[class*="admin-page-"] .modal,
+body[class*="admin-page-"] .modal-panel,
+body[class*="admin-page-"] .config-modal,
+body[class*="admin-page-"] .logout-modal,
+body[class*="admin-page-"] .profile-modal,
+body[class*="admin-page-"] .profile-card,
+body[class*="admin-page-"] .roles-system-section,
+body[class*="admin-page-"] .role-summary-panel,
+body[class*="admin-page-"] .role-card,
+body[class*="admin-page-"] .role-permissions-panel,
+body[class*="admin-page-"] .settings-card,
+body[class*="admin-page-"] .plan-card,
+body[class*="admin-page-"] .client-card,
+body[class*="admin-page-"] .preview-card,
+body[class*="admin-page-"] .person-select-card,
+body[class*="admin-page-"] .client-mode,
+body[class*="admin-page-"] .client-panel,
+body[class*="admin-page-"] .client-selected-card,
+body[class*="admin-page-"] .client-new-note,
+body[class*="admin-page-"] .payment-opt,
+body[class*="admin-page-"] .group-controls,
+body[class*="admin-page-"] .person-card,
+body[class*="admin-page-"] .mem-details,
+body[class*="admin-page-"] .copy-row,
+body[class*="admin-page-"] .admin-users-section,
+body[class*="admin-page-"] .admin-users-table-wrap {
+  background: var(--theme-surface) !important;
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+}
+
+body[class*="admin-page-"] input,
+body[class*="admin-page-"] select,
+body[class*="admin-page-"] textarea,
+body[class*="admin-page-"] .search-input,
+body[class*="admin-page-"] .filter-select,
+body[class*="admin-page-"] .date-input,
+body[class*="admin-page-"] .code-input,
+body[class*="admin-page-"] .form-input,
+body[class*="admin-page-"] .form-select {
+  background: var(--theme-bg) !important;
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+}
+
+body[class*="admin-page-"] input::placeholder,
+body[class*="admin-page-"] textarea::placeholder,
+body[class*="admin-page-"] .search-input::placeholder,
+body[class*="admin-page-"] .code-input::placeholder {
+  color: var(--theme-muted) !important;
+}
+
+body[class*="admin-page-"] input:focus,
+body[class*="admin-page-"] select:focus,
+body[class*="admin-page-"] textarea:focus,
+body[class*="admin-page-"] .search-input:focus,
+body[class*="admin-page-"] .filter-select:focus,
+body[class*="admin-page-"] .date-input:focus,
+body[class*="admin-page-"] .code-input:focus,
+body[class*="admin-page-"] .form-input:focus,
+body[class*="admin-page-"] .form-select:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 16%, transparent) !important;
+}
+
+body[class*="admin-page-"] .btn-primary,
+body[class*="admin-page-"] .btn-validate,
+body[class*="admin-page-"] .logout-confirm-btn,
+body[class*="admin-page-"] .profile-primary-btn {
+  background: var(--theme-primary) !important;
+  color: #fff !important;
+  border-color: var(--theme-primary) !important;
+}
+
+body[class*="admin-page-"] .btn-outline,
+body[class*="admin-page-"] .btn-secondary,
+body[class*="admin-page-"] .logout-cancel-btn,
+body[class*="admin-page-"] .profile-secondary-btn,
+body[class*="admin-page-"] .table-action-btn,
+body[class*="admin-page-"] .icon-btn,
+body[class*="admin-page-"] .page-btn {
+  background: transparent !important;
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+}
+
+body[class*="admin-page-"] .btn-outline:hover,
+body[class*="admin-page-"] .btn-secondary:hover,
+body[class*="admin-page-"] .logout-cancel-btn:hover,
+body[class*="admin-page-"] .profile-secondary-btn:hover,
+body[class*="admin-page-"] .table-action-btn:hover,
+body[class*="admin-page-"] .icon-btn:hover,
+body[class*="admin-page-"] .page-btn:hover {
+  border-color: var(--theme-primary) !important;
+  color: var(--theme-primary) !important;
+}
+
+body[class*="admin-page-"] thead th,
+body[class*="admin-page-"] .admin-users-table th {
+  background: var(--theme-bg) !important;
+  color: var(--theme-muted) !important;
+  border-bottom-color: var(--theme-border) !important;
+}
+
+body[class*="admin-page-"] tbody tr,
+body[class*="admin-page-"] td,
+body[class*="admin-page-"] .admin-users-table td,
+body[class*="admin-page-"] .card-header,
+body[class*="admin-page-"] .modal-header,
+body[class*="admin-page-"] .modal-head,
+body[class*="admin-page-"] .config-modal-header,
+body[class*="admin-page-"] .notification-head,
+body[class*="admin-page-"] .mem-detail-row {
+  border-color: var(--theme-border) !important;
+}
+
+body[class*="admin-page-"] .notif-count,
+body[class*="admin-page-"] .client-avatar,
+body[class*="admin-page-"] .avatar-sm,
+body[class*="admin-page-"] .user-avatar,
+body[class*="admin-page-"] .card-icon,
+body[class*="admin-page-"] .role-card-icon,
+body[class*="admin-page-"] .stat-icon.red,
+body[class*="admin-page-"] .result-empty-icon {
+  background: var(--theme-primary) !important;
+  color: #fff !important;
+}
+
+body[class*="admin-page-"] .header-title,
+body[class*="admin-page-"] .page-title,
+body[class*="admin-page-"] .section-title,
+body[class*="admin-page-"] .card-title,
+body[class*="admin-page-"] .modal-title,
+body[class*="admin-page-"] .logout-modal-title,
+body[class*="admin-page-"] .profile-title,
+body[class*="admin-page-"] .profile-value,
+body[class*="admin-page-"] .roles-title,
+body[class*="admin-page-"] .role-card-title,
+body[class*="admin-page-"] .client-name,
+body[class*="admin-page-"] .client-selected-title,
+body[class*="admin-page-"] .client-new-title,
+body[class*="admin-page-"] .person-card-title,
+body[class*="admin-page-"] .mem-detail-value {
+  color: var(--theme-text) !important;
+}
+
+body[class*="admin-page-"] .header-date,
+body[class*="admin-page-"] .header-breadcrumb,
+body[class*="admin-page-"] .page-subtitle,
+body[class*="admin-page-"] .card-sub,
+body[class*="admin-page-"] .card-subtitle,
+body[class*="admin-page-"] .logout-modal-text,
+body[class*="admin-page-"] .profile-label,
+body[class*="admin-page-"] .roles-subtitle,
+body[class*="admin-page-"] .role-card-description,
+body[class*="admin-page-"] .client-id,
+body[class*="admin-page-"] .client-selected-sub,
+body[class*="admin-page-"] .client-new-sub,
+body[class*="admin-page-"] .mem-detail-label,
+body[class*="admin-page-"] .table-info,
+body[class*="admin-page-"] .notification-total,
+body[class*="admin-page-"] .notification-empty {
+  color: var(--theme-muted) !important;
+}
+
+body[class*="admin-page-"] .header-breadcrumb span,
+body[class*="admin-page-"] .section-link,
+body[class*="admin-page-"] .profile-label,
+body[class*="admin-page-"] .roles-eyebrow,
+body[class*="admin-page-"] .role-metric-permisos,
+body[class*="admin-page-"] .role-permiso-item,
+body[class*="admin-page-"] .copy-code,
+body[class*="admin-page-"] .mem-detail-value.code {
+  color: var(--theme-primary) !important;
+}
+
+body[class*="admin-page-"] .payment-opt:hover,
+body[class*="admin-page-"] .payment-opt.selected,
+body[class*="admin-page-"] .client-selected-card.loaded {
+  border-color: var(--theme-primary) !important;
+  background: color-mix(in srgb, var(--theme-primary) 18%, var(--theme-surface)) !important;
 }
 
 /* Fin de admin.css */
