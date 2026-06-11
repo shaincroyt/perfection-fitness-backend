@@ -23,14 +23,18 @@ VARIABLES PRINCIPALES:
 ================================================== */
 
 :root {
-  --theme-primary: #16A34A;
-  --theme-secondary: #15803D;
-  --theme-accent: #BBF7D0;
-  --theme-bg: #052E16;
-  --theme-surface: #064E3B;
-  --theme-text: #ECFDF5;
-  --theme-muted: #BBF7D0;
-  --theme-border: rgba(187,247,208,.25);
+  --theme-primary: #7C3AED;
+  --theme-secondary: #A855F7;
+  --theme-accent: #A78BFA;
+
+  --theme-bg: #070A14;
+  --theme-surface: #161627;
+
+  --theme-text: #F0EFFF;
+  --theme-muted: rgba(200,196,240,.72);
+
+  --theme-border: rgba(255,255,255,.09);
+  --theme-glow: rgba(22,163,74,.30);
 
   /* Estados semanticos */
   --success: #22C55E;
