@@ -107,7 +107,19 @@ const TEMA_EMPRESA_DEFAULT = {
     text_principal: '#F0EFFF',
     text_secundario: 'rgba(200,196,240,.72)',
     table_border: 'rgba(255,255,255,.09)',
-    theme_glow: 'rgba(124, 58, 237, 0.32) 0px 11px 26px'
+    theme_glow: 'rgba(124, 58, 237, 0.32) 0px 11px 26px',
+    validation_active_bg: 'var(--theme-bg)',
+    validation_active_surface: 'var(--theme-surface)',
+    validation_active_border: 'var(--theme-border)',
+    validation_active_text: 'var(--theme-text)',
+    validation_active_muted: 'var(--theme-muted)',
+    validation_active_accent: 'var(--theme-primary)',
+    validation_denied_bg: '#450A0A',
+    validation_denied_surface: '#7F1D1D',
+    validation_denied_border: 'rgba(248,113,113,.35)',
+    validation_denied_text: '#FEE2E2',
+    validation_denied_muted: '#FECACA',
+    validation_denied_accent: '#EF4444'
 };
 
 function valorCssSeguro(valor, fallback) {
@@ -129,7 +141,19 @@ function generarCssTemaEmpresa(empresa = {}) {
         text_principal: valorCssSeguro(empresa.text_principal, TEMA_EMPRESA_DEFAULT.text_principal),
         text_secundario: valorCssSeguro(empresa.text_secundario, TEMA_EMPRESA_DEFAULT.text_secundario),
         table_border: valorCssSeguro(empresa.table_border, TEMA_EMPRESA_DEFAULT.table_border),
-        theme_glow: valorCssSeguro(empresa.theme_glow, TEMA_EMPRESA_DEFAULT.theme_glow)
+        theme_glow: valorCssSeguro(empresa.theme_glow, TEMA_EMPRESA_DEFAULT.theme_glow),
+        validation_active_bg: valorCssSeguro(empresa.validation_active_bg, TEMA_EMPRESA_DEFAULT.validation_active_bg),
+        validation_active_surface: valorCssSeguro(empresa.validation_active_surface, TEMA_EMPRESA_DEFAULT.validation_active_surface),
+        validation_active_border: valorCssSeguro(empresa.validation_active_border, TEMA_EMPRESA_DEFAULT.validation_active_border),
+        validation_active_text: valorCssSeguro(empresa.validation_active_text, TEMA_EMPRESA_DEFAULT.validation_active_text),
+        validation_active_muted: valorCssSeguro(empresa.validation_active_muted, TEMA_EMPRESA_DEFAULT.validation_active_muted),
+        validation_active_accent: valorCssSeguro(empresa.validation_active_accent, TEMA_EMPRESA_DEFAULT.validation_active_accent),
+        validation_denied_bg: valorCssSeguro(empresa.validation_denied_bg, TEMA_EMPRESA_DEFAULT.validation_denied_bg),
+        validation_denied_surface: valorCssSeguro(empresa.validation_denied_surface, TEMA_EMPRESA_DEFAULT.validation_denied_surface),
+        validation_denied_border: valorCssSeguro(empresa.validation_denied_border, TEMA_EMPRESA_DEFAULT.validation_denied_border),
+        validation_denied_text: valorCssSeguro(empresa.validation_denied_text, TEMA_EMPRESA_DEFAULT.validation_denied_text),
+        validation_denied_muted: valorCssSeguro(empresa.validation_denied_muted, TEMA_EMPRESA_DEFAULT.validation_denied_muted),
+        validation_denied_accent: valorCssSeguro(empresa.validation_denied_accent, TEMA_EMPRESA_DEFAULT.validation_denied_accent)
     };
 
     return `:root {
@@ -142,6 +166,18 @@ function generarCssTemaEmpresa(empresa = {}) {
   --theme-muted: ${tema.text_secundario};
   --theme-border: ${tema.table_border};
   --theme-glow: ${tema.theme_glow};
+  --validation-active-bg: ${tema.validation_active_bg};
+  --validation-active-surface: ${tema.validation_active_surface};
+  --validation-active-border: ${tema.validation_active_border};
+  --validation-active-text: ${tema.validation_active_text};
+  --validation-active-muted: ${tema.validation_active_muted};
+  --validation-active-accent: ${tema.validation_active_accent};
+  --validation-denied-bg: ${tema.validation_denied_bg};
+  --validation-denied-surface: ${tema.validation_denied_surface};
+  --validation-denied-border: ${tema.validation_denied_border};
+  --validation-denied-text: ${tema.validation_denied_text};
+  --validation-denied-muted: ${tema.validation_denied_muted};
+  --validation-denied-accent: ${tema.validation_denied_accent};
 }
 `;
 }
@@ -1072,7 +1108,19 @@ app.get('/empresa-theme.css', async (req, res) => {
                 text_principal,
                 text_secundario,
                 table_border,
-                theme_glow
+                theme_glow,
+                validation_active_bg,
+                validation_active_surface,
+                validation_active_border,
+                validation_active_text,
+                validation_active_muted,
+                validation_active_accent,
+                validation_denied_bg,
+                validation_denied_surface,
+                validation_denied_border,
+                validation_denied_text,
+                validation_denied_muted,
+                validation_denied_accent
              FROM empresas
              WHERE id = ?
              LIMIT 1`,
@@ -1112,7 +1160,19 @@ app.get('/api/empresa/tema', async (req, res) => {
     table_border,
     theme_glow,
     codigo_prefijo,
-    codigo_longitud
+    codigo_longitud,
+    validation_active_bg,
+    validation_active_surface,
+    validation_active_border,
+    validation_active_text,
+    validation_active_muted,
+    validation_active_accent,
+    validation_denied_bg,
+    validation_denied_surface,
+    validation_denied_border,
+    validation_denied_text,
+    validation_denied_muted,
+    validation_denied_accent
  FROM empresas
  WHERE id = ?
  LIMIT 1`,
@@ -2566,14 +2626,18 @@ async function obtenerConfigCodigoEmpresa(empresaId, conn = pool) {
 
 async function generarCodigoUnico(empresaId, conn = pool) {
     const { prefijo, longitud } = await obtenerConfigCodigoEmpresa(empresaId, conn);
-    const maximo = 10 ** longitud;
+    const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let codigo;
     let existe = true;
     let intentos = 0;
 
     while (existe) {
-        const numero = Math.floor(Math.random() * maximo);
-        codigo = `${prefijo}-${String(numero).padStart(longitud, '0')}`;
+        let sufijo = '';
+        for (let i = 0; i < longitud; i += 1) {
+            sufijo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+
+        codigo = `${prefijo}-${sufijo}`;
 
         const [rows] = await conn.query(
             `SELECT id
@@ -2587,8 +2651,8 @@ async function generarCodigoUnico(empresaId, conn = pool) {
         existe = rows.length > 0;
         intentos += 1;
 
-        if (intentos > 100) {
-            throw new Error('No se pudo generar un codigo unico de membresia');
+        if (intentos > 200) {
+            throw new Error('No se pudo generar un codigo unico de membresia para esta empresa');
         }
     }
 
