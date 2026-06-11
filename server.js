@@ -2368,12 +2368,16 @@ app.patch('/api/admin/usuarios/:id/estado', requirePermission('usuarios.desactiv
     }
 });
 
-app.get('/admin/login.html', (req, res) => {
+app.get('/', (req, res) => {
     res.redirect('/admin/');
 });
 
-app.get(['/admin', '/admin/'], requireAdminSession, (req, res) => {
-    res.redirect('/admin/dashboard.html');
+app.get(['/admin', '/admin/'], (req, res) => {
+    res.sendFile(path.join(adminDir, 'index.html'));
+});
+
+app.get('/admin/login.html', (req, res) => {
+    res.redirect('/admin/');
 });
 
 app.use('/admin/styles', express.static(path.join(adminDir, 'styles')));
