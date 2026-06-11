@@ -13774,9 +13774,8 @@ body.admin-page-planes .modal-close {
 body.admin-page .modal-close:hover,
 body.admin-page-configuracion .modal-close:hover,
 body.admin-page-planes .modal-close:hover {
-  border-color: rgba(168, 85, 247, .50) !important;
-  background: rgba(124, 58, 237, .16) !important;
-  color: #fff !important;
+  border-color: var(--red) !important;
+  color: var(--red) !important;
 }
 
 body.admin-page-configuracion .roles-system-section,
@@ -14596,6 +14595,245 @@ body.admin-page-configuracion .role-permiso-none {
   body.admin-page-configuracion .permission-option {
     width: 100% !important;
   }
+}
+
+/* Responsive final: validacion y roles/permisos */
+body.admin-page-validar,
+body.admin-page-configuracion {
+    overflow-x: hidden;
+}
+
+body.admin-page-validar .main,
+body.admin-page-configuracion .main {
+    min-width: 0;
+    max-width: 100%;
+}
+
+body.admin-page-validar .validation-content,
+body.admin-page-validar .validation-container,
+body.admin-page-validar .result-section,
+body.admin-page-validar .result-active,
+body.admin-page-validar .result-expired,
+body.admin-page-validar .result-denied,
+body.admin-page-validar .result-error,
+body.admin-page-validar .result-inactive,
+body.admin-page-validar .result-warning,
+body.admin-page-validar #resultNotFound {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body.admin-page-validar .result-active-top,
+body.admin-page-validar .result-expired-top {
+    min-width: 0;
+    max-width: 100%;
+}
+
+body.admin-page-validar .result-active-body,
+body.admin-page-validar .result-active-body-new,
+body.admin-page-validar .result-expired-body,
+body.admin-page-validar .result-expired-body-new {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: clamp(12px, 2vw, 24px);
+    min-width: 0;
+    max-width: 100%;
+}
+
+body.admin-page-validar .validation-panel,
+body.admin-page-validar .plan-panel,
+body.admin-page-validar .vigencia-panel,
+body.admin-page-validar .days-panel,
+body.admin-page-validar .expired-plan-panel,
+body.admin-page-validar .expired-vigencia-panel,
+body.admin-page-validar .expired-days-panel {
+    min-width: 0;
+    max-width: 100%;
+    border: 1px solid var(--theme-border);
+    background: var(--theme-surface);
+    color: var(--theme-text);
+    overflow: visible;
+}
+
+body.admin-page-validar .active-code-row,
+body.admin-page-validar .expired-code-row {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+}
+
+body.admin-page-validar .active-code-text,
+body.admin-page-validar .expired-code-text,
+body.admin-page-validar .active-name,
+body.admin-page-validar .expired-name,
+body.admin-page-validar .plan-big-badge,
+body.admin-page-validar .plan-note,
+body.admin-page-validar .vigencia-row,
+body.admin-page-validar .days-simple,
+body.admin-page-validar .days-note,
+body.admin-page-validar .usage-summary {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+body.admin-page-configuracion .config-modal-overlay {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.admin-page-configuracion .config-modal,
+body.admin-page-configuracion .role-modal-wide,
+body.admin-page-configuracion .permissions-modal {
+    display: flex;
+    flex-direction: column;
+    width: min(100%, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    min-width: 0;
+    overflow: hidden;
+}
+
+body.admin-page-configuracion .config-modal-body,
+body.admin-page-configuracion .role-modal-wide > form,
+body.admin-page-configuracion .permissions-layout {
+    min-width: 0;
+    min-height: 0;
+}
+
+body.admin-page-configuracion .permissions-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    gap: 16px;
+    overflow: visible;
+}
+
+body.admin-page-configuracion .permissions-grid,
+body.admin-page-configuracion .role-modal-perms-grid,
+body.admin-page-configuracion .permission-list {
+    min-width: 0;
+    overflow: visible;
+}
+
+body.admin-page-configuracion .permission-category,
+body.admin-page-configuracion .permission-category-title,
+body.admin-page-configuracion .permission-option,
+body.admin-page-configuracion .perm-text,
+body.admin-page-configuracion .perm-desc,
+body.admin-page-configuracion .role-summary-panel,
+body.admin-page-configuracion .role-summary-list,
+body.admin-page-configuracion .role-permisos-preview,
+body.admin-page-configuracion .role-permiso-item {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+body.admin-page-configuracion .permission-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    white-space: normal;
+    overflow: visible;
+}
+
+body.admin-page-configuracion .permission-option input {
+    flex: 0 0 auto;
+}
+
+body.admin-page-configuracion .role-summary-panel {
+    max-height: min(52vh, 520px);
+    overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+    body.admin-page-validar .result-active-body,
+    body.admin-page-validar .result-active-body-new,
+    body.admin-page-validar .result-expired-body,
+    body.admin-page-validar .result-expired-body-new {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+    }
+
+    body.admin-page-configuracion .permissions-layout {
+        grid-template-columns: 1fr;
+    }
+
+    body.admin-page-configuracion .role-summary-panel {
+        order: 2;
+        max-height: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    body.admin-page-validar .result-active-body,
+    body.admin-page-validar .result-active-body-new,
+    body.admin-page-validar .result-expired-body,
+    body.admin-page-validar .result-expired-body-new {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    body.admin-page-validar .validation-panel,
+    body.admin-page-validar .plan-panel,
+    body.admin-page-validar .vigencia-panel,
+    body.admin-page-validar .days-panel,
+    body.admin-page-validar .expired-plan-panel,
+    body.admin-page-validar .expired-vigencia-panel,
+    body.admin-page-validar .expired-days-panel {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    body.admin-page-configuracion .config-modal,
+    body.admin-page-configuracion .role-modal-wide,
+    body.admin-page-configuracion .permissions-modal {
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+    }
+
+    body.admin-page-configuracion .config-modal-body,
+    body.admin-page-configuracion .role-modal-wide > form,
+    body.admin-page-configuracion .permissions-layout {
+        overflow-y: auto;
+    }
+
+    body.admin-page-configuracion .permissions-grid,
+    body.admin-page-configuracion .role-modal-perms-grid,
+    body.admin-page-configuracion .permission-list {
+        grid-template-columns: 1fr;
+    }
+
+    body.admin-page-configuracion .config-modal-actions,
+    body.admin-page-configuracion .role-card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-page-configuracion .config-modal-actions button,
+    body.admin-page-configuracion .role-card-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 430px) {
+    body.admin-page-validar .active-code-text,
+    body.admin-page-validar .expired-code-text {
+        font-size: clamp(1.25rem, 10vw, 2rem);
+    }
+
+    body.admin-page-validar .result-active-body,
+    body.admin-page-validar .result-active-body-new,
+    body.admin-page-validar .result-expired-body,
+    body.admin-page-validar .result-expired-body-new {
+        padding: 14px;
+    }
 }
 
 /* Fin de admin.css */
