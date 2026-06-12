@@ -807,7 +807,20 @@ if (badge) {
               <strong>${usos}</strong>
             </div>
           </div>
-          <button class="btn btn-outline btn-sm profile-freeze-btn" onclick="abrirModalCongelarMembresia(${membresia.id})" data-permission="membresias.congelar">Congelar membresía</button>
+          <button class="btn btn-outline btn-sm profile-freeze-btn" onclick="abrirModalCongelarMembresia(${membresia.id})" data-permission="membresias.congelar">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 3V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M4.22 7.5L19.78 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M19.78 7.5L4.22 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M9 5.5L12 8.5L15 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9 18.5L12 15.5L15 18.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5.9 10.1L10 9L8.9 4.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18.1 13.9L14 15L15.1 19.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18.1 10.1L14 9L15.1 4.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5.9 13.9L10 15L8.9 19.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  Congelar membresía
+</button>
         ` : emptyProfileState('Este cliente no tiene una membresía activa.')}
       </div>
 

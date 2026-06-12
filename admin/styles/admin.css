@@ -12547,7 +12547,6 @@ body.admin-page .notification-item.membresia_por_vencer .notification-mark {
 }
 
 body[class*="admin-page-"] .sidebar-user.admin-session-box {
-  display: grid !important;
   grid-template-columns: 34px 1fr;
   grid-template-rows: auto auto;
   align-items: center;
@@ -16445,5 +16444,16 @@ body.admin-page-clientes .client-profile-body .profile-empty {
 
 #estado-a {
   color: var(--theme-success-color) !important;
+}
+.profile-freeze-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--theme-primary);
+}
+
+.profile-freeze-btn svg {
+  color: var(--theme-primary);
+  flex-shrink: 0;
 }
 /* Fin de admin.css */
