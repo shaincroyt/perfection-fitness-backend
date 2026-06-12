@@ -122,6 +122,50 @@ INSERT INTO `clientes` VALUES (1,'lucas jara','70594763','980467711','lucasjara1
 UNLOCK TABLES;
 
 --
+-- Table structure for table `cliente_eventos`
+--
+
+DROP TABLE IF EXISTS `cliente_eventos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cliente_eventos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `empresa_id` int NOT NULL,
+  `cliente_id` int NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `tipo_evento` varchar(60) NOT NULL,
+  `titulo` varchar(160) NOT NULL,
+  `descripcion` text,
+  `metadata` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_cliente_eventos_cliente` (`empresa_id`,`cliente_id`,`created_at`),
+  KEY `idx_cliente_eventos_tipo` (`empresa_id`,`tipo_evento`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `cliente_notas`
+--
+
+DROP TABLE IF EXISTS `cliente_notas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cliente_notas` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `empresa_id` int NOT NULL,
+  `cliente_id` int NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `nota` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_cliente_notas_cliente` (`empresa_id`,`cliente_id`,`deleted_at`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `membresias`
 --
 
@@ -167,6 +211,30 @@ LOCK TABLES `membresias` WRITE;
 INSERT INTO `membresias` VALUES (1,1,1,'PFS-JHF3J6',1,'2026-06-06','2026-07-06',0.00,80.00,NULL,0.00,'activa','presencial','2026-06-06 07:06:10','meses',NULL,NULL);
 /*!40000 ALTER TABLE `membresias` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `membresia_congelamientos`
+--
+
+DROP TABLE IF EXISTS `membresia_congelamientos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `membresia_congelamientos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `empresa_id` int NOT NULL,
+  `membresia_id` int NOT NULL,
+  `cliente_id` int NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `dias_congelados` int NOT NULL,
+  `motivo` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_congelamientos_membresia` (`empresa_id`,`membresia_id`),
+  KEY `idx_congelamientos_cliente` (`empresa_id`,`cliente_id`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `notificaciones`

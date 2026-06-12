@@ -19,6 +19,16 @@ const privateAdminPages = new Set([
     'configuracion.html',
     'nueva-membresia.html'
 ]);
+const ADMIN_PAGE_PERMISSIONS = {
+    'dashboard.html': 'dashboard.ver',
+    'clientes.html': 'clientes.ver',
+    'membresias.html': 'membresias.ver',
+    'nueva-membresia.html': 'membresias.crear',
+    'validar.html': 'validacion.usar',
+    'asistencias.html': 'asistencias.ver',
+    'planes.html': 'planes.ver',
+    'configuracion.html': 'configuracion.ver'
+};
 
 app.set('trust proxy', 1);
 
@@ -53,11 +63,16 @@ const PERMISOS_BASE = [
     { codigo: 'clientes.crear', nombre: 'Crear clientes', categoria: 'Clientes', descripcion: 'Permite registrar clientes' },
     { codigo: 'clientes.editar', nombre: 'Editar clientes', categoria: 'Clientes', descripcion: 'Permite actualizar clientes' },
     { codigo: 'clientes.eliminar', nombre: 'Eliminar clientes', categoria: 'Clientes', descripcion: 'Permite eliminar o desactivar clientes' },
+    { codigo: 'clientes.notas.ver', nombre: 'Ver notas de clientes', categoria: 'Clientes', descripcion: 'Permite consultar notas internas de clientes' },
+    { codigo: 'clientes.notas.crear', nombre: 'Crear notas de clientes', categoria: 'Clientes', descripcion: 'Permite agregar notas internas de clientes' },
+    { codigo: 'clientes.notas.editar', nombre: 'Editar notas de clientes', categoria: 'Clientes', descripcion: 'Permite editar notas internas de clientes' },
+    { codigo: 'clientes.notas.eliminar', nombre: 'Eliminar notas de clientes', categoria: 'Clientes', descripcion: 'Permite eliminar notas internas de clientes' },
     { codigo: 'membresias.ver', nombre: 'Ver membresias', categoria: 'Membresias', descripcion: 'Permite listar membresias' },
     { codigo: 'membresias.crear', nombre: 'Crear membresias', categoria: 'Membresias', descripcion: 'Permite crear membresias' },
     { codigo: 'membresias.editar', nombre: 'Editar membresias', categoria: 'Membresias', descripcion: 'Permite actualizar membresias' },
     { codigo: 'membresias.eliminar', nombre: 'Eliminar membresias', categoria: 'Membresias', descripcion: 'Permite eliminar membresias' },
     { codigo: 'membresias.renovar', nombre: 'Renovar membresias', categoria: 'Membresias', descripcion: 'Permite renovar membresias' },
+    { codigo: 'membresias.congelar', nombre: 'Congelar membresias', categoria: 'Membresias', descripcion: 'Permite congelar membresias activas' },
     { codigo: 'planes.ver', nombre: 'Ver planes', categoria: 'Planes', descripcion: 'Permite listar planes' },
     { codigo: 'planes.crear', nombre: 'Crear planes', categoria: 'Planes', descripcion: 'Permite crear planes' },
     { codigo: 'planes.editar', nombre: 'Editar planes', categoria: 'Planes', descripcion: 'Permite actualizar planes' },
@@ -89,9 +104,12 @@ const PERMISOS_RECEPCION_DEFAULT = [
     'clientes.ver',
     'clientes.crear',
     'clientes.editar',
+    'clientes.notas.ver',
+    'clientes.notas.crear',
     'membresias.ver',
     'membresias.crear',
     'membresias.renovar',
+    'membresias.congelar',
     'planes.ver',
     'asistencias.ver',
     'validacion.usar',
@@ -114,6 +132,122 @@ async function asegurarColumnasPlanes() {
              ADD COLUMN color_precio varchar(7) DEFAULT NULL`
         );
     }
+}
+
+async function asegurarPermisosBase() {
+    try {
+        for (const permiso of PERMISOS_BASE) {
+            await pool.query(
+                `INSERT IGNORE INTO permisos_admin (codigo, nombre, categoria, descripcion)
+                 VALUES (?, ?, ?, ?)`,
+                [permiso.codigo, permiso.nombre, permiso.categoria, permiso.descripcion]
+            );
+        }
+    } catch (error) {
+        if (!error || (error.code !== 'ER_NO_SUCH_TABLE' && error.code !== 'ER_BAD_FIELD_ERROR')) {
+            throw error;
+        }
+    }
+}
+
+async function asegurarTablasClientePerfil() {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS cliente_eventos (
+            id INT NOT NULL AUTO_INCREMENT,
+            empresa_id INT NOT NULL,
+            cliente_id INT NOT NULL,
+            usuario_id INT NULL,
+            tipo_evento VARCHAR(60) NOT NULL,
+            titulo VARCHAR(160) NOT NULL,
+            descripcion TEXT NULL,
+            metadata TEXT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY idx_cliente_eventos_cliente (empresa_id, cliente_id, created_at),
+            KEY idx_cliente_eventos_tipo (empresa_id, tipo_evento)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS cliente_notas (
+            id INT NOT NULL AUTO_INCREMENT,
+            empresa_id INT NOT NULL,
+            cliente_id INT NOT NULL,
+            usuario_id INT NULL,
+            nota TEXT NOT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT NULL,
+            deleted_at TIMESTAMP NULL DEFAULT NULL,
+            PRIMARY KEY (id),
+            KEY idx_cliente_notas_cliente (empresa_id, cliente_id, deleted_at, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS membresia_congelamientos (
+            id INT NOT NULL AUTO_INCREMENT,
+            empresa_id INT NOT NULL,
+            membresia_id INT NOT NULL,
+            cliente_id INT NOT NULL,
+            usuario_id INT NULL,
+            fecha_inicio DATE NOT NULL,
+            fecha_fin DATE NOT NULL,
+            dias_congelados INT NOT NULL,
+            motivo TEXT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY idx_congelamientos_membresia (empresa_id, membresia_id),
+            KEY idx_congelamientos_cliente (empresa_id, cliente_id, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+}
+
+function metadataEvento(valor) {
+    if (valor === null || valor === undefined) return null;
+    try {
+        return JSON.stringify(valor);
+    } catch (error) {
+        return null;
+    }
+}
+
+async function registrarEventoCliente({
+    empresa_id,
+    cliente_id,
+    usuario_id = null,
+    tipo_evento,
+    titulo,
+    descripcion = null,
+    metadata = null
+}, conn = pool) {
+    try {
+        if (!empresa_id || !cliente_id || !tipo_evento || !titulo) return;
+
+        await conn.query(
+            `INSERT INTO cliente_eventos
+             (empresa_id, cliente_id, usuario_id, tipo_evento, titulo, descripcion, metadata)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                empresa_id,
+                cliente_id,
+                usuario_id,
+                tipo_evento,
+                titulo,
+                descripcion,
+                metadataEvento(metadata)
+            ]
+        );
+    } catch (error) {
+        console.error('Error registrando evento de cliente:', error);
+    }
+}
+
+function adminEvento(req) {
+    return {
+        empresa_id: getEmpresaId(req),
+        usuario_id: req.session && req.session.adminId ? req.session.adminId : null,
+        usuario_nombre: req.session && req.session.adminNombre ? req.session.adminNombre : null
+    };
 }
 const TEMA_EMPRESA_DEFAULT = {
     color_primario: '#7C3AED',
@@ -406,6 +540,28 @@ function requirePermission(codigo) {
             });
         }
     };
+}
+
+function htmlAccesoDenegado() {
+    return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso denegado</title>
+  <link rel="stylesheet" href="/admin/styles/admin.css">
+</head>
+<body class="admin-page">
+  <div class="admin-access-denied-overlay open" style="position:fixed;">
+    <div class="admin-access-denied-modal">
+      <div class="admin-access-denied-icon">!</div>
+      <h2>Acceso denegado</h2>
+      <p>No tienes permisos para acceder a esta sección.</p>
+      <button type="button" onclick="window.location.href='/admin/dashboard.html'">Ir al dashboard</button>
+    </div>
+  </div>
+</body>
+</html>`;
 }
 
 function agruparPermisos(permisos) {
@@ -2407,6 +2563,21 @@ app.get('/admin/:page', requireAdminSession, (req, res, next) => {
         return next();
     }
 
+    const permisoPagina = ADMIN_PAGE_PERMISSIONS[page];
+    if (permisoPagina) {
+        return tienePermiso(req.adminUser, permisoPagina)
+            .then(permitido => {
+                if (!permitido) {
+                    return res.status(403).send(htmlAccesoDenegado());
+                }
+                return res.sendFile(path.join(adminDir, page));
+            })
+            .catch(error => {
+                console.error(error);
+                return res.status(500).send('Error al validar permisos');
+            });
+    }
+
     return res.sendFile(path.join(adminDir, page));
 });
 
@@ -2455,6 +2626,155 @@ app.get('/api/clientes', requirePermission('clientes.ver'), async (req, res) => 
     }
 });
 
+app.get('/api/clientes/:id/perfil', requirePermission('clientes.ver'), async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+        const clienteId = Number(req.params.id);
+
+        if (!clienteId) {
+            return res.status(400).json({ error: 'Cliente no valido' });
+        }
+
+        const [[cliente]] = await pool.query(
+            `SELECT id, nombre, dni, telefono, correo, estado, fecha_registro
+             FROM clientes
+             WHERE id = ? AND empresa_id = ?
+             LIMIT 1`,
+            [clienteId, empresaId]
+        );
+
+        if (!cliente) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        const [membresias] = await pool.query(
+            `SELECT
+                m.id,
+                m.codigo,
+                m.precio_total,
+                m.promocion,
+                m.estado,
+                m.origen,
+                DATE_FORMAT(m.fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+                DATE_FORMAT(m.fecha_fin, '%Y-%m-%d') AS fecha_fin,
+                m.fecha_creacion,
+                COALESCE(m.duracion_unidad, 'meses') AS duracion_unidad,
+                m.usos_totales,
+                m.usos_restantes,
+                m.asistencias_totales,
+                COALESCE(m.asistencias_usadas, 0) AS asistencias_usadas,
+                p.nombre AS plan,
+                DATEDIFF(DATE(m.fecha_fin), CURDATE()) AS dias_restantes
+             FROM membresias m
+             INNER JOIN planes p ON p.id = m.plan_id AND p.empresa_id = m.empresa_id
+             WHERE m.cliente_id = ? AND m.empresa_id = ?
+             ORDER BY (m.estado = 'activa') DESC, m.fecha_fin DESC, m.id DESC`,
+            [clienteId, empresaId]
+        );
+
+        const membresiaActual = membresias.find(m => {
+            const vigente = m.duracion_unidad === 'usos' || Number(m.dias_restantes) >= 0;
+            const tieneUsos = m.asistencias_totales === null || Number(m.asistencias_usadas || 0) < Number(m.asistencias_totales || 0);
+            return m.estado === 'activa' && vigente && tieneUsos;
+        }) || null;
+
+        const [asistencias] = await pool.query(
+            `SELECT
+                a.id,
+                a.codigo_usado,
+                a.estado,
+                a.motivo,
+                a.cuenta_como_uso,
+                a.fecha_hora,
+                m.codigo AS codigo_membresia,
+                p.nombre AS plan
+             FROM asistencias a
+             LEFT JOIN membresias m ON m.id = a.membresia_id AND m.empresa_id = a.empresa_id
+             LEFT JOIN planes p ON p.id = m.plan_id AND p.empresa_id = a.empresa_id
+             WHERE a.cliente_id = ? AND a.empresa_id = ?
+             ORDER BY a.fecha_hora DESC
+             LIMIT 20`,
+            [clienteId, empresaId]
+        );
+
+        const puedeVerNotas = await tienePermiso(req.adminUser, 'clientes.notas.ver');
+        const puedeCrearNotas = await tienePermiso(req.adminUser, 'clientes.notas.crear');
+        const puedeEditarNotas = await tienePermiso(req.adminUser, 'clientes.notas.editar');
+        const puedeEliminarNotas = await tienePermiso(req.adminUser, 'clientes.notas.eliminar');
+        const puedeCongelar = await tienePermiso(req.adminUser, 'membresias.congelar');
+
+        let notas = [];
+        if (puedeVerNotas) {
+            const [notasRows] = await pool.query(
+                `SELECT
+                    n.id,
+                    n.nota,
+                    n.created_at,
+                    n.updated_at,
+                    u.nombre AS autor
+                 FROM cliente_notas n
+                 LEFT JOIN usuarios_admin u ON u.id = n.usuario_id AND u.empresa_id = n.empresa_id
+                 WHERE n.cliente_id = ? AND n.empresa_id = ? AND n.deleted_at IS NULL
+                 ORDER BY n.created_at DESC`,
+                [clienteId, empresaId]
+            );
+            notas = notasRows;
+        }
+
+        const [timeline] = await pool.query(
+            `SELECT
+                e.id,
+                e.tipo_evento,
+                e.titulo,
+                e.descripcion,
+                e.metadata,
+                e.created_at,
+                u.nombre AS usuario
+             FROM cliente_eventos e
+             LEFT JOIN usuarios_admin u ON u.id = e.usuario_id AND u.empresa_id = e.empresa_id
+             WHERE e.cliente_id = ? AND e.empresa_id = ?
+             ORDER BY e.created_at DESC, e.id DESC
+             LIMIT 50`,
+            [clienteId, empresaId]
+        );
+
+        const [congelamientos] = await pool.query(
+            `SELECT
+                id,
+                membresia_id,
+                DATE_FORMAT(fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+                DATE_FORMAT(fecha_fin, '%Y-%m-%d') AS fecha_fin,
+                dias_congelados,
+                motivo,
+                created_at
+             FROM membresia_congelamientos
+             WHERE cliente_id = ? AND empresa_id = ?
+             ORDER BY created_at DESC`,
+            [clienteId, empresaId]
+        );
+
+        return res.json({
+            cliente,
+            membresia_actual: membresiaActual,
+            historial_membresias: membresias,
+            asistencias,
+            notas,
+            timeline,
+            congelamientos,
+            permisos: {
+                notas_ver: puedeVerNotas,
+                notas_crear: puedeCrearNotas,
+                notas_editar: puedeEditarNotas,
+                notas_eliminar: puedeEliminarNotas,
+                membresias_congelar: puedeCongelar
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Error al obtener perfil del cliente' });
+    }
+});
+
 app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) => {
     try {
         const empresaId = getEmpresaId(req);
@@ -2492,8 +2812,21 @@ app.post('/api/clientes', requirePermission('clientes.crear'), async (req, res) 
             ...adminNotificacion(req)
         });
 
+        await registrarEventoCliente({
+            ...adminEvento(req),
+            cliente_id: result.insertId,
+            tipo_evento: 'cliente_creado',
+            titulo: 'Cliente registrado',
+            descripcion: `Se registro el cliente ${nombre}.`,
+            metadata: { dni, telefono, correo }
+        });
+
         res.json({
             id: result.insertId,
+            nombre,
+            dni,
+            telefono,
+            correo,
             creado: true
         });
 
@@ -2549,6 +2882,15 @@ app.put('/api/clientes/:id', requirePermission('clientes.editar'), async (req, r
             });
         }
 
+        await registrarEventoCliente({
+            ...adminEvento(req),
+            cliente_id: id,
+            tipo_evento: 'cliente_actualizado',
+            titulo: 'Datos actualizados',
+            descripcion: `Se actualizaron los datos de ${nombre}.`,
+            metadata: { dni, telefono, correo }
+        });
+
         res.json({
             mensaje: 'Cliente actualizado correctamente'
         });
@@ -2558,6 +2900,122 @@ app.put('/api/clientes/:id', requirePermission('clientes.editar'), async (req, r
         res.status(500).json({
             error: 'Error al actualizar cliente'
         });
+    }
+});
+
+app.post('/api/clientes/:id/notas', requirePermission('clientes.notas.crear'), async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+        const clienteId = Number(req.params.id);
+        const nota = limpiarTexto(req.body.nota);
+
+        if (!clienteId || !nota) {
+            return res.status(400).json({ error: 'La nota es obligatoria' });
+        }
+
+        const [[cliente]] = await pool.query(
+            `SELECT id, nombre FROM clientes WHERE id = ? AND empresa_id = ? LIMIT 1`,
+            [clienteId, empresaId]
+        );
+
+        if (!cliente) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        const [result] = await pool.query(
+            `INSERT INTO cliente_notas (empresa_id, cliente_id, usuario_id, nota)
+             VALUES (?, ?, ?, ?)`,
+            [empresaId, clienteId, req.session.adminId || null, nota]
+        );
+
+        await registrarEventoCliente({
+            ...adminEvento(req),
+            cliente_id: clienteId,
+            tipo_evento: 'nota_creada',
+            titulo: 'Nota interna agregada',
+            descripcion: `Se agrego una nota interna para ${cliente.nombre}.`,
+            metadata: { nota_id: result.insertId }
+        });
+
+        return res.json({ id: result.insertId, mensaje: 'Nota agregada correctamente' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Error al agregar nota' });
+    }
+});
+
+app.put('/api/clientes/:id/notas/:notaId', requirePermission('clientes.notas.editar'), async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+        const clienteId = Number(req.params.id);
+        const notaId = Number(req.params.notaId);
+        const nota = limpiarTexto(req.body.nota);
+
+        if (!clienteId || !notaId || !nota) {
+            return res.status(400).json({ error: 'La nota es obligatoria' });
+        }
+
+        const [result] = await pool.query(
+            `UPDATE cliente_notas
+             SET nota = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE id = ? AND cliente_id = ? AND empresa_id = ? AND deleted_at IS NULL`,
+            [nota, notaId, clienteId, empresaId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Nota no encontrada' });
+        }
+
+        await registrarEventoCliente({
+            ...adminEvento(req),
+            cliente_id: clienteId,
+            tipo_evento: 'nota_actualizada',
+            titulo: 'Nota interna editada',
+            descripcion: 'Se edito una nota interna del cliente.',
+            metadata: { nota_id: notaId }
+        });
+
+        return res.json({ mensaje: 'Nota actualizada correctamente' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Error al actualizar nota' });
+    }
+});
+
+app.delete('/api/clientes/:id/notas/:notaId', requirePermission('clientes.notas.eliminar'), async (req, res) => {
+    try {
+        const empresaId = getEmpresaId(req);
+        const clienteId = Number(req.params.id);
+        const notaId = Number(req.params.notaId);
+
+        if (!clienteId || !notaId) {
+            return res.status(400).json({ error: 'Nota no valida' });
+        }
+
+        const [result] = await pool.query(
+            `UPDATE cliente_notas
+             SET deleted_at = CURRENT_TIMESTAMP
+             WHERE id = ? AND cliente_id = ? AND empresa_id = ? AND deleted_at IS NULL`,
+            [notaId, clienteId, empresaId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Nota no encontrada' });
+        }
+
+        await registrarEventoCliente({
+            ...adminEvento(req),
+            cliente_id: clienteId,
+            tipo_evento: 'nota_eliminada',
+            titulo: 'Nota interna eliminada',
+            descripcion: 'Se elimino una nota interna del cliente.',
+            metadata: { nota_id: notaId }
+        });
+
+        return res.json({ mensaje: 'Nota eliminada correctamente' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Error al eliminar nota' });
     }
 });
 
@@ -2706,6 +3164,16 @@ function sumarDiasISO(fechaISO, dias) {
     const fecha = new Date(`${fechaISO}T00:00:00-05:00`);
     fecha.setUTCDate(fecha.getUTCDate() + dias);
     return fecha.toISOString().slice(0, 10);
+}
+
+function diasInclusivos(fechaInicio, fechaFin) {
+    const inicio = new Date(`${fechaInicio}T00:00:00-05:00`);
+    const fin = new Date(`${fechaFin}T00:00:00-05:00`);
+
+    if (Number.isNaN(inicio.getTime()) || Number.isNaN(fin.getTime())) return 0;
+
+    const diferencia = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24));
+    return diferencia >= 0 ? diferencia + 1 : 0;
 }
 
 function fechaSoloISO(valor) {
@@ -3141,6 +3609,18 @@ async function validarMembresiaYRegistrar(membresia, empresaId) {
                 entidad_id: membresia.membresia_id,
                 evento_key: null
             }, conn);
+
+            await registrarEventoCliente({
+                empresa_id: empresaId,
+                cliente_id: membresia.cliente_id,
+                tipo_evento: 'asistencia_registrada',
+                titulo: 'Ingreso registrado',
+                descripcion: `${membresia.cliente} ingreso correctamente con el plan ${membresia.plan}.`,
+                metadata: {
+                    membresia_id: membresia.membresia_id,
+                    codigo: membresia.codigo
+                }
+            }, conn);
         }
 
         await conn.commit();
@@ -3396,6 +3876,15 @@ WHERE id = ? AND empresa_id = ?`,
         });
     }
 
+    await registrarEventoCliente({
+        ...adminEvento(req),
+        cliente_id,
+        tipo_evento: 'membresia_renovada',
+        titulo: 'Membresia renovada',
+        descripcion: `Se asigno el plan ${plan.nombre} al cliente.`,
+        metadata: { membresia_id: membresia.id, plan_id, codigo }
+    });
+
     return res.json({
         id: membresia.id,
         codigo,
@@ -3444,6 +3933,15 @@ WHERE id = ? AND empresa_id = ?`,
             });
         }
 
+        await registrarEventoCliente({
+            ...adminEvento(req),
+            cliente_id,
+            tipo_evento: 'membresia_creada',
+            titulo: 'Membresia asignada',
+            descripcion: `Se asigno el plan ${plan.nombre} al cliente.`,
+            metadata: { membresia_id: result.insertId, plan_id, codigo }
+        });
+
         res.json({
             id: result.insertId,
             codigo
@@ -3454,6 +3952,122 @@ WHERE id = ? AND empresa_id = ?`,
         res.status(500).json({
             error: 'Error al crear membresía'
         });
+    }
+});
+
+app.post('/api/membresias/:id/congelar', requirePermission('membresias.congelar'), async (req, res) => {
+    const conn = await pool.getConnection();
+
+    try {
+        const empresaId = getEmpresaId(req);
+        const membresiaId = Number(req.params.id);
+        const fechaInicio = fechaSoloISO(req.body.fecha_inicio);
+        const fechaFin = fechaSoloISO(req.body.fecha_fin);
+        const motivo = limpiarTexto(req.body.motivo);
+        const dias = diasInclusivos(fechaInicio, fechaFin);
+
+        if (!membresiaId || !fechaInicio || !fechaFin || dias <= 0) {
+            return res.status(400).json({ error: 'Selecciona un rango valido para congelar la membresia.' });
+        }
+
+        await conn.beginTransaction();
+
+        const [[membresia]] = await conn.query(
+            `SELECT
+                m.id,
+                m.cliente_id,
+                m.codigo,
+                m.estado,
+                DATE_FORMAT(m.fecha_fin, '%Y-%m-%d') AS fecha_fin,
+                COALESCE(m.duracion_unidad, 'meses') AS duracion_unidad,
+                c.nombre AS cliente,
+                p.nombre AS plan
+             FROM membresias m
+             INNER JOIN clientes c ON c.id = m.cliente_id AND c.empresa_id = m.empresa_id
+             INNER JOIN planes p ON p.id = m.plan_id AND p.empresa_id = m.empresa_id
+             WHERE m.id = ? AND m.empresa_id = ?
+             FOR UPDATE`,
+            [membresiaId, empresaId]
+        );
+
+        if (!membresia) {
+            await conn.rollback();
+            return res.status(404).json({ error: 'Membresia no encontrada' });
+        }
+
+        if (membresia.estado !== 'activa' || (membresia.duracion_unidad !== 'usos' && membresia.fecha_fin < fechaPeruISO())) {
+            await conn.rollback();
+            return res.status(409).json({ error: 'Solo se pueden congelar membresias activas.' });
+        }
+
+        const [[duplicado]] = await conn.query(
+            `SELECT id
+             FROM membresia_congelamientos
+             WHERE membresia_id = ? AND empresa_id = ?
+             AND NOT (fecha_fin < ? OR fecha_inicio > ?)
+             LIMIT 1`,
+            [membresiaId, empresaId, fechaInicio, fechaFin]
+        );
+
+        if (duplicado) {
+            await conn.rollback();
+            return res.status(409).json({ error: 'Ya existe un congelamiento registrado en ese rango.' });
+        }
+
+        const nuevaFechaFin = sumarDiasISO(membresia.fecha_fin, dias);
+
+        const [result] = await conn.query(
+            `INSERT INTO membresia_congelamientos
+             (empresa_id, membresia_id, cliente_id, usuario_id, fecha_inicio, fecha_fin, dias_congelados, motivo)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                empresaId,
+                membresiaId,
+                membresia.cliente_id,
+                req.session.adminId || null,
+                fechaInicio,
+                fechaFin,
+                dias,
+                motivo || null
+            ]
+        );
+
+        await conn.query(
+            `UPDATE membresias
+             SET fecha_fin = ?
+             WHERE id = ? AND empresa_id = ?`,
+            [nuevaFechaFin, membresiaId, empresaId]
+        );
+
+        await registrarEventoCliente({
+            ...adminEvento(req),
+            cliente_id: membresia.cliente_id,
+            tipo_evento: 'membresia_congelada',
+            titulo: 'Membresia congelada',
+            descripcion: `Se congelo la membresia por ${dias} dias.${motivo ? ` Motivo: ${motivo}.` : ''}`,
+            metadata: {
+                membresia_id: membresiaId,
+                congelamiento_id: result.insertId,
+                fecha_inicio: fechaInicio,
+                fecha_fin: fechaFin,
+                dias_congelados: dias,
+                nueva_fecha_fin: nuevaFechaFin
+            }
+        }, conn);
+
+        await conn.commit();
+
+        return res.json({
+            mensaje: 'Membresia congelada correctamente',
+            dias_congelados: dias,
+            nueva_fecha_fin: nuevaFechaFin
+        });
+    } catch (error) {
+        await conn.rollback();
+        console.error(error);
+        return res.status(500).json({ error: 'Error al congelar membresia' });
+    } finally {
+        conn.release();
     }
 });
 
@@ -4978,8 +5592,10 @@ const PORT = process.env.PORT || 3000;
 async function iniciarServidor() {
     try {
         await asegurarColumnasPlanes();
+        await asegurarTablasClientePerfil();
+        await asegurarPermisosBase();
     } catch (error) {
-        console.error('Error verificando columnas de planes:', error);
+        console.error('Error verificando estructura inicial:', error);
     }
 
     app.listen(PORT, '0.0.0.0', () => {

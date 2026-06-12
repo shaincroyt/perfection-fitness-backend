@@ -288,6 +288,102 @@
   </div>
 </div>
 
+<div class="modal-overlay client-profile-overlay" id="clientProfileModal">
+  <div class="modal client-profile-modal">
+    <div class="client-profile-head">
+      <div class="client-profile-avatar" id="profileAvatar">--</div>
+      <div>
+        <div class="client-profile-kicker">Cliente</div>
+        <div class="client-profile-name" id="profileName">Cargando...</div>
+        <div class="client-profile-meta" id="profileMeta"></div>
+      </div>
+      <button class="modal-close" onclick="cerrarPerfilCliente()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="client-profile-tabs">
+      <button class="client-profile-tab active" data-profile-tab="resumen" onclick="cambiarTabPerfil('resumen')">Resumen</button>
+      <button class="client-profile-tab" data-profile-tab="membresias" onclick="cambiarTabPerfil('membresias')">Membresías</button>
+      <button class="client-profile-tab" data-profile-tab="asistencias" onclick="cambiarTabPerfil('asistencias')">Asistencias</button>
+      <button class="client-profile-tab" data-profile-tab="timeline" onclick="cambiarTabPerfil('timeline')">Timeline</button>
+      <button class="client-profile-tab" data-profile-tab="notas" onclick="cambiarTabPerfil('notas')" data-permission="clientes.notas.ver">Notas</button>
+    </div>
+
+    <div class="modal-body client-profile-body" id="clientProfileBody">
+      <div class="profile-panel active" data-profile-panel="resumen">
+        <div id="profileSummary"></div>
+      </div>
+      <div class="profile-panel" data-profile-panel="membresias">
+        <div id="profileMemberships"></div>
+      </div>
+      <div class="profile-panel" data-profile-panel="asistencias">
+        <div id="profileAttendances"></div>
+      </div>
+      <div class="profile-panel" data-profile-panel="timeline">
+        <div id="profileTimeline"></div>
+      </div>
+      <div class="profile-panel" data-profile-panel="notas">
+        <div class="profile-note-editor" id="profileNoteEditor" data-permission="clientes.notas.crear">
+          <textarea class="form-input" id="profileNoteInput" rows="3" placeholder="Agregar una nota interna..."></textarea>
+          <button class="btn btn-primary" id="profileNoteSaveBtn" onclick="guardarNotaPerfil()">Agregar nota</button>
+        </div>
+        <div id="profileNotes"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="freezeMembershipModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title">Congelar Membresía</span>
+      <button class="modal-close" onclick="cerrarModalCongelarMembresia()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Inicio</label>
+          <input type="date" class="form-input" id="freezeStart">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fin</label>
+          <input type="date" class="form-input" id="freezeEnd">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Motivo</label>
+          <textarea class="form-input" id="freezeReason" rows="3" placeholder="Ej. Viaje, lesión, descanso médico..."></textarea>
+        </div>
+      </div>
+      <p class="profile-modal-error" id="freezeError"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cerrarModalCongelarMembresia()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarCongelarMembresia()">Confirmar congelamiento</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="clientCreatedModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title">Cliente registrado</span>
+      <button class="modal-close" onclick="cerrarModalClienteCreado()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="client-created-text">Cliente registrado correctamente. ¿Deseas darle una membresía?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cerrarModalClienteCreado()">No</button>
+      <button class="btn btn-primary" onclick="irAMembresiaClienteCreado()">Sí, darle membresía</button>
+    </div>
+  </div>
+</div>
+
 <script>
 
   const API_URL = '/api/clientes';
@@ -360,6 +456,11 @@
   let clienteAEliminar = null;
   let nombreClienteEliminar = '';
   let clienteEditando = null;
+  let perfilClienteActual = null;
+  let perfilDataActual = null;
+  let membresiaACongelar = null;
+  let clienteCreadoReciente = null;
+  let notaPerfilEditando = null;
 
   function mostrarError(titulo, mensaje) {
     if (window.AdminAuth?.showError) {
@@ -437,6 +538,7 @@
   }
 
   try {
+    const estabaEditando = Boolean(clienteEditando);
     const url = clienteEditando
   ? `${API_URL}/${clienteEditando}`
   : API_URL;
@@ -465,6 +567,17 @@ const res = await fetch(url, {
     await cargarClientes();
 
     inputs.forEach(input => input.value = '');
+
+    if (!estabaEditando && data.id) {
+      clienteCreadoReciente = {
+        id: data.id,
+        nombre: data.nombre || nombre,
+        dni: data.dni || dni,
+        telefono: data.telefono || telefono,
+        correo: data.correo || correo
+      };
+      document.getElementById('clientCreatedModal').classList.add('open');
+    }
 
   } catch (error) {
     console.error(error);
@@ -580,6 +693,308 @@ if (badge) {
     return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
   }
 
+  function formatDateTime(value) {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value).slice(0, 16);
+    return date.toLocaleString('es-PE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function emptyProfileState(texto) {
+    return `<div class="profile-empty">${texto}</div>`;
+  }
+
+  function cambiarTabPerfil(tab) {
+    document.querySelectorAll('.client-profile-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.profileTab === tab);
+    });
+    document.querySelectorAll('.profile-panel').forEach(panel => {
+      panel.classList.toggle('active', panel.dataset.profilePanel === tab);
+    });
+  }
+
+  async function abrirPerfilCliente(id) {
+    perfilClienteActual = id;
+    perfilDataActual = null;
+    notaPerfilEditando = null;
+    document.getElementById('profileAvatar').textContent = '--';
+    document.getElementById('profileName').textContent = 'Cargando...';
+    document.getElementById('profileMeta').textContent = '';
+    document.getElementById('profileSummary').innerHTML = emptyProfileState('Cargando perfil...');
+    document.getElementById('profileMemberships').innerHTML = '';
+    document.getElementById('profileAttendances').innerHTML = '';
+    document.getElementById('profileTimeline').innerHTML = '';
+    document.getElementById('profileNotes').innerHTML = '';
+    cambiarTabPerfil('resumen');
+    document.getElementById('clientProfileModal').classList.add('open');
+
+    try {
+      const res = await fetch(`${API_URL}/${id}/perfil`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No se pudo cargar el perfil');
+      perfilDataActual = data;
+      renderPerfilCliente(data);
+    } catch (error) {
+      console.error(error);
+      document.getElementById('profileSummary').innerHTML = emptyProfileState(error.message || 'No se pudo cargar el perfil.');
+    }
+  }
+
+  function cerrarPerfilCliente() {
+    document.getElementById('clientProfileModal').classList.remove('open');
+    perfilClienteActual = null;
+    perfilDataActual = null;
+    notaPerfilEditando = null;
+  }
+
+  function renderPerfilCliente(data) {
+    const cliente = data.cliente || {};
+    const membresia = data.membresia_actual;
+    document.getElementById('profileAvatar').textContent = initials(cliente.nombre || 'CL');
+    document.getElementById('profileName').textContent = cliente.nombre || 'Cliente';
+    document.getElementById('profileMeta').textContent =
+      `DNI ${cliente.dni || '-'} · ${cliente.telefono || '-'} · ${cliente.correo || '-'}`;
+
+    const usos = membresia
+      ? (membresia.asistencias_totales === null || membresia.asistencias_totales === undefined
+        ? 'Ilimitados'
+        : `${Math.max(Number(membresia.asistencias_totales || 0) - Number(membresia.asistencias_usadas || 0), 0)} disponibles`)
+      : '-';
+
+    document.getElementById('profileSummary').innerHTML = `
+      <div class="profile-section-title">Estado actual</div>
+      <div class="profile-current-card">
+        ${membresia ? `
+          <div class="profile-status-line">
+            <span class="badge activa"><span class="badge-dot"></span>Membresía activa</span>
+            <button class="btn btn-outline btn-sm" onclick="abrirModalCongelarMembresia(${membresia.id})" data-permission="membresias.congelar">Congelar membresía</button>
+          </div>
+          <div class="profile-info-grid">
+            <div><span>Plan</span><strong>${membresia.plan || '-'}</strong></div>
+            <div><span>Inicio</span><strong>${formatDate(membresia.fecha_inicio)}</strong></div>
+            <div><span>Vence</span><strong>${formatDate(membresia.fecha_fin)}</strong></div>
+            <div><span>Código</span><strong>${membresia.codigo || '-'}</strong></div>
+            <div><span>Usos</span><strong>${usos}</strong></div>
+            <div><span>Estado</span><strong>${normalizarEstado(membresia.estado)}</strong></div>
+          </div>
+        ` : emptyProfileState('Este cliente no tiene una membresía activa.')}
+      </div>
+      <div class="profile-section-title">Datos principales</div>
+      <div class="profile-info-grid">
+        <div><span>Nombre</span><strong>${cliente.nombre || '-'}</strong></div>
+        <div><span>DNI</span><strong>${cliente.dni || '-'}</strong></div>
+        <div><span>Teléfono</span><strong>${cliente.telefono || '-'}</strong></div>
+        <div><span>Correo</span><strong>${cliente.correo || '-'}</strong></div>
+        <div><span>Estado</span><strong>${normalizarEstado(cliente.estado)}</strong></div>
+        <div><span>Registro</span><strong>${formatDateTime(cliente.fecha_registro)}</strong></div>
+      </div>
+    `;
+
+    renderPerfilMembresias(data.historial_membresias || []);
+    renderPerfilAsistencias(data.asistencias || []);
+    renderPerfilTimeline(data.timeline || []);
+    renderPerfilNotas(data.notas || [], data.permisos || {});
+    window.AdminAuth?.applyPermissions?.(document.getElementById('clientProfileModal'));
+  }
+
+  function renderPerfilMembresias(items) {
+    document.getElementById('profileMemberships').innerHTML = items.length ? `
+      <div class="profile-list">
+        ${items.map(m => `
+          <div class="profile-list-item">
+            <div>
+              <strong>${m.plan || '-'}</strong>
+              <span>${formatDate(m.fecha_inicio)} - ${formatDate(m.fecha_fin)}</span>
+            </div>
+            <div class="profile-list-side">
+              <span class="badge ${badgeClass(normalizarEstado(m.estado))}"><span class="badge-dot"></span>${normalizarEstado(m.estado)}</span>
+              <span>S/ ${Number(m.precio_total || 0).toFixed(2)}</span>
+              ${m.promocion ? `<span>${m.promocion}</span>` : ''}
+              <span>${m.origen || 'presencial'}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : emptyProfileState('No hay historial de membresías.');
+  }
+
+  function renderPerfilAsistencias(items) {
+    document.getElementById('profileAttendances').innerHTML = items.length ? `
+      <div class="profile-list">
+        ${items.map(a => `
+          <div class="profile-list-item">
+            <div>
+              <strong>${formatDateTime(a.fecha_hora)}</strong>
+              <span>${a.plan || 'Sin plan'} · ${a.codigo_usado || '-'}</span>
+            </div>
+            <div class="profile-list-side">
+              <span>${normalizarEstado(a.estado)}</span>
+              <span>${a.motivo || '-'}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : emptyProfileState('No hay asistencias registradas.');
+  }
+
+  function renderPerfilTimeline(items) {
+    document.getElementById('profileTimeline').innerHTML = items.length ? `
+      <div class="profile-timeline">
+        ${items.map(e => `
+          <div class="profile-timeline-item">
+            <div class="profile-timeline-dot"></div>
+            <div>
+              <strong>${e.titulo}</strong>
+              <p>${e.descripcion || ''}</p>
+              <span>${formatDateTime(e.created_at)}${e.usuario ? ` · ${e.usuario}` : ''}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : emptyProfileState('El timeline todavía no tiene eventos.');
+  }
+
+  function renderPerfilNotas(items, permisos) {
+    const editor = document.getElementById('profileNoteEditor');
+    if (editor) editor.hidden = !permisos.notas_crear;
+
+    document.getElementById('profileNotes').innerHTML = items.length ? `
+      <div class="profile-notes-list">
+        ${items.map(n => `
+          <div class="profile-note-item">
+            <p>${n.nota}</p>
+            <span>${n.autor || 'Sin autor'} · ${formatDateTime(n.created_at)}</span>
+            <div class="profile-note-actions">
+              ${permisos.notas_editar ? `<button class="btn btn-outline btn-sm" onclick="prepararEditarNota(${n.id})">Editar</button>` : ''}
+              ${permisos.notas_eliminar ? `<button class="btn btn-danger btn-sm" onclick="eliminarNotaPerfil(${n.id})">Eliminar</button>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : emptyProfileState('No hay notas internas.');
+  }
+
+  async function recargarPerfilCliente() {
+    if (!perfilClienteActual) return;
+    const res = await fetch(`${API_URL}/${perfilClienteActual}/perfil`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'No se pudo actualizar el perfil');
+    perfilDataActual = data;
+    renderPerfilCliente(data);
+  }
+
+  async function guardarNotaPerfil() {
+    if (!perfilClienteActual) return;
+    const input = document.getElementById('profileNoteInput');
+    const nota = input.value.trim();
+    if (!nota) return;
+
+    const url = notaPerfilEditando
+      ? `${API_URL}/${perfilClienteActual}/notas/${notaPerfilEditando}`
+      : `${API_URL}/${perfilClienteActual}/notas`;
+    const method = notaPerfilEditando ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nota })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No se pudo guardar la nota');
+      input.value = '';
+      notaPerfilEditando = null;
+      document.getElementById('profileNoteSaveBtn').textContent = 'Agregar nota';
+      await recargarPerfilCliente();
+      cambiarTabPerfil('notas');
+    } catch (error) {
+      mostrarError('Error al guardar nota', error.message || 'No se pudo guardar la nota.');
+    }
+  }
+
+  function prepararEditarNota(id) {
+    const nota = (perfilDataActual?.notas || []).find(item => item.id === id);
+    if (!nota) return;
+    notaPerfilEditando = id;
+    document.getElementById('profileNoteInput').value = nota.nota;
+    document.getElementById('profileNoteSaveBtn').textContent = 'Guardar cambios';
+    cambiarTabPerfil('notas');
+  }
+
+  async function eliminarNotaPerfil(id) {
+    if (!perfilClienteActual) return;
+    if (!confirm('¿Eliminar esta nota interna?')) return;
+
+    try {
+      const res = await fetch(`${API_URL}/${perfilClienteActual}/notas/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No se pudo eliminar la nota');
+      await recargarPerfilCliente();
+      cambiarTabPerfil('notas');
+    } catch (error) {
+      mostrarError('Error al eliminar nota', error.message || 'No se pudo eliminar la nota.');
+    }
+  }
+
+  function abrirModalCongelarMembresia(id) {
+    membresiaACongelar = id;
+    document.getElementById('freezeStart').value = '';
+    document.getElementById('freezeEnd').value = '';
+    document.getElementById('freezeReason').value = '';
+    document.getElementById('freezeError').textContent = '';
+    document.getElementById('freezeMembershipModal').classList.add('open');
+  }
+
+  function cerrarModalCongelarMembresia() {
+    membresiaACongelar = null;
+    document.getElementById('freezeMembershipModal').classList.remove('open');
+  }
+
+  async function confirmarCongelarMembresia() {
+    if (!membresiaACongelar) return;
+    const fecha_inicio = document.getElementById('freezeStart').value;
+    const fecha_fin = document.getElementById('freezeEnd').value;
+    const motivo = document.getElementById('freezeReason').value.trim();
+    const errorEl = document.getElementById('freezeError');
+    errorEl.textContent = '';
+
+    if (!fecha_inicio || !fecha_fin || fecha_inicio > fecha_fin) {
+      errorEl.textContent = 'Selecciona un rango de fechas válido.';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/membresias/${membresiaACongelar}/congelar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fecha_inicio, fecha_fin, motivo })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No se pudo congelar la membresía');
+      cerrarModalCongelarMembresia();
+      await recargarPerfilCliente();
+      cambiarTabPerfil('resumen');
+      await cargarClientes();
+    } catch (error) {
+      errorEl.textContent = error.message || 'No se pudo congelar la membresía.';
+    }
+  }
+
+  function cerrarModalClienteCreado() {
+    document.getElementById('clientCreatedModal').classList.remove('open');
+  }
+
+  function irAMembresiaClienteCreado() {
+    if (!clienteCreadoReciente) return cerrarModalClienteCreado();
+    window.location.href = `nueva-membresia.html?cliente_id=${clienteCreadoReciente.id}`;
+  }
+
   function render() {
     const tbody = document.getElementById('tableBody');
     const empty = document.getElementById('emptyState');
@@ -611,7 +1026,13 @@ if (badge) {
           <td>
   <div class="actions-cell">
 
-    
+    <button
+      class="icon-btn"
+      title="Ver perfil"
+      data-permission="clientes.ver"
+      onclick="abrirPerfilCliente(${c.id})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 4.5-6 8-6s6.2 2 8 6"/></svg>
+    </button>
 
     <button
       class="icon-btn"
@@ -781,6 +1202,15 @@ function editarCliente(id) {
 
   document.getElementById('modalOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
+  });
+  document.getElementById('clientProfileModal').addEventListener('click', function(e) {
+    if (e.target === this) cerrarPerfilCliente();
+  });
+  document.getElementById('freezeMembershipModal').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalCongelarMembresia();
+  });
+  document.getElementById('clientCreatedModal').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalClienteCreado();
   });
 
   function desactivarCliente(id) {

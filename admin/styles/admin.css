@@ -15873,4 +15873,286 @@ body.admin-page-configuracion #roleModal .role-modal-perms-grid {
 .clients-toolbar{
   background: none !important;
 }
+
+body.admin-page-clientes .client-profile-modal {
+  width: min(940px, calc(100vw - 28px));
+  max-width: 940px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body.admin-page-clientes .client-profile-head {
+  padding: 22px 28px 18px;
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+body.admin-page-clientes .client-profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: var(--theme-primary, var(--red));
+  color: #fff;
+  font-weight: 900;
+  font-size: 20px;
+}
+
+body.admin-page-clientes .client-profile-kicker {
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+body.admin-page-clientes .client-profile-name {
+  color: var(--text-1);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+body.admin-page-clientes .client-profile-meta {
+  color: var(--text-3);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+body.admin-page-clientes .client-profile-tabs {
+  padding: 12px 28px 0;
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+body.admin-page-clientes .client-profile-tab {
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  padding: 10px 12px;
+  font-weight: 800;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+body.admin-page-clientes .client-profile-tab.active {
+  color: var(--theme-primary, var(--red));
+  border-bottom-color: var(--theme-primary, var(--red));
+}
+
+body.admin-page-clientes .client-profile-body {
+  overflow-y: auto;
+}
+
+body.admin-page-clientes .profile-panel {
+  display: none;
+}
+
+body.admin-page-clientes .profile-panel.active {
+  display: block;
+}
+
+body.admin-page-clientes .profile-section-title {
+  margin: 4px 0 12px;
+  color: var(--text-1);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+body.admin-page-clientes .profile-current-card,
+body.admin-page-clientes .profile-info-grid,
+body.admin-page-clientes .profile-list-item,
+body.admin-page-clientes .profile-note-item {
+  border: 1px solid var(--border);
+  background: var(--bg-card, var(--surface));
+  border-radius: 10px;
+}
+
+body.admin-page-clientes .profile-current-card {
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+body.admin-page-clientes .profile-status-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+body.admin-page-clientes .profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+}
+
+body.admin-page-clientes .profile-info-grid > div {
+  padding: 14px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+body.admin-page-clientes .profile-info-grid > div:nth-child(3n) {
+  border-right: 0;
+}
+
+body.admin-page-clientes .profile-info-grid span,
+body.admin-page-clientes .profile-list-item span,
+body.admin-page-clientes .profile-timeline-item span,
+body.admin-page-clientes .profile-note-item span {
+  display: block;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+body.admin-page-clientes .profile-info-grid strong,
+body.admin-page-clientes .profile-list-item strong,
+body.admin-page-clientes .profile-timeline-item strong {
+  color: var(--text-1);
+  font-size: 14px;
+}
+
+body.admin-page-clientes .profile-list {
+  display: grid;
+  gap: 10px;
+}
+
+body.admin-page-clientes .profile-list-item {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+}
+
+body.admin-page-clientes .profile-list-side {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+body.admin-page-clientes .profile-timeline {
+  display: grid;
+  gap: 0;
+}
+
+body.admin-page-clientes .profile-timeline-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 12px;
+  padding: 0 0 18px;
+}
+
+body.admin-page-clientes .profile-timeline-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--theme-primary, var(--red));
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--theme-primary, var(--red)) 14%, transparent);
+}
+
+body.admin-page-clientes .profile-timeline-item p,
+body.admin-page-clientes .profile-note-item p {
+  color: var(--text-2);
+  margin: 3px 0 5px;
+  line-height: 1.45;
+}
+
+body.admin-page-clientes .profile-note-editor {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+body.admin-page-clientes .profile-notes-list {
+  display: grid;
+  gap: 10px;
+}
+
+body.admin-page-clientes .profile-note-item {
+  padding: 14px;
+}
+
+body.admin-page-clientes .profile-note-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+body.admin-page-clientes .profile-empty {
+  padding: 22px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+body.admin-page-clientes .profile-modal-error {
+  min-height: 18px;
+  margin-top: 10px;
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+body.admin-page-clientes .client-created-text {
+  color: var(--text-2);
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  body.admin-page-clientes .client-profile-head {
+    grid-template-columns: 48px 1fr auto;
+    padding: 18px;
+  }
+
+  body.admin-page-clientes .client-profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  body.admin-page-clientes .client-profile-name {
+    font-size: 20px;
+  }
+
+  body.admin-page-clientes .client-profile-tabs {
+    padding: 10px 18px 0;
+  }
+
+  body.admin-page-clientes .profile-info-grid,
+  body.admin-page-clientes .profile-list-item {
+    grid-template-columns: 1fr;
+  }
+
+  body.admin-page-clientes .profile-info-grid > div,
+  body.admin-page-clientes .profile-info-grid > div:nth-child(3n) {
+    border-right: 0;
+  }
+
+  body.admin-page-clientes .profile-list-side {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  body.admin-page-clientes .profile-status-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
 /* Fin de admin.css */

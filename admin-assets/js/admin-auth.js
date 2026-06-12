@@ -12,6 +12,16 @@
 
   const pageName = window.location.pathname.split('/').pop();
   const isProtectedPage = protectedPages.has(pageName);
+  const pagePermissions = {
+    'dashboard.html': 'dashboard.ver',
+    'clientes.html': 'clientes.ver',
+    'membresias.html': 'membresias.ver',
+    'nueva-membresia.html': 'membresias.crear',
+    'validar.html': 'validacion.usar',
+    'asistencias.html': 'asistencias.ver',
+    'planes.html': 'planes.ver',
+    'configuracion.html': 'configuracion.ver'
+  };
 
   if (!isProtectedPage) return;
 
@@ -116,9 +126,24 @@
       el.hidden = !allowed(required);
     });
 
+    root.querySelectorAll('.nav-item').forEach(item => {
+      const click = item.getAttribute('onclick') || '';
+      const match = click.match(/['"]([^'"]+\.html)['"]/);
+      const targetPage = match ? match[1].split('/').pop() : '';
+      const required = pagePermissions[targetPage];
+      if (required) item.hidden = !allowed(required);
+    });
+
     const notificationWrap = root.querySelector('#notificationWrap');
     if (notificationWrap) {
       notificationWrap.hidden = !allowed('notificaciones.ver');
+    }
+  }
+
+  function enforceCurrentPagePermission() {
+    const required = pagePermissions[pageName];
+    if (required && !permissions.has(required)) {
+      showAccessDenied('No tienes permisos para acceder a esta seccion.');
     }
   }
 
@@ -146,6 +171,7 @@
       sessionData = data.admin || data;
       permissions = new Set(sessionData.permisos || data.permisos || []);
       applyPermissions();
+      enforceCurrentPagePermission();
       return sessionData;
     } catch (error) {
       redirectToLogin();
