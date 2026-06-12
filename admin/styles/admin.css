@@ -13851,7 +13851,7 @@ body.admin-page-clientes #clientsTable td {
   padding: 12px 10px;
   font-size: 13px;
   line-height: 1.25;
-  
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 
