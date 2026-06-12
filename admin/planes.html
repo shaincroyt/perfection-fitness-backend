@@ -275,12 +275,38 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalBorrarPlan">
+  <div class="modal modal-confirm-plan">
+    <div class="modal-header">
+      <span class="modal-title">Borrar Plan</span>
+      <button class="modal-close" onclick="cerrarModalBorrarPlan()">✕</button>
+    </div>
+
+    <div class="modal-body modal-confirm-body">
+      <div class="modal-confirm-icon">!</div>
+      <p class="modal-confirm-text" id="modalBorrarPlanTexto">
+        ¿Seguro que deseas borrar este plan?
+      </p>
+      <p class="modal-confirm-help">
+        Esta acción no se puede deshacer.
+      </p>
+      <p class="modal-confirm-error" id="modalBorrarPlanError"></p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cerrarModalBorrarPlan()">Cancelar</button>
+      <button class="btn btn-danger" id="confirmBorrarPlanBtn" onclick="confirmarBorrarPlan()">Borrar Plan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API_URL = '/api';
 
 let planes = [];
 let planEditando = null;
 let planADesactivar = null;
+let planABorrar = null;
 const PLAN_PRICE_COLOR_DEFAULT = '#DD0F0D';
 
 const now = new Date();
@@ -507,34 +533,59 @@ async function guardarPlan() {
   await cargarPlanes();
 }
 
-async function borrarPlanEditando() {
+function borrarPlanEditando() {
   if (!planEditando) return;
 
   const plan = planes.find(p => p.id === planEditando);
   const nombre = plan?.nombre || 'este plan';
 
-  if (!confirm(`¿Seguro que deseas borrar ${nombre}? Esta acción no se puede deshacer.`)) {
-    return;
-  }
+  planABorrar = planEditando;
+  document.getElementById('modalBorrarPlanTexto').textContent =
+    `¿Seguro que deseas borrar ${nombre}?`;
+  document.getElementById('modalBorrarPlanError').textContent = '';
+  document.getElementById('modalBorrarPlan').classList.add('open');
+}
 
-  const res = await fetch(`${API_URL}/planes/${planEditando}`, {
-    method: 'DELETE'
-  });
+function cerrarModalBorrarPlan() {
+  planABorrar = null;
+  document.getElementById('modalBorrarPlan').classList.remove('open');
+}
 
-  if (!res.ok) {
-    let mensaje = 'Error al borrar plan';
-    try {
-      const data = await res.json();
-      mensaje = data.error || mensaje;
-    } catch (error) {
-      console.error('Error leyendo respuesta de borrado:', error);
+async function confirmarBorrarPlan() {
+  if (!planABorrar) return;
+
+  const btn = document.getElementById('confirmBorrarPlanBtn');
+  const errorEl = document.getElementById('modalBorrarPlanError');
+  btn.disabled = true;
+  errorEl.textContent = '';
+
+  try {
+    const res = await fetch(`${API_URL}/planes/${planABorrar}`, {
+      method: 'DELETE'
+    });
+
+    if (!res.ok) {
+      let mensaje = 'Error al borrar plan';
+      try {
+        const data = await res.json();
+        mensaje = data.error || mensaje;
+      } catch (error) {
+        console.error('Error leyendo respuesta de borrado:', error);
+      }
+      errorEl.textContent = mensaje;
+      btn.disabled = false;
+      return;
     }
-    alert(mensaje);
-    return;
-  }
 
-  cerrarModalPlan();
-  await cargarPlanes();
+    cerrarModalBorrarPlan();
+    cerrarModalPlan();
+    await cargarPlanes();
+  } catch (error) {
+    console.error('Error borrando plan:', error);
+    errorEl.textContent = 'No se pudo borrar el plan. Inténtalo nuevamente.';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function abrirModalDesactivarPlan(id) {

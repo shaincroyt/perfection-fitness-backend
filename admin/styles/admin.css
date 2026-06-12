@@ -9483,10 +9483,7 @@ body.admin-page-planes .form-pair {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
-  padding: 12px;
-  border: 1px solid rgba(153, 153, 168, .22);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--input-bg, var(--bg)) 58%, transparent);
 }
 
 body.admin-page-planes .form-pair .form-group {
@@ -9508,6 +9505,52 @@ body.admin-page-planes .modal-danger-zone {
 body.admin-page-planes .btn-delete-plan {
   width: 100%;
   justify-content: center;
+}
+
+body.admin-page-planes .modal-confirm-plan {
+  max-width: 440px;
+}
+
+body.admin-page-planes .modal-confirm-body {
+  text-align: center;
+}
+
+body.admin-page-planes .modal-confirm-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+  color: var(--red);
+  border: 1px solid color-mix(in srgb, var(--red) 22%, transparent);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.admin-page-planes .modal-confirm-text {
+  color: var(--text-1);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+body.admin-page-planes .modal-confirm-help {
+  margin-top: 8px;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+body.admin-page-planes .modal-confirm-error {
+  min-height: 18px;
+  margin-top: 12px;
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 body.admin-page-planes .form-label {
@@ -9541,7 +9584,7 @@ body.admin-page-planes .color-input-row {
 }
 
 body.admin-page-planes .color-input-row input {
-  width: 34px;
+  width: 34px !important;
   height: 26px;
   flex: 0 0 auto;
   border: 0;
@@ -13306,8 +13349,8 @@ body.admin-page-planes .plan-card::after {
 }
 
 body.admin-page-planes .plan-duration {
-  background: color-mix(in srgb, var(--plan-accent) 18%, transparent) !important;
-  color: var(--plan-accent) !important;
+  background: color-mix(in srgb, var(--plan-price-color, var(--plan-accent)) 16%, transparent) !important;
+  color: var(--plan-price-color, var(--plan-accent)) !important;
 }
 
 body.admin-page-planes .plan-price {
