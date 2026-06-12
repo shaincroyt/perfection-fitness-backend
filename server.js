@@ -335,7 +335,7 @@ function generarCssTemaEmpresa(empresa = {}) {
 
 function responderSesionInvalida(req, res, mensaje = 'Sesion no activa') {
     if (req.originalUrl.startsWith('/admin')) {
-        return res.redirect('/admin/');
+        return res.redirect('/admin/index.html');
     }
 
     return res.status(401).json({
@@ -515,6 +515,68 @@ async function tienePermiso(admin, codigo) {
 
     const permisos = await obtenerCodigosPermisosUsuario(admin);
     return permisos.includes(codigo);
+}
+
+async function protegerPaginasAdmin(req, res, next) {
+    try {
+        const page = path.basename(req.path || '');
+
+        if (!page || !page.endsWith('.html')) {
+            return next();
+        }
+
+        if (page === 'index.html') {
+            return next();
+        }
+
+        if (!privateAdminPages.has(page)) {
+            return next();
+        }
+
+        const admin = await obtenerUsuarioSesion(req);
+
+        if (!admin || admin.estado !== 'activo') {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.redirect('/admin/index.html');
+        }
+
+        if (!await rolSesionActivo(admin.rol || 'recepcion', admin.empresa_id || 1)) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.redirect('/admin/index.html');
+        }
+
+        if (!admin.session_id || admin.session_id !== req.sessionID) {
+            await destruirSesion(req);
+            res.clearCookie('connect.sid');
+            return res.redirect('/admin/index.html');
+        }
+
+        req.session.admin = true;
+        req.session.adminId = admin.id;
+        req.session.adminNombre = admin.nombre;
+        req.session.adminUsuario = admin.usuario;
+        req.session.adminRol = admin.rol || 'recepcion';
+        req.session.empresa_id = admin.empresa_id || 1;
+
+        req.adminUser = admin;
+        req.empresaId = req.session.empresa_id;
+
+        const permisoPagina = ADMIN_PAGE_PERMISSIONS[page];
+        if (permisoPagina && !await tienePermiso(admin, permisoPagina)) {
+            if (page === 'dashboard.html') {
+                return res.status(403).send(htmlAccesoDenegado());
+            }
+
+            return res.redirect('/admin/dashboard.html?error=sin_permiso');
+        }
+
+        return next();
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Error al validar acceso');
+    }
 }
 
 function requirePermission(codigo) {
@@ -2549,33 +2611,23 @@ app.get(['/admin', '/admin/'], (req, res) => {
     res.sendFile(path.join(adminDir, 'index.html'));
 });
 
+app.get('/admin/index.html', (req, res) => {
+    res.sendFile(path.join(adminDir, 'index.html'));
+});
+
 app.get('/admin/login.html', (req, res) => {
-    res.redirect('/admin/');
+    res.redirect('/admin/index.html');
 });
 
 app.use('/admin/styles', express.static(path.join(adminDir, 'styles')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/admin', protegerPaginasAdmin);
 
-app.get('/admin/:page', requireAdminSession, (req, res, next) => {
+app.get('/admin/:page', (req, res, next) => {
     const { page } = req.params;
 
     if (!privateAdminPages.has(page)) {
         return next();
-    }
-
-    const permisoPagina = ADMIN_PAGE_PERMISSIONS[page];
-    if (permisoPagina) {
-        return tienePermiso(req.adminUser, permisoPagina)
-            .then(permitido => {
-                if (!permitido) {
-                    return res.status(403).send(htmlAccesoDenegado());
-                }
-                return res.sendFile(path.join(adminDir, page));
-            })
-            .catch(error => {
-                console.error(error);
-                return res.status(500).send('Error al validar permisos');
-            });
     }
 
     return res.sendFile(path.join(adminDir, page));

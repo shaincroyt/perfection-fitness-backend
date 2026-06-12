@@ -15878,7 +15878,6 @@ body.admin-page-clientes .client-profile-modal {
   width: min(600px, calc(100vw - 28px));
   max-width: 600px;
   max-height: calc(100vh - 32px);
-  display: flex;
   flex-direction: column;
   overflow: hidden;
   
@@ -15907,7 +15906,7 @@ body.admin-page-clientes .client-profile-avatar {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, #A855F7, var(--theme-primary, #7C3AED));
+  background: var(--theme-primary);
   color: #fff;
   font-weight: 900;
   font-size: 20px;
@@ -15956,9 +15955,9 @@ body.admin-page-clientes .client-profile-tabs {
 }
 
 body.admin-page-clientes .client-profile-tab {
-  border: var(--theme-border);
-
-  color: var(--theme-muted);
+  border: 1px solid var(--success);
+  background: var(--app-bg);
+  color: var(--theme-success-color);
   padding: 8px 10px;
   font-size: 11px;
   font-weight: 800;
@@ -15970,7 +15969,8 @@ body.admin-page-clientes .client-profile-tab {
 body.admin-page-clientes .client-profile-tab.active {
   color: #fff;
   border-color: color-mix(in srgb, var(--theme-primary, #7C3AED) 52%, transparent);
-  background: color-mix(in srgb, var(--theme-primary, #7C3AED) 22%, transparent);
+  background: var(--theme-primary, #7C3AED);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--theme-primary, #7C3AED) 48%, transparent);
 }
 
 body.admin-page-clientes .client-profile-body {
@@ -16014,7 +16014,7 @@ body.admin-page-clientes .profile-section-title::before {
   width: 4px;
   height: 24px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #B971FF, var(--theme-primary, #7C3AED));
+  background: var(--theme-accent);
   box-shadow: 0 0 18px color-mix(in srgb, var(--theme-primary, #7C3AED) 45%, transparent);
 }
 
@@ -16041,7 +16041,7 @@ body.admin-page-clientes .profile-status-line {
   gap: 12px;
   margin-bottom: 0;
   padding: 0 20px;
-  border-bottom: 1px solid rgba(218, 215, 255, .10);
+  border-bottom: 1px solid var(--theme-border);
 }
 
 body.admin-page-clientes .profile-active-label {
@@ -16095,7 +16095,7 @@ body.admin-page-clientes .profile-status-row {
   align-items: center;
   gap: 10px;
   padding: 0 20px;
-  border-bottom: 1px solid rgba(218, 215, 255, .10);
+  border-bottom: 1px solid var(--theme-border);
 
   font-size: 15px;
 }
