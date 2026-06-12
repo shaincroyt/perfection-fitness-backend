@@ -2112,7 +2112,7 @@ body.admin-page-clientes .client-id {
 
 /* BADGES */
 body.admin-page-clientes .badge {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   gap: 5px;
   font-size: 11.5px;
@@ -15875,82 +15875,120 @@ body.admin-page-configuracion #roleModal .role-modal-perms-grid {
 }
 
 body.admin-page-clientes .client-profile-modal {
-  width: min(940px, calc(100vw - 28px));
-  max-width: 940px;
+  width: min(600px, calc(100vw - 28px));
+  max-width: 600px;
   max-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--theme-primary, #7C3AED) 20%, transparent), transparent 32%),
+    linear-gradient(145deg, #15172A 0%, #101225 58%, #0D1021 100%) !important;
+  border: 1px solid rgba(196, 188, 255, .32) !important;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .44), inset 0 1px 0 rgba(255, 255, 255, .04);
+  color: #F8F7FF;
+}
+
+body.admin-page-clientes .client-profile-overlay {
+  background: rgba(3, 6, 18, .72);
+  backdrop-filter: blur(8px);
 }
 
 body.admin-page-clientes .client-profile-head {
-  padding: 22px 28px 18px;
+  padding: 28px 34px 18px;
   display: grid;
   grid-template-columns: 64px 1fr auto;
   align-items: center;
   gap: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 0;
 }
 
 body.admin-page-clientes .client-profile-avatar {
   width: 64px;
   height: 64px;
-  border-radius: 18px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--theme-primary, var(--red));
+  background: linear-gradient(145deg, #A855F7, var(--theme-primary, #7C3AED));
   color: #fff;
   font-weight: 900;
   font-size: 20px;
+  box-shadow: 0 0 28px color-mix(in srgb, var(--theme-primary, #7C3AED) 34%, transparent);
 }
 
 body.admin-page-clientes .client-profile-kicker {
-  color: var(--text-3);
+  color: rgba(218, 215, 255, .68);
   font-size: 12px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .08em;
+  text-transform: none;
+  letter-spacing: .02em;
 }
 
 body.admin-page-clientes .client-profile-name {
-  color: var(--text-1);
-  font-size: 24px;
+  color: #FFFFFF;
+  font-size: 26px;
   font-weight: 900;
   line-height: 1.15;
 }
 
 body.admin-page-clientes .client-profile-meta {
-  color: var(--text-3);
-  font-size: 13px;
-  margin-top: 4px;
+  display: none;
+}
+
+body.admin-page-clientes .client-profile-modal .modal-close {
+  background: rgba(255, 255, 255, .035);
+  border-color: rgba(218, 215, 255, .18);
+  color: rgba(255, 255, 255, .78);
+}
+
+body.admin-page-clientes .client-profile-modal .modal-close:hover {
+  background: rgba(124, 58, 237, .16);
+  color: #fff;
 }
 
 body.admin-page-clientes .client-profile-tabs {
-  padding: 12px 28px 0;
+  order: 3;
+  padding: 8px 34px 22px;
   display: flex;
-  gap: 8px;
-  border-bottom: 1px solid var(--border);
+  gap: 7px;
+  border-bottom: 0;
   overflow-x: auto;
+  min-height: 0;
+  opacity: .78;
 }
 
 body.admin-page-clientes .client-profile-tab {
-  border: 0;
-  background: transparent;
-  color: var(--text-3);
-  padding: 10px 12px;
+  border: 1px solid rgba(218, 215, 255, .13);
+  background: rgba(255, 255, 255, .035);
+  color: rgba(218, 215, 255, .72);
+  padding: 8px 10px;
+  font-size: 11px;
   font-weight: 800;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-radius: 999px;
   white-space: nowrap;
 }
 
 body.admin-page-clientes .client-profile-tab.active {
-  color: var(--theme-primary, var(--red));
-  border-bottom-color: var(--theme-primary, var(--red));
+  color: #fff;
+  border-color: color-mix(in srgb, var(--theme-primary, #7C3AED) 52%, transparent);
+  background: color-mix(in srgb, var(--theme-primary, #7C3AED) 22%, transparent);
 }
 
 body.admin-page-clientes .client-profile-body {
+  padding: 4px 34px 20px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, .35) transparent;
+}
+
+body.admin-page-clientes .client-profile-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+body.admin-page-clientes .client-profile-body::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, .35);
+  border-radius: 999px;
 }
 
 body.admin-page-clientes .profile-panel {
@@ -15962,49 +16000,202 @@ body.admin-page-clientes .profile-panel.active {
 }
 
 body.admin-page-clientes .profile-section-title {
-  margin: 4px 0 12px;
-  color: var(--text-1);
-  font-size: 15px;
+  position: relative;
+  margin: 10px 0 16px;
+  padding-left: 16px;
+  color: #FFFFFF;
+  font-size: 17px;
   font-weight: 900;
+}
+
+body.admin-page-clientes .profile-section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 4px;
+  height: 24px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #B971FF, var(--theme-primary, #7C3AED));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--theme-primary, #7C3AED) 45%, transparent);
 }
 
 body.admin-page-clientes .profile-current-card,
 body.admin-page-clientes .profile-info-grid,
 body.admin-page-clientes .profile-list-item,
 body.admin-page-clientes .profile-note-item {
-  border: 1px solid var(--border);
-  background: var(--bg-card, var(--surface));
-  border-radius: 10px;
+  border: 1px solid rgba(218, 215, 255, .14);
+  background: rgba(255, 255, 255, .045);
+  border-radius: 9px;
 }
 
 body.admin-page-clientes .profile-current-card {
-  padding: 16px;
-  margin-bottom: 18px;
+  padding: 0;
+  margin-bottom: 24px;
+  overflow: hidden;
 }
 
 body.admin-page-clientes .profile-status-line {
+  min-height: 54px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(218, 215, 255, .10);
+}
+
+body.admin-page-clientes .profile-active-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+body.admin-page-clientes .profile-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #22C55E;
+  border: 2px solid #22C55E;
+  font-size: 12px;
+  line-height: 1;
+}
+
+body.admin-page-clientes .profile-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #22C55E;
+  background: rgba(34, 197, 94, .14);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+body.admin-page-clientes .profile-status-pill span {
+  width: 7px;
+  height: 7px;
+  background: #22C55E;
+  border-radius: 50%;
+}
+
+body.admin-page-clientes .profile-status-table {
+  display: grid;
+}
+
+body.admin-page-clientes .profile-status-row {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(218, 215, 255, .10);
+  color: rgba(255, 255, 255, .84);
+  font-size: 15px;
+}
+
+body.admin-page-clientes .profile-status-row:last-child {
+  border-bottom: 0;
+}
+
+body.admin-page-clientes .profile-status-row-muted {
+  display: none;
+}
+
+body.admin-page-clientes .profile-row-icon {
+  color: #A855F7;
+  font-size: 22px;
+  line-height: 1;
+}
+
+body.admin-page-clientes .profile-status-row strong {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+body.admin-page-clientes .profile-freeze-btn {
+  margin: 14px 20px 18px;
+}
+
+body.admin-page-clientes .profile-timeline--summary {
+  padding: 2px 0 8px 12px;
+}
+
+body.admin-page-clientes .profile-timeline {
+  display: grid;
+  gap: 0;
+}
+
+body.admin-page-clientes .profile-timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 12px;
+  padding: 0 0 18px;
+}
+
+body.admin-page-clientes .profile-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: 34px;
+  bottom: -2px;
+  width: 1px;
+  background: rgba(168, 85, 247, .32);
+}
+
+body.admin-page-clientes .profile-timeline-item:last-child::before {
+  display: none;
+}
+
+body.admin-page-clientes .profile-timeline-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #7C3AED, #4C1D95);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow: 0 0 22px rgba(124, 58, 237, .32);
+  z-index: 1;
+}
+
+body.admin-page-clientes .profile-timeline-item strong {
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+body.admin-page-clientes .profile-timeline-item p {
+  color: rgba(255, 255, 255, .78);
+  margin: 4px 0 2px;
+  line-height: 1.35;
+}
+
+body.admin-page-clientes .profile-timeline-item span {
+  display: block;
+  color: rgba(218, 215, 255, .62);
+  font-size: 12px;
 }
 
 body.admin-page-clientes .profile-info-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  overflow: hidden;
-}
-
-body.admin-page-clientes .profile-info-grid > div {
-  padding: 14px;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
-body.admin-page-clientes .profile-info-grid > div:nth-child(3n) {
-  border-right: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
 }
 
 body.admin-page-clientes .profile-info-grid span,
@@ -16153,6 +16344,113 @@ body.admin-page-clientes .client-created-text {
   body.admin-page-clientes .profile-status-line {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+/* Perfil de cliente: acabado visual tipo ficha/timeline */
+body.admin-page-clientes .client-profile-avatar svg {
+  width: 38px;
+  height: 38px;
+  fill: currentColor;
+}
+
+body.admin-page-clientes .client-profile-body .profile-info-grid span,
+body.admin-page-clientes .client-profile-body .profile-list-item span,
+body.admin-page-clientes .client-profile-body .profile-timeline-item span,
+body.admin-page-clientes .client-profile-body .profile-note-item span {
+  color: rgba(218, 215, 255, .62);
+}
+
+body.admin-page-clientes .client-profile-body .profile-info-grid strong,
+body.admin-page-clientes .client-profile-body .profile-list-item strong,
+body.admin-page-clientes .client-profile-body .profile-timeline-item strong {
+  color: #FFFFFF;
+}
+
+body.admin-page-clientes .client-profile-body .profile-timeline-item {
+  position: relative;
+  grid-template-columns: 46px 1fr;
+  gap: 12px;
+  padding: 0 0 20px;
+}
+
+body.admin-page-clientes .client-profile-body .profile-timeline-dot {
+  width: 36px;
+  height: 36px;
+  margin-top: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #7C3AED, #4C1D95);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow: 0 0 22px rgba(124, 58, 237, .32);
+}
+
+body.admin-page-clientes .client-profile-body .profile-timeline-item p,
+body.admin-page-clientes .client-profile-body .profile-note-item p {
+  color: rgba(255, 255, 255, .78);
+}
+
+body.admin-page-clientes .client-profile-body .profile-list-item,
+body.admin-page-clientes .client-profile-body .profile-note-item {
+  background: rgba(255, 255, 255, .045);
+  border-color: rgba(218, 215, 255, .14);
+}
+
+body.admin-page-clientes .client-profile-body .profile-empty {
+  border-color: rgba(218, 215, 255, .16);
+  color: rgba(218, 215, 255, .62);
+  background: rgba(255, 255, 255, .035);
+}
+
+@media (max-width: 720px) {
+  body.admin-page-clientes .client-profile-modal {
+    width: min(100vw - 20px, 600px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  body.admin-page-clientes .client-profile-head {
+    grid-template-columns: 54px 1fr auto;
+    padding: 20px 18px 14px;
+    gap: 12px;
+  }
+
+  body.admin-page-clientes .client-profile-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+  }
+
+  body.admin-page-clientes .client-profile-avatar svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  body.admin-page-clientes .client-profile-body {
+    padding: 4px 18px 18px;
+  }
+
+  body.admin-page-clientes .profile-status-line {
+    flex-direction: row;
+    align-items: center;
+    padding: 0 14px;
+  }
+
+  body.admin-page-clientes .profile-status-row {
+    grid-template-columns: 26px 1fr;
+    padding: 10px 14px;
+    min-height: auto;
+  }
+
+  body.admin-page-clientes .profile-status-row strong {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  body.admin-page-clientes .client-profile-tabs {
+    padding: 8px 18px 18px;
   }
 }
 /* Fin de admin.css */
