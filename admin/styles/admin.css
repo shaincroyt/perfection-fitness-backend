@@ -15790,5 +15790,8 @@ body.admin-page-configuracion #roleModal .role-modal-perms-grid {
         height: clamp(340px, 54vh, 520px) !important;
     }
 }
+#planEsIlimitado{
+  width: 16px !important;
+}
 
 /* Fin de admin.css */
