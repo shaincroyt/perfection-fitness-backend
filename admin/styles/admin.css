@@ -9478,6 +9478,27 @@ body.admin-page-planes .form-group.full {
   grid-column: 1 / -1;
 }
 
+body.admin-page-planes .form-pair {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(153, 153, 168, .22);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--input-bg, var(--bg)) 58%, transparent);
+}
+
+body.admin-page-planes .form-pair .form-group {
+  min-width: 0;
+}
+
+body.admin-page-planes .form-pair .form-label {
+  min-height: 24px;
+  display: flex;
+  align-items: flex-end;
+}
+
 body.admin-page-planes .modal-danger-zone {
   margin-top: 22px;
   padding-top: 18px;
@@ -9527,11 +9548,64 @@ body.admin-page-planes .admin-checkbox-row {
 body.admin-page-planes .admin-checkbox-row input {
   width: 16px;
   height: 16px;
+  flex: 0 0 auto;
   accent-color: var(--red);
+}
+
+body.admin-page-planes .admin-checkbox-row span {
+  min-width: 0;
 }
 
 body.admin-page-planes .form-group.is-disabled {
   opacity: .62;
+}
+
+@media (max-width:600px) {
+  body.admin-page-planes .modal-overlay {
+    padding: 12px;
+  }
+
+  body.admin-page-planes .modal-header,
+  body.admin-page-planes .modal-footer {
+    padding: 16px;
+  }
+
+  body.admin-page-planes .modal-body {
+    padding: 16px;
+  }
+
+  body.admin-page-planes .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  body.admin-page-planes .form-pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  body.admin-page-planes .form-pair .form-label {
+    min-height: 28px;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+
+  body.admin-page-planes .form-input,
+  body.admin-page-planes .form-select,
+  body.admin-page-planes .admin-checkbox-row {
+    min-height: 40px;
+  }
+
+  body.admin-page-planes .admin-checkbox-row {
+    padding: 8px 9px;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  body.admin-page-planes .form-hint {
+    font-size: 10.5px;
+  }
 }
 
 body.admin-page-planes .notification-wrap {

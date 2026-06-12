@@ -186,32 +186,36 @@
           <input type="text" class="form-input" id="planTipo" placeholder="mensual, libre, sesion">
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Duracion por defecto</label>
-          <input type="number" class="form-input" id="planDuracionValor" min="1" value="1">
+        <div class="form-pair form-pair-duration">
+          <div class="form-group">
+            <label class="form-label">Duracion por defecto</label>
+            <input type="number" class="form-input" id="planDuracionValor" min="1" value="1">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Unidad de duracion</label>
+            <select class="form-select" id="planDuracionUnidad">
+              <option value="meses">Meses</option>
+              <option value="dias">Dias</option>
+              <option value="usos">Usos</option>
+            </select>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Unidad de duracion</label>
-          <select class="form-select" id="planDuracionUnidad">
-            <option value="meses">Meses</option>
-            <option value="dias">Dias</option>
-            <option value="usos">Usos</option>
-          </select>
-        </div>
+        <div class="form-pair form-pair-usage">
+          <div class="form-group">
+            <label class="form-label">Límite de usos</label>
+            <input type="number" class="form-input" id="planAsistenciasIncluidas" min="1" value="12">
+            <div class="form-hint">Cantidad máxima durante su vigencia.</div>
+          </div>
 
-        <div class="form-group">
-          <label class="form-label">Límite de usos</label>
-          <input type="number" class="form-input" id="planAsistenciasIncluidas" min="1" value="12">
-          <div class="form-hint">Cantidad máxima de veces que este plan puede ser utilizado durante su vigencia.</div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">USO ILIMITADO</label>
-          <label class="admin-checkbox-row">
-            <input type="checkbox" id="planEsIlimitado" onchange="actualizarPlanIlimitadoUI()">
-            <span>Usos ilimitados</span>
-          </label>
+          <div class="form-group">
+            <label class="form-label">USO ILIMITADO</label>
+            <label class="admin-checkbox-row">
+              <input type="checkbox" id="planEsIlimitado" onchange="actualizarPlanIlimitadoUI()">
+              <span>Usos ilimitados</span>
+            </label>
+          </div>
         </div>
 
         <div class="form-group">
