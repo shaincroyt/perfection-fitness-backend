@@ -227,6 +227,12 @@
           <input type="text" class="form-input" id="planDescripcion">
         </div>
       </div>
+
+      <div class="modal-danger-zone" id="planDeleteZone">
+        <button class="btn btn-danger btn-delete-plan" type="button" onclick="borrarPlanEditando()" data-permission="planes.eliminar">
+          Borrar Plan
+        </button>
+      </div>
     </div>
 
     <div class="modal-footer">
@@ -382,6 +388,7 @@ function abrirModalPlan() {
   document.getElementById('planEsIlimitado').checked = false;
   document.getElementById('planDescripcion').value = '';
   document.getElementById('planEstado').value = 'activo';
+  document.getElementById('planDeleteZone').hidden = true;
   actualizarPlanIlimitadoUI();
 
   document.getElementById('modalPlan').classList.add('open');
@@ -403,6 +410,7 @@ function editarPlan(id) {
   document.getElementById('planEsIlimitado').checked = Number(plan.es_ilimitado) === 1 || plan.asistencias_incluidas === null;
   document.getElementById('planDescripcion').value = plan.descripcion || '';
   document.getElementById('planEstado').value = plan.estado;
+  document.getElementById('planDeleteZone').hidden = false;
   actualizarPlanIlimitadoUI();
 
   document.getElementById('modalPlan').classList.add('open');
@@ -454,6 +462,36 @@ async function guardarPlan() {
 
   if (!res.ok) {
     alert('Error al guardar plan');
+    return;
+  }
+
+  cerrarModalPlan();
+  await cargarPlanes();
+}
+
+async function borrarPlanEditando() {
+  if (!planEditando) return;
+
+  const plan = planes.find(p => p.id === planEditando);
+  const nombre = plan?.nombre || 'este plan';
+
+  if (!confirm(`¿Seguro que deseas borrar ${nombre}? Esta acción no se puede deshacer.`)) {
+    return;
+  }
+
+  const res = await fetch(`${API_URL}/planes/${planEditando}`, {
+    method: 'DELETE'
+  });
+
+  if (!res.ok) {
+    let mensaje = 'Error al borrar plan';
+    try {
+      const data = await res.json();
+      mensaje = data.error || mensaje;
+    } catch (error) {
+      console.error('Error leyendo respuesta de borrado:', error);
+    }
+    alert(mensaje);
     return;
   }
 

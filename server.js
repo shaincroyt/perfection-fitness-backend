@@ -4836,6 +4836,19 @@ app.put('/api/planes/:id/desactivar', requirePermission('planes.eliminar'), asyn
     try {
         const { id } = req.params;
 
+        const [[plan]] = await pool.query(
+            `SELECT nombre
+             FROM planes
+             WHERE id = ? AND empresa_id = ?`,
+            [id, req.empresaId]
+        );
+
+        if (!plan) {
+            return res.status(404).json({
+                error: 'Plan no encontrado'
+            });
+        }
+
         const [result] = await pool.query(
             `UPDATE planes
              SET estado = 'inactivo'
@@ -4867,6 +4880,64 @@ app.put('/api/planes/:id/desactivar', requirePermission('planes.eliminar'), asyn
         console.error(error);
         res.status(500).json({
             error: 'Error al desactivar plan'
+        });
+    }
+});
+
+app.delete('/api/planes/:id', requirePermission('planes.eliminar'), async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [[plan]] = await pool.query(
+            `SELECT nombre
+             FROM planes
+             WHERE id = ? AND empresa_id = ?`,
+            [id, req.empresaId]
+        );
+
+        if (!plan) {
+            return res.status(404).json({
+                error: 'Plan no encontrado'
+            });
+        }
+
+        const [[uso]] = await pool.query(
+            `SELECT COUNT(*) AS total
+             FROM membresias
+             WHERE plan_id = ? AND empresa_id = ?`,
+            [id, req.empresaId]
+        );
+
+        if (Number(uso.total) > 0) {
+            return res.status(409).json({
+                error: 'No se puede borrar este plan porque tiene membresias asociadas. Puedes desactivarlo para conservar el historial.'
+            });
+        }
+
+        await pool.query(
+            `DELETE FROM planes
+             WHERE id = ? AND empresa_id = ?`,
+            [id, req.empresaId]
+        );
+
+        res.json({
+            mensaje: 'Plan borrado correctamente'
+        });
+
+        await crearNotificacion({
+            tipo: 'plan_eliminado',
+            titulo: 'Plan eliminado',
+            mensaje: `Se elimino el plan ${plan.nombre}.`,
+            entidad: 'plan',
+            entidad_id: id,
+            ...adminNotificacion(req),
+            evento_key: `plan-borrado-${id}-${Date.now()}`
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: 'Error al borrar plan'
         });
     }
 });

@@ -9439,6 +9439,10 @@ body.admin-page-planes .modal {
   width: 100%;
   max-width: 520px;
   box-shadow: var(--shadow-md);
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 body.admin-page-planes .modal-header,
@@ -9447,10 +9451,15 @@ body.admin-page-planes .modal-footer {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 body.admin-page-planes .modal-body {
   padding: 22px 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 body.admin-page-planes .form-grid {
@@ -9467,6 +9476,17 @@ body.admin-page-planes .form-group {
 
 body.admin-page-planes .form-group.full {
   grid-column: 1 / -1;
+}
+
+body.admin-page-planes .modal-danger-zone {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+body.admin-page-planes .btn-delete-plan {
+  width: 100%;
+  justify-content: center;
 }
 
 body.admin-page-planes .form-label {
@@ -13835,13 +13855,14 @@ body.admin-page-clientes .table-wrap {
 body.admin-page-clientes .table-scroll {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 body.admin-page-clientes #clientsTable {
   width: 100%;
-  min-width: 0 !important;
-  table-layout: fixed;
+  min-width: 980px !important;
+  table-layout: auto;
   border-collapse: collapse;
   font-size: 13px;
 }
