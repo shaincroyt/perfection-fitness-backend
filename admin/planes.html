@@ -182,6 +182,14 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label">Color del precio</label>
+          <label class="color-input-row">
+            <input type="color" id="planColorPrecio" value="#DD0F0D" oninput="actualizarColorPrecioUI()">
+            <span id="planColorPrecioTexto">#DD0F0D</span>
+          </label>
+        </div>
+
+        <div class="form-group">
           <label class="form-label">Tipo</label>
           <input type="text" class="form-input" id="planTipo" placeholder="mensual, libre, sesion">
         </div>
@@ -205,7 +213,7 @@
         <div class="form-pair form-pair-usage">
           <div class="form-group">
             <label class="form-label">Límite de usos</label>
-            <input type="number" class="form-input" id="planAsistenciasIncluidas" min="1" value="12">
+            <input placeholder="0" type="number" class="form-input" id="planAsistenciasIncluidas" min="1" value="12">
             <div class="form-hint">Cantidad máxima durante su vigencia.</div>
           </div>
 
@@ -273,6 +281,7 @@ const API_URL = '/api';
 let planes = [];
 let planEditando = null;
 let planADesactivar = null;
+const PLAN_PRICE_COLOR_DEFAULT = '#DD0F0D';
 
 const now = new Date();
 const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
@@ -299,6 +308,20 @@ function actualizarPlanIlimitadoUI() {
   const input = document.getElementById('planAsistenciasIncluidas');
   input.disabled = checked;
   input.closest('.form-group')?.classList.toggle('is-disabled', checked);
+}
+
+function normalizarColorPrecio(color) {
+  return /^#[0-9a-fA-F]{6}$/.test(String(color || '').trim())
+    ? String(color).trim().toUpperCase()
+    : '';
+}
+
+function actualizarColorPrecioUI() {
+  const input = document.getElementById('planColorPrecio');
+  const texto = document.getElementById('planColorPrecioTexto');
+  if (input && texto) {
+    texto.textContent = normalizarColorPrecio(input.value) || PLAN_PRICE_COLOR_DEFAULT;
+  }
 }
 
 async function cargarPlanes() {
@@ -336,8 +359,12 @@ async function cargarPlanes() {
       return;
     }
 
-    grid.innerHTML = planes.map(plan => `
-    <div class="plan-card ${plan.estado === 'inactivo' ? 'inactive' : ''}">
+    grid.innerHTML = planes.map(plan => {
+      const colorPrecio = normalizarColorPrecio(plan.color_precio);
+      const colorPrecioStyle = colorPrecio ? ` style="--plan-price-color:${colorPrecio}"` : '';
+
+      return `
+    <div class="plan-card ${plan.estado === 'inactivo' ? 'inactive' : ''}"${colorPrecioStyle}>
       <div class="plan-header">
         <div class="plan-name">${plan.nombre}</div>
         <div class="plan-duration">
@@ -371,7 +398,8 @@ async function cargarPlanes() {
         </button>
       </div>
     </div>
-  `).join('');
+  `;
+    }).join('');
     window.AdminAuth?.applyPermissions?.(document);
   } catch (error) {
     console.error('Error cargando planes:', error);
@@ -385,6 +413,8 @@ function abrirModalPlan() {
   document.getElementById('modalPlanTitulo').textContent = 'Nuevo Plan';
   document.getElementById('planNombre').value = '';
   document.getElementById('planPrecio').value = '';
+  document.getElementById('planColorPrecio').value = PLAN_PRICE_COLOR_DEFAULT;
+  actualizarColorPrecioUI();
   document.getElementById('planTipo').value = '';
   document.getElementById('planDuracionValor').value = '1';
   document.getElementById('planDuracionUnidad').value = 'meses';
@@ -407,6 +437,8 @@ function editarPlan(id) {
   document.getElementById('modalPlanTitulo').textContent = 'Editar Plan';
   document.getElementById('planNombre').value = plan.nombre;
   document.getElementById('planPrecio').value = plan.precio ?? plan.precio_mensual;
+  document.getElementById('planColorPrecio').value = normalizarColorPrecio(plan.color_precio) || PLAN_PRICE_COLOR_DEFAULT;
+  actualizarColorPrecioUI();
   document.getElementById('planTipo').value = plan.tipo || '';
   document.getElementById('planDuracionValor').value = plan.duracion_valor || 1;
   document.getElementById('planDuracionUnidad').value = plan.duracion_unidad || 'meses';
@@ -432,6 +464,7 @@ async function guardarPlan() {
   const duracion_unidad = document.getElementById('planDuracionUnidad').value;
   const es_ilimitado = document.getElementById('planEsIlimitado').checked;
   const asistencias_incluidas = es_ilimitado ? null : parseInt(document.getElementById('planAsistenciasIncluidas').value, 10);
+  const color_precio = normalizarColorPrecio(document.getElementById('planColorPrecio').value) || PLAN_PRICE_COLOR_DEFAULT;
   const descripcion = document.getElementById('planDescripcion').value.trim();
   const estado = document.getElementById('planEstado').value;
 
@@ -459,6 +492,7 @@ async function guardarPlan() {
       duracion_unidad,
       asistencias_incluidas,
       es_ilimitado,
+      color_precio,
       descripcion,
       estado
     })

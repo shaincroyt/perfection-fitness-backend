@@ -1962,7 +1962,7 @@ body.admin-page-clientes .toolbar {
 body.admin-page-clientes .search-wrap {
   position: relative;
   flex: 1;
-  min-width: 425px;
+  min-width: fit-content;
 }
 
 body.admin-page-clientes .search-icon {
@@ -9525,6 +9525,36 @@ body.admin-page-planes .form-select {
   background: var(--input-bg, var(--bg));
 }
 
+body.admin-page-planes .color-input-row {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--input-border, var(--border));
+  border-radius: 8px;
+  background: var(--input-bg, var(--bg));
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+body.admin-page-planes .color-input-row input {
+  width: 34px;
+  height: 26px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+body.admin-page-planes .color-input-row span {
+  min-width: 0;
+}
+
 body.admin-page-planes .form-hint {
   color: var(--text-3);
   font-size: 11px;
@@ -9593,6 +9623,7 @@ body.admin-page-planes .form-group.is-disabled {
 
   body.admin-page-planes .form-input,
   body.admin-page-planes .form-select,
+  body.admin-page-planes .color-input-row,
   body.admin-page-planes .admin-checkbox-row {
     min-height: 40px;
   }
@@ -13280,8 +13311,8 @@ body.admin-page-planes .plan-duration {
 }
 
 body.admin-page-planes .plan-price {
-  color: var(--plan-accent) !important;
-  text-shadow: 0 0 22px color-mix(in srgb, var(--plan-accent) 35%, transparent);
+  color: var(--plan-price-color, var(--plan-accent)) !important;
+  text-shadow: 0 0 22px color-mix(in srgb, var(--plan-price-color, var(--plan-accent)) 35%, transparent);
 }
 
 body.admin-page-planes .feature-icon {
@@ -15793,5 +15824,10 @@ body.admin-page-configuracion #roleModal .role-modal-perms-grid {
 #planEsIlimitado{
   width: 16px !important;
 }
-
+.btn{
+  text-align: center !important;
+}
+.clients-toolbar{
+  background: none !important;
+}
 /* Fin de admin.css */

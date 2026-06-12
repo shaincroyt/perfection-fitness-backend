@@ -98,6 +98,23 @@ const PERMISOS_RECEPCION_DEFAULT = [
     'notificaciones.ver',
     'notificaciones.marcar_leida'
 ];
+
+async function asegurarColumnasPlanes() {
+    const [[columnaColorPrecio]] = await pool.query(
+        `SELECT COLUMN_NAME
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = 'planes'
+           AND COLUMN_NAME = 'color_precio'`
+    );
+
+    if (!columnaColorPrecio) {
+        await pool.query(
+            `ALTER TABLE planes
+             ADD COLUMN color_precio varchar(7) DEFAULT NULL`
+        );
+    }
+}
 const TEMA_EMPRESA_DEFAULT = {
     color_primario: '#7C3AED',
     color_secundario: '#A855F7',
@@ -3462,13 +3479,13 @@ app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async 
 
         if (!plan_id || !fecha_inicio || !fecha_fin || !Array.isArray(personas) || personas.length === 0) {
             return res.status(400).json({
-                error: 'Plan, fechas y personas son obligatorios'
+                error: 'Selecciona un plan, define fecha de inicio y fecha fin, y agrega al menos una persona.'
             });
         }
 
         if (promocion_etiqueta === 'Promoción 2x1' && personas.length > 2) {
             return res.status(400).json({
-                error: 'La promoción 2x1 permite máximo 2 personas'
+                error: 'La promoción 2x1 solo permite registrar hasta 2 integrantes.'
             });
         }
 
@@ -3502,7 +3519,7 @@ app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async 
             .filter(Boolean);
         if (correos.length !== new Set(correos).size) {
             return res.status(400).json({
-                error: 'No se permiten correos duplicados entre personas'
+                error: 'Hay personas con el mismo correo. Cada integrante debe tener un correo diferente.'
             });
         }
 
@@ -3510,7 +3527,7 @@ app.post('/api/membresias/grupal', requirePermission('membresias.crear'), async 
 
         const plan = await obtenerPlanParaMembresia(plan_id, empresaId, conn);
         if (!plan) {
-            throw new Error('Plan no valido');
+            throw new Error('El plan seleccionado no existe, está inactivo o no pertenece a esta empresa.');
         }
 
         const unidad = normalizarDuracionUnidad(duracion_unidad || plan.duracion_unidad);
@@ -3547,11 +3564,11 @@ VALUES (?, ?)`,
                 );
 
                 if (!cliente) {
-                    throw new Error('Cliente existente no encontrado');
+                    throw new Error('Uno de los clientes seleccionados no existe o no pertenece a esta empresa.');
                 }
 
                 if (await obtenerMembresiaActivaCliente(clienteId, empresaId, conn)) {
-                    const error = new Error(`El cliente ${cliente.nombre} ya tiene una membresia activa. Usa renovar membresia.`);
+                    const error = new Error(`El cliente ${cliente.nombre} ya tiene una membresía activa. Para continuar, usa la opción renovar membresía.`);
                     error.statusCode = 409;
                     throw error;
                 }
@@ -3564,17 +3581,17 @@ VALUES (?, ?)`,
                 const correo = normalizarCorreo(persona.correo);
 
                 if (!nombre || !dni) {
-                    throw new Error('Nombre y DNI son obligatorios para clientes nuevos');
+                    throw new Error('Para registrar una persona nueva, debes ingresar nombre y DNI.');
                 }
 
                 if (await existeDniCliente(dni, empresaId, null, conn)) {
-                    const error = new Error('El DNI ya existe. Usa cliente existente para esa persona.');
+                    const error = new Error('Ya existe un cliente registrado con este DNI. Selecciónalo como cliente existente en lugar de crearlo nuevamente.');
                     error.statusCode = 409;
                     throw error;
                 }
 
                 if (await existeCorreoCliente(correo, empresaId, null, conn)) {
-                    const error = new Error('Ya existe un cliente registrado con este correo.');
+                    const error = new Error('Ya existe un cliente registrado con este correo. Usa ese cliente existente o ingresa otro correo.');
                     error.statusCode = 409;
                     throw error;
                 }
@@ -3682,7 +3699,7 @@ WHERE id = ? AND empresa_id = ?`,
         await conn.rollback();
         console.error(error);
         res.status(error.statusCode || 500).json({
-            error: error.message || 'Error al crear membresía grupal'
+            error: error.message || 'No se pudo crear la membresía grupal. Inténtalo nuevamente o revisa los datos ingresados.'
         });
     } finally {
         conn.release();
@@ -3705,8 +3722,14 @@ function obtenerDatosPlan(body) {
     const asistencias_incluidas = es_ilimitado
         ? null
         : normalizarAsistencias(body.asistencias_incluidas ?? body.usos_totales ?? body.limite_usos);
+    const color_precio = normalizarColorPrecioPlan(body.color_precio);
 
-    return { nombre, precio, descripcion, estado, tipo, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado };
+    return { nombre, precio, descripcion, estado, tipo, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado, color_precio };
+}
+
+function normalizarColorPrecioPlan(color) {
+    const valor = String(color || '').trim();
+    return /^#[0-9a-fA-F]{6}$/.test(valor) ? valor.toUpperCase() : null;
 }
 
 function validarDatosPlan(datos) {
@@ -3737,7 +3760,8 @@ const [rows] = await pool.query(`
                 COALESCE(duracion_valor, 1) AS duracion_valor,
                 COALESCE(duracion_unidad, 'meses') AS duracion_unidad,
                 asistencias_incluidas,
-                COALESCE(es_ilimitado, 0) AS es_ilimitado
+                COALESCE(es_ilimitado, 0) AS es_ilimitado,
+                color_precio
             FROM planes
             WHERE estado = 'activo' AND empresa_id = ?
             ORDER BY id ASC
@@ -4727,7 +4751,8 @@ const [rows] = await pool.query(`
                 COALESCE(duracion_valor, 1) AS duracion_valor,
                 COALESCE(duracion_unidad, 'meses') AS duracion_unidad,
                 asistencias_incluidas,
-                COALESCE(es_ilimitado, 0) AS es_ilimitado
+                COALESCE(es_ilimitado, 0) AS es_ilimitado,
+                color_precio
             FROM planes
             WHERE empresa_id = ?
             ORDER BY id ASC
@@ -4753,8 +4778,8 @@ app.post('/api/planes', requirePermission('planes.crear'), async (req, res) => {
         }
 
         const [result] = await pool.query(
-            `INSERT INTO planes (empresa_id, nombre, precio_mensual, tipo, descripcion, estado, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO planes (empresa_id, nombre, precio_mensual, tipo, descripcion, estado, duracion_valor, duracion_unidad, asistencias_incluidas, es_ilimitado, color_precio)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 req.empresaId,
                 datos.nombre,
@@ -4765,7 +4790,8 @@ app.post('/api/planes', requirePermission('planes.crear'), async (req, res) => {
                 datos.duracion_valor,
                 datos.duracion_unidad,
                 datos.asistencias_incluidas,
-                datos.es_ilimitado ? 1 : 0
+                datos.es_ilimitado ? 1 : 0,
+                datos.color_precio
             ]
         );
 
@@ -4804,7 +4830,7 @@ app.put('/api/planes/:id', requirePermission('planes.editar'), async (req, res) 
 
         await pool.query(
             `UPDATE planes
-             SET nombre = ?, precio_mensual = ?, descripcion = ?, estado = ?, duracion_valor = ?, duracion_unidad = ?, asistencias_incluidas = ?, es_ilimitado = ?
+             SET nombre = ?, precio_mensual = ?, descripcion = ?, estado = ?, duracion_valor = ?, duracion_unidad = ?, asistencias_incluidas = ?, es_ilimitado = ?, color_precio = ?
              WHERE id = ? AND empresa_id = ?`,
             [
                 datos.nombre,
@@ -4815,6 +4841,7 @@ app.put('/api/planes/:id', requirePermission('planes.editar'), async (req, res) 
                 datos.duracion_unidad,
                 datos.asistencias_incluidas,
                 datos.es_ilimitado ? 1 : 0,
+                datos.color_precio,
                 id,
                 req.empresaId
             ]
@@ -4948,6 +4975,16 @@ app.get('/api/test', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+async function iniciarServidor() {
+    try {
+        await asegurarColumnasPlanes();
+    } catch (error) {
+        console.error('Error verificando columnas de planes:', error);
+    }
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor corriendo en puerto ${PORT}`);
+    });
+}
+
+iniciarServidor();

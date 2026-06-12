@@ -222,6 +222,7 @@ CREATE TABLE `planes` (
   `fecha_creacion` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `duracion_valor` int DEFAULT '1',
   `duracion_unidad` enum('dias','meses','usos') DEFAULT 'meses',
+  `color_precio` varchar(7) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -232,7 +233,7 @@ CREATE TABLE `planes` (
 
 LOCK TABLES `planes` WRITE;
 /*!40000 ALTER TABLE `planes` DISABLE KEYS */;
-INSERT INTO `planes` VALUES (1,'PLAN FUERTE','Plan mensual estándar',80.00,80.00,'General',30,'activo','2026-06-06 06:33:08',1,'meses'),(2,'PLAN INTERDIARIO','Plan semanal',25.00,25.00,'General',7,'activo','2026-06-06 06:33:08',1,'meses'),(3,'PLAN 4 USOS','Plan por un día',10.00,10.00,'General',1,'activo','2026-06-06 06:33:08',4,'usos');
+INSERT INTO `planes` VALUES (1,'PLAN FUERTE','Plan mensual estándar',80.00,80.00,'General',30,'activo','2026-06-06 06:33:08',1,'meses',NULL),(2,'PLAN INTERDIARIO','Plan semanal',25.00,25.00,'General',7,'activo','2026-06-06 06:33:08',1,'meses',NULL),(3,'PLAN 4 USOS','Plan por un día',10.00,10.00,'General',1,'activo','2026-06-06 06:33:08',4,'usos',NULL);
 /*!40000 ALTER TABLE `planes` ENABLE KEYS */;
 UNLOCK TABLES;
 
