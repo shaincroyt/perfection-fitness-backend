@@ -15881,9 +15881,7 @@ body.admin-page-clientes .client-profile-modal {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--theme-primary, #7C3AED) 20%, transparent), transparent 32%),
-    linear-gradient(145deg, #15172A 0%, #101225 58%, #0D1021 100%) !important;
+  
   border: 1px solid rgba(196, 188, 255, .32) !important;
   box-shadow: 0 26px 80px rgba(0, 0, 0, .44), inset 0 1px 0 rgba(255, 255, 255, .04);
   color: #F8F7FF;
@@ -15917,7 +15915,7 @@ body.admin-page-clientes .client-profile-avatar {
 }
 
 body.admin-page-clientes .client-profile-kicker {
-  color: rgba(218, 215, 255, .68);
+
   font-size: 12px;
   font-weight: 800;
   text-transform: none;
@@ -15925,7 +15923,7 @@ body.admin-page-clientes .client-profile-kicker {
 }
 
 body.admin-page-clientes .client-profile-name {
-  color: #FFFFFF;
+
   font-size: 26px;
   font-weight: 900;
   line-height: 1.15;
@@ -15958,9 +15956,9 @@ body.admin-page-clientes .client-profile-tabs {
 }
 
 body.admin-page-clientes .client-profile-tab {
-  border: 1px solid rgba(218, 215, 255, .13);
-  background: rgba(255, 255, 255, .035);
-  color: rgba(218, 215, 255, .72);
+  border: var(--theme-border);
+
+  color: var(--theme-muted);
   padding: 8px 10px;
   font-size: 11px;
   font-weight: 800;
@@ -16003,7 +16001,7 @@ body.admin-page-clientes .profile-section-title {
   position: relative;
   margin: 10px 0 16px;
   padding-left: 16px;
-  color: #FFFFFF;
+
   font-size: 17px;
   font-weight: 900;
 }
@@ -16025,7 +16023,7 @@ body.admin-page-clientes .profile-info-grid,
 body.admin-page-clientes .profile-list-item,
 body.admin-page-clientes .profile-note-item {
   border: 1px solid rgba(218, 215, 255, .14);
-  background: rgba(255, 255, 255, .045);
+  background: var(--theme-bg);
   border-radius: 9px;
 }
 
@@ -16098,7 +16096,7 @@ body.admin-page-clientes .profile-status-row {
   gap: 10px;
   padding: 0 20px;
   border-bottom: 1px solid rgba(218, 215, 255, .10);
-  color: rgba(255, 255, 255, .84);
+
   font-size: 15px;
 }
 
@@ -16111,13 +16109,13 @@ body.admin-page-clientes .profile-status-row-muted {
 }
 
 body.admin-page-clientes .profile-row-icon {
-  color: #A855F7;
+  color: var(--theme-primary);
   font-size: 22px;
   line-height: 1;
 }
 
 body.admin-page-clientes .profile-status-row strong {
-  color: #fff;
+
   font-size: 15px;
   font-weight: 800;
 }
@@ -16400,8 +16398,7 @@ body.admin-page-clientes .client-profile-body .profile-note-item {
 }
 
 body.admin-page-clientes .client-profile-body .profile-empty {
-  border-color: rgba(218, 215, 255, .16);
-  color: rgba(218, 215, 255, .62);
+  border-color: var(--theme-border);
   background: rgba(255, 255, 255, .035);
 }
 
