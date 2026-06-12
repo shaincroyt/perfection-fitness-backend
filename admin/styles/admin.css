@@ -15876,6 +15876,7 @@ body.admin-page-configuracion #roleModal .role-modal-perms-grid {
 body.admin-page-clientes .client-profile-modal {
   width: min(600px, calc(100vw - 28px));
   max-width: 600px;
+  height: min(760px, calc(100vh - 32px));
   max-height: calc(100vh - 32px);
   flex-direction: column;
   overflow: hidden;
@@ -15973,6 +15974,8 @@ body.admin-page-clientes .client-profile-tab.active {
 }
 
 body.admin-page-clientes .client-profile-body {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 4px 34px 20px;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -16396,6 +16399,7 @@ body.admin-page-clientes .client-profile-body .profile-empty {
 @media (max-width: 720px) {
   body.admin-page-clientes .client-profile-modal {
     width: min(100vw - 20px, 600px);
+    height: calc(100dvh - 20px);
     max-height: calc(100dvh - 20px);
   }
 
